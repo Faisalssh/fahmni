@@ -135,9 +135,9 @@ const GS = () => (<style>{`
 
     /* ── Nav ── */
     .nav{padding:10px 14px !important;margin-bottom:0;}
-    .nav-burger{display:flex !important;}
+    /* ── Nav موبايل ── */
     .nav-desktop{display:none !important;}
-    .nav-mob-cta{display:flex !important;}
+    .nav-mob-row{display:flex !important;}
 
     /* ── Buttons — minimum 48px touch target (Apple HIG) ── */
     .btn{
@@ -700,31 +700,35 @@ JSON فقط: {"grade":"ممتاز"|"جيد"|"يحتاج مراجعة","headline"
 /* ═══════════════════ NAV ═══════════════════ */
 function Nav({isPub,go,userName,title,onLogout}){
   const[menuOpen,setMenuOpen]=useState(false);
+  useEffect(()=>{
+    if(!menuOpen) return;
+    const close=()=>setMenuOpen(false);
+    document.addEventListener("click",close);
+    return()=>document.removeEventListener("click",close);
+  },[menuOpen]);
   return(
-    <nav className="nav">
-      <div style={{display:"flex",alignItems:"center",gap:10,maxWidth:1020,margin:"0 auto",width:"100%",padding:"0 16px"}}>
-
-        {/* Hamburger — يسار */}
-        <button className="nav-burger" onClick={()=>setMenuOpen(p=>!p)} style={{
-          display:"none",background:menuOpen?"rgba(249,115,22,.1)":"rgba(255,255,255,.06)",
-          border:`1px solid ${menuOpen?"rgba(249,115,22,.3)":"rgba(255,255,255,.1)"}`,
-          borderRadius:10,width:40,height:40,cursor:"pointer",
-          color:menuOpen?"#f97316":"#94a3b8",fontSize:"1rem",flexShrink:0,
-          alignItems:"center",justifyContent:"center"
-        }}>{menuOpen?"✕":"☰"}</button>
-
-        {/* Logo — يمين */}
-        <div style={{display:"flex",alignItems:"center",gap:10,flex:1,cursor:"pointer"}}
+    <>
+      <nav style={{
+        display:"flex",alignItems:"center",justifyContent:"space-between",
+        padding:"0 16px",height:58,
+        borderBottom:"1px solid rgba(255,255,255,.06)",
+        position:"sticky",top:0,zIndex:300,
+        background:"rgba(5,9,26,.95)",
+        backdropFilter:"blur(20px)",WebkitBackdropFilter:"blur(20px)"
+      }}>
+        {/* لوغو */}
+        <div style={{display:"flex",alignItems:"center",gap:9,cursor:"pointer",flex:1,minWidth:0}}
           onClick={()=>{go(isPub?"landing":"dashboard");setMenuOpen(false);}}>
           <div className="logo" style={{flexShrink:0}}>ف</div>
-          <div style={{textAlign:"right"}}>
-            <p style={{fontSize:"1rem",fontWeight:900,color:"#fff",lineHeight:1}}>فهمني</p>
-            <p style={{fontSize:".6rem",color:"#64748b",marginTop:1}}>{isPub?"ذاكر بذكاء على القدرات":title||""}</p>
+          <div style={{minWidth:0}}>
+            <p style={{fontSize:".95rem",fontWeight:900,color:"#fff",lineHeight:1}}>فهمني</p>
+            <p style={{fontSize:".58rem",color:"#475569",marginTop:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>
+              {isPub?"ذاكر بذكاء على القدرات":title||""}
+            </p>
           </div>
         </div>
-
-        {/* Desktop buttons */}
-        <div className="nav-desktop" style={{display:"flex",gap:7,alignItems:"center"}}>
+        {/* ديسكتوب */}
+        <div className="nav-desktop" style={{display:"flex",gap:7,alignItems:"center",flexShrink:0}}>
           {isPub?(
             <>
               <button className="btn btn-g" style={{fontSize:".78rem",padding:"8px 14px"}} onClick={()=>go("login")}>دخول</button>
@@ -739,45 +743,57 @@ function Nav({isPub,go,userName,title,onLogout}){
             </>
           )}
         </div>
-
-        {/* Mobile — CTA مباشرة بدون قائمة (للصفحات العامة) */}
-        {isPub&&(
-          <button className="nav-mob-cta" style={{
-            display:"none",background:"linear-gradient(135deg,#f97316,#fb923c)",
-            border:"none",borderRadius:10,padding:"9px 14px",cursor:"pointer",
-            color:"#0a0f1e",fontSize:".8rem",fontWeight:800,fontFamily:"Cairo,sans-serif",
-            whiteSpace:"nowrap",flexShrink:0
-          }} onClick={()=>go("signup")}>ابدأ ←</button>
-        )}
-      </div>
-
-      {/* Mobile dropdown menu */}
+        {/* موبايل — زر ابدأ + هامبرقر */}
+        <div className="nav-mob-row" style={{display:"none",alignItems:"center",gap:8,flexShrink:0}}>
+          {isPub&&<button onClick={()=>go("signup")} style={{
+            background:"linear-gradient(135deg,#f97316,#fb923c)",border:"none",
+            borderRadius:10,padding:"9px 14px",cursor:"pointer",color:"#0a0f1e",
+            fontSize:".82rem",fontWeight:800,fontFamily:"Cairo,sans-serif",whiteSpace:"nowrap"
+          }}>ابدأ ←</button>}
+          <button onClick={e=>{e.stopPropagation();setMenuOpen(p=>!p);}} style={{
+            background:menuOpen?"rgba(249,115,22,.12)":"rgba(255,255,255,.06)",
+            border:`1.5px solid ${menuOpen?"rgba(249,115,22,.35)":"rgba(255,255,255,.1)"}`,
+            borderRadius:10,width:40,height:40,cursor:"pointer",
+            color:menuOpen?"#f97316":"#94a3b8",fontSize:"1rem",
+            display:"flex",alignItems:"center",justifyContent:"center",
+            transition:"all .18s"
+          }}>{menuOpen?"✕":"☰"}</button>
+        </div>
+      </nav>
+      {/* قائمة موبايل — تظهر أسفل النافبار مباشرة */}
       {menuOpen&&(
-        <div style={{
-          padding:"14px 16px",borderTop:"1px solid rgba(255,255,255,.07)",
-          display:"flex",flexDirection:"column",gap:8,
-          background:"rgba(4,7,20,.98)",backdropFilter:"blur(20px)"
+        <div className="nav-mob-row" onClick={e=>e.stopPropagation()} style={{
+          display:"none",flexDirection:"column",gap:8,padding:"14px 16px 18px",
+          background:"rgba(4,7,20,.98)",backdropFilter:"blur(20px)",
+          borderBottom:"1px solid rgba(249,115,22,.12)",
+          position:"sticky",top:58,zIndex:299,
+          boxShadow:"0 10px 40px rgba(0,0,0,.7)"
         }}>
           {isPub?(
             <>
-              <button className="btn btn-g" style={{width:"100%",justifyContent:"center",padding:"14px",fontSize:".9rem"}} onClick={()=>{go("login");setMenuOpen(false);}}>تسجيل الدخول</button>
-              <button className="btn btn-p" style={{width:"100%",justifyContent:"center",padding:"14px",fontSize:".9rem"}} onClick={()=>{go("signup");setMenuOpen(false);}}>ابدأ مجانًا — 20 سؤال ←</button>
+              <button className="btn btn-g" style={{width:"100%",justifyContent:"center",padding:"14px",fontSize:".92rem"}}
+                onClick={()=>{go("login");setMenuOpen(false);}}>تسجيل الدخول</button>
+              <button className="btn btn-p" style={{width:"100%",justifyContent:"center",padding:"14px",fontSize:".92rem"}}
+                onClick={()=>{go("signup");setMenuOpen(false);}}>ابدأ مجانًا — 20 سؤال ←</button>
+              <button className="btn btn-g" style={{width:"100%",justifyContent:"center",padding:"12px",fontSize:".85rem",color:"#64748b"}}
+                onClick={()=>{go("pricing");setMenuOpen(false);}}>عرض الأسعار</button>
             </>
           ):(
             <>
-              {userName&&<div style={{padding:"12px 14px",borderRadius:11,background:"rgba(249,115,22,.07)",border:"1px solid rgba(249,115,22,.15)",fontSize:".85rem",fontWeight:700,color:"#fdba74",textAlign:"center"}}>👤 {userName}</div>}
+              {userName&&<div style={{padding:"11px",borderRadius:11,background:"rgba(249,115,22,.07)",border:"1px solid rgba(249,115,22,.15)",fontSize:".85rem",fontWeight:700,color:"#fdba74",textAlign:"center"}}>👤 {userName}</div>}
               <button className="btn btn-g" style={{width:"100%",justifyContent:"center",padding:"13px",fontSize:".88rem"}} onClick={()=>{go("dashboard");setMenuOpen(false);}}>↩ لوحة التحكم</button>
+              <button className="btn btn-g" style={{width:"100%",justifyContent:"center",padding:"13px",fontSize:".88rem"}} onClick={()=>{go("roadmap");setMenuOpen(false);}}>🗺️ خريطة المسار</button>
+              <button className="btn btn-g" style={{width:"100%",justifyContent:"center",padding:"13px",fontSize:".88rem"}} onClick={()=>{go("session");setMenuOpen(false);}}>📝 ابدأ جلسة</button>
               <button className="btn btn-g" style={{width:"100%",justifyContent:"center",padding:"13px",fontSize:".88rem"}} onClick={()=>{go("landing");setMenuOpen(false);}}>🏠 الرئيسية</button>
-              {onLogout&&<button className="btn btn-g" style={{width:"100%",justifyContent:"center",padding:"13px",fontSize:".88rem",color:"#f87171",borderColor:"rgba(248,113,113,.2) !important"}} onClick={()=>{onLogout();setMenuOpen(false);}}>تسجيل الخروج</button>}
+              {onLogout&&<button className="btn btn-g" style={{width:"100%",justifyContent:"center",padding:"13px",fontSize:".88rem",color:"#f87171"}} onClick={()=>{onLogout();setMenuOpen(false);}}>تسجيل الخروج</button>}
             </>
           )}
         </div>
       )}
-    </nav>
+    </>
   );
 }
 
-/* ═══════════════════ PLACEMENT QUIZ ═══════════════════ */
 function PlacementQuiz({profile,onFinish}){
   const[idx,setIdx]=useState(0);
   const[sel,setSel]=useState(null);
