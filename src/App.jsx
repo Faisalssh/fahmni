@@ -1294,43 +1294,117 @@ function SimMode({settings,go,updateUser,addMistake}){
 
 /* ═══════════════════ PRICING PAGE ═══════════════════ */
 function Pricing({go}){
-  const plans=[
-    {id:"free",name:"مجاني",price:0,per:"",color:"#22d3ee",badge:"ابدأ هنا",features:["20 سؤال مجاني","بطاقات المفهوم","خريطة المسار","اختبار تحديد المستوى"],btn:"ابدأ مجانًا",action:"signup"},
-    {id:"month",name:"الشهري",price:29,per:"/ شهر",color:"#f97316",badge:"الأكثر شيوعاً ⭐",features:["أسئلة AI غير محدودة","وضع المعلم الشخصي","وضع المحاكاة الكامل","تايمر لكل سؤال","أصوات الطبيعة 🌿","بطاقة النتيجة القابلة للمشاركة"],btn:"اشترك الآن ←",action:"dashboard"},
-    {id:"exam",name:"باقة الاختبار",price:69,per:"/ 3 أشهر",color:"#a78bfa",badge:"وفّر 18 ريال",features:["كل مميزات الشهري","توفير 18 ريال","مثالية لموسم قياس","أولوية في الدعم"],btn:"اختر الباقة ←",action:"dashboard"},
+  const PLANS=[
+    {id:"free",name:"مجاني",price:0,per:"",color:"#22d3ee",badge:"ابدأ هنا 🎁",
+     features:["20 سؤال مجاني","بطاقات المفهوم","خريطة المسار","اختبار تحديد المستوى"],
+     btn:"ابدأ مجانًا ←",isPaid:false},
+    {id:"month",name:"الشهري",price:29,per:"شهر",color:"#f97316",badge:"الأكثر شيوعاً ⭐",
+     features:["أسئلة AI غير محدودة","وضع المعلم الشخصي","وضع المحاكاة الكامل","تايمر لكل سؤال","أصوات الطبيعة 🌿","بطاقة النتيجة"],
+     btn:"اشترك الآن ←",isPaid:true},
+    {id:"exam",name:"باقة الاختبار",price:69,per:"3 أشهر",color:"#a78bfa",badge:"وفّر 18 ريال 💜",
+     features:["كل مميزات الشهري","توفير 18 ريال","مثالية لموسم قياس","أولوية في الدعم"],
+     btn:"اختر الباقة ←",isPaid:true},
   ];
-  return(<div style={{display:"grid",gap:14}}>
-    <div className="gl" style={{padding:"36px 32px",textAlign:"center"}}>
-      <span className="badge b-o" style={{marginBottom:14}}>💰 الأسعار</span>
-      <h1 style={{fontSize:"2rem",fontWeight:900,color:"#fff",marginBottom:10}}>بسيط وواضح — بدون مفاجآت</h1>
-      <p style={{color:"#64748b",lineHeight:1.9}}>جرّب مجاناً. اشترك لو ناسبك. ألغِ في أي وقت.</p>
-    </div>
-    <div className="pricing-grid rg-3" style={{gap:14}}>
-      {plans.map((p,i)=>(
-        <div key={p.id} className={`gl au d${i+1}`} style={{padding:"26px 20px",position:"relative",border:`1.5px solid ${p.color}28`}}>
-          <span className="badge" style={{position:"absolute",top:16,left:16,background:`${p.color}15`,border:`1px solid ${p.color}30`,color:p.color,fontSize:".6rem"}}>{p.badge}</span>
-          <p style={{fontWeight:800,color:"#fff",marginTop:32,marginBottom:8}}>{p.name}</p>
-          <div style={{display:"flex",alignItems:"baseline",gap:5,marginBottom:20}}>
-            <span style={{fontSize:p.price===0?"1.4rem":"2.4rem",fontWeight:900,color:p.color}}>{p.price===0?"مجاني":p.price}</span>
-            {p.price>0&&<span style={{fontSize:".8rem",color:"#64748b"}}>ريال {p.per}</span>}
+  return(
+    <div style={{display:"grid",gap:16}}>
+      {/* Header */}
+      <div className="gl" style={{padding:"36px 32px",textAlign:"center"}}>
+        <span className="badge b-o" style={{marginBottom:14}}>💰 الأسعار</span>
+        <h1 style={{fontSize:"2rem",fontWeight:900,color:"#fff",marginBottom:10}}>بسيط وواضح — بدون مفاجآت</h1>
+        <p style={{color:"#64748b",lineHeight:1.9}}>جرّب مجاناً · اشترك لو ناسبك · ألغِ في أي وقت</p>
+      </div>
+
+      {/* Cards */}
+      <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(240px,1fr))",gap:14}}>
+        {PLANS.map((p,i)=>(
+          <div key={p.id} className={`gl au d${i+1}`} style={{
+            padding:"28px 22px",position:"relative",
+            border:`1.5px solid ${p.color}35`,
+            display:"flex",flexDirection:"column",gap:0,
+            boxShadow:p.id==="month"?`0 8px 32px ${p.color}18`:"none"
+          }}>
+            {/* Badge */}
+            <div style={{marginBottom:16}}>
+              <span style={{
+                display:"inline-block",padding:"4px 12px",borderRadius:99,
+                background:`${p.color}15`,border:`1px solid ${p.color}35`,
+                fontSize:".65rem",fontWeight:700,color:p.color
+              }}>{p.badge}</span>
+            </div>
+
+            {/* Name */}
+            <p style={{fontSize:"1rem",fontWeight:800,color:"#fff",marginBottom:10}}>{p.name}</p>
+
+            {/* Price */}
+            <div style={{display:"flex",alignItems:"baseline",gap:6,marginBottom:20}}>
+              {p.price===0?(
+                <span style={{fontSize:"1.8rem",fontWeight:900,color:p.color}}>مجاني</span>
+              ):(
+                <>
+                  <span style={{fontSize:"2.6rem",fontWeight:900,color:p.color,lineHeight:1}}>{p.price}</span>
+                  <div>
+                    <p style={{fontSize:".72rem",fontWeight:700,color:"#94a3b8"}}>ريال</p>
+                    <p style={{fontSize:".65rem",color:"#475569"}}>/ {p.per}</p>
+                  </div>
+                </>
+              )}
+            </div>
+
+            {/* Features */}
+            <div style={{display:"flex",flexDirection:"column",gap:8,marginBottom:24,flex:1}}>
+              {p.features.map((f,fi)=>(
+                <div key={fi} style={{display:"flex",alignItems:"center",gap:9}}>
+                  <span style={{color:p.color,fontWeight:900,fontSize:".8rem",flexShrink:0}}>✓</span>
+                  <span style={{fontSize:".82rem",color:"#cbd5e1",lineHeight:1.5}}>{f}</span>
+                </div>
+              ))}
+            </div>
+
+            {/* CTA */}
+            {p.isPaid?(
+              <div style={{display:"flex",flexDirection:"column",gap:8}}>
+                <button
+                  className={p.id==="month"?"btn btn-p":"btn"}
+                  style={{
+                    width:"100%",justifyContent:"center",padding:"13px",
+                    borderRadius:13,fontSize:".88rem",fontWeight:800,cursor:"not-allowed",opacity:.55,
+                    background:p.id==="month"?"linear-gradient(135deg,#f97316,#fb923c)":"transparent",
+                    border:`1.5px solid ${p.color}50`,color:p.id==="month"?"#0a0f1e":p.color,
+                    fontFamily:"Cairo,sans-serif"
+                  }}>
+                  🔒 قريباً
+                </button>
+                <p style={{fontSize:".65rem",color:"#334155",textAlign:"center"}}>الدفع عبر Moyasar — قريباً</p>
+              </div>
+            ):(
+              <button className="btn btn-g"
+                style={{width:"100%",justifyContent:"center",padding:"13px",border:`1.5px solid ${p.color}40`,color:p.color,borderRadius:13,fontSize:".88rem"}}
+                onClick={()=>go("signup")}>
+                {p.btn}
+              </button>
+            )}
           </div>
-          <div style={{display:"flex",flexDirection:"column",gap:9,marginBottom:22}}>
-            {p.features.map((f,fi)=><div key={fi} style={{display:"flex",alignItems:"center",gap:8}}><span style={{color:p.color,fontWeight:700,fontSize:".74rem"}}>✓</span><span style={{fontSize:".8rem",color:"#cbd5e1"}}>{f}</span></div>)}
-          </div>
-          <button className={`btn ${p.id==="month"?"btn-p":"btn-g"}`}
-            style={{width:"100%",justifyContent:"center",border:p.id!=="month"?`1.5px solid ${p.color}40 !important`:"none",color:p.id!=="month"?p.color:undefined}}
-            onClick={()=>go(p.action)}>{p.btn}</button>
-        </div>
-      ))}
+        ))}
+      </div>
+
+      {/* Security bar */}
+      <div className="gl-c" style={{padding:"16px 22px",display:"flex",alignItems:"center",gap:12,flexWrap:"wrap"}}>
+        <span style={{fontSize:"1.2rem"}}>🔒</span>
+        <p style={{fontSize:".82rem",color:"#e2e8f0",lineHeight:1.8,flex:1}}>
+          الدفع الآمن عبر <strong style={{color:"#67e8f9"}}>Moyasar</strong> المرخصة من ساما ·
+          مدى · Visa · Mastercard · Apple Pay · إلغاء في أي وقت
+        </p>
+      </div>
+
+      {/* Back */}
+      <button className="btn btn-g" style={{justifyContent:"center"}} onClick={()=>go("landing")}>
+        ← العودة للرئيسية
+      </button>
     </div>
-    <div className="gl-c" style={{padding:"18px 22px",display:"flex",alignItems:"center",gap:13,flexWrap:"wrap"}}>
-      <span style={{fontSize:"1.3rem"}}>🔒</span>
-      <p style={{fontSize:".84rem",color:"#e2e8f0",lineHeight:1.75,flex:1}}>الدفع آمن عبر <strong style={{color:"#67e8f9"}}>مويسر (Moyasar)</strong> · مدى · Visa · MasterCard · Apple Pay · إلغاء في أي وقت</p>
-    </div>
-  </div>);
+  );
 }
 
-/* ═══════════════════ AUTO-ADVANCE COUNTDOWN ═══════════════════ */
+
 function NextCountdown({onNext,seconds=5}){
   const[left,setLeft]=useState(seconds);
   const pct=Math.round((left/seconds)*100);
@@ -1783,7 +1857,7 @@ function Landing({go}){
             <button className="btn btn-p" style={{fontSize:"1rem",padding:"14px 32px",borderRadius:16}} onClick={()=>go("signup")}>
               ابدأ مجانًا ← 20 سؤال
             </button>
-            <button className="btn btn-g" style={{fontSize:".93rem",padding:"14px 24px",borderRadius:16}} onClick={()=>go("session")}>
+            <button className="btn btn-g" style={{fontSize:".93rem",padding:"14px 24px",borderRadius:16}} onClick={()=>go("signup")}>
               جرّب سؤالاً الآن
             </button>
           </div>
@@ -1968,8 +2042,7 @@ const sbSignup=async(name,email,password)=>{
   });
   const d=await r.json();
   if(d.error||d.msg) throw new Error(d.error?.message||d.msg||"فشل إنشاء الحساب");
-  if(!d.access_token) throw new Error("تحقق من بريدك الإلكتروني لتفعيل الحساب ✉️");
-  return d;
+  return d; // access_token موجود = تسجيل مباشر، غير موجود = يحتاج تأكيد بريد
 };
 const sbLogin=async(email,password)=>{
   const r=await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`,{
@@ -1989,7 +2062,7 @@ const sbLogout=async(token)=>{
 };
 
 /* ═══════════════════ SUPABASE DB ═══════════════════ */
-const IS_ARTIFACT=typeof window!=="undefined"&&window.location.hostname.includes("claude.ai");
+const IS_ARTIFACT=typeof window!=="undefined"&&window.location.hostname.includes("claude");
 const sbH=(token)=>({"Content-Type":"application/json","apikey":SUPABASE_ANON,"Authorization":`Bearer ${token}`,"Prefer":"return=minimal"});
 
 const sbLoadProgress=async(userId,token)=>{
@@ -2047,7 +2120,7 @@ function Auth({mode,go,onLogin}){
   const[info,setInfo]=useState("");
 
   /* في الـ artifact — Supabase محجوب. على Vercel يشتغل كامل */
-  const IS_ARTIFACT=typeof window!=="undefined"&&window.location.hostname.includes("claude.ai");
+  const IS_ARTIFACT=typeof window!=="undefined"&&(window.location.hostname.includes("claude.ai")||window.location.hostname==="localhost");
 
   const guestLogin=()=>{
     const guestName=name||"طالب";
@@ -2068,8 +2141,15 @@ function Auth({mode,go,onLogin}){
         const userName=d.user?.user_metadata?.full_name||d.user?.email?.split("@")[0]||"طالب";
         onLogin({token:d.access_token,userId:d.user?.id,name:userName,email:d.user?.email});
       }else{
-        await sbSignup(name,email,pass);
-        setInfo("✉️ تم إنشاء حسابك! تحقق من بريدك لتفعيله ثم سجّل دخولك.");
+        const d=await sbSignup(name,email,pass);
+        if(d.access_token){
+          // تأكيد البريد مطفي — تسجيل دخول مباشر
+          const userName=d.user?.user_metadata?.full_name||name||d.user?.email?.split("@")[0]||"طالب";
+          onLogin({token:d.access_token,userId:d.user?.id,name:userName,email:d.user?.email});
+        }else{
+          // تأكيد البريد مفعّل — يحتاج تفعيل
+          setInfo("✉️ تم إنشاء حسابك! تحقق من بريدك لتفعيله ثم سجّل دخولك.");
+        }
       }
     }catch(e){setErr(e.message||"حدث خطأ، حاول مرة أخرى");}
     finally{setLoading(false);}
@@ -2662,40 +2742,75 @@ function Roadmap({go,setSettings,openLesson}){
   );
 }
 
-function Paywall({trial,subscribe,back,go}){return(<div style={{display:"grid",gap:14}}><div style={{padding:"40px 34px",borderRadius:22,background:"linear-gradient(135deg,rgba(249,115,22,.13),rgba(34,211,238,.07))",border:"1px solid rgba(249,115,22,.22)"}}><span className="badge b-o" style={{marginBottom:12}}>انتهت التجربة المجانية</span><h1 style={{fontSize:"1.9rem",fontWeight:900,color:"#fff"}}>جرّبت المنصة — والآن<span style={{display:"block",marginTop:7,color:"#fdba74"}}>اشترك بـ 29 ريال فقط 🎯</span></h1></div><div style={{display:"grid",gridTemplateColumns:"1.2fr .8fr",gap:14}}><div className="gl" style={{padding:"24px"}}><p style={{fontSize:".68rem",color:"#f97316",fontWeight:700,letterSpacing:".08em",marginBottom:13}}>كل شيء مفتوح في الاشتراك</p>{["أسئلة AI غير محدودة","وضع المعلم بعد كل 5 أسئلة","وضع المحاكاة الكامل ⚡","تايمر 90 ثانية/سؤال ⏱","أصوات الطبيعة للتركيز 🌿","بطاقة النتيجة القابلة للمشاركة","سؤال التشخيص لكل باب","وضع المراجعة الذكي"].map((item,i)=>(<div key={i} style={{display:"flex",alignItems:"center",gap:10,marginBottom:8}}><span style={{color:"#4ade80",fontWeight:900}}>✓</span><span style={{fontSize:".84rem",color:"#e2e8f0"}}>{item}</span></div>))}</div><div style={{display:"flex",flexDirection:"column",gap:11}}><div className="gl" style={{padding:"20px",textAlign:"center",background:"linear-gradient(145deg,rgba(249,115,22,.1),rgba(5,9,26,.9))",border:"1px solid rgba(249,115,22,.3)"}}><p style={{fontSize:".68rem",color:"#f97316",fontWeight:700,marginBottom:8}}>الاشتراك الشهري</p><p style={{fontSize:"3rem",fontWeight:900,color:"#fff",lineHeight:1}}>29</p><p style={{fontSize:".8rem",color:"#fdba74",fontWeight:700,marginBottom:16}}>ريال / شهر</p><button className="btn btn-p" style={{width:"100%",justifyContent:"center",padding:"12px"}} onClick={subscribe}>اشترك الآن ←</button></div><button className="btn btn-g" style={{justifyContent:"center",fontSize:".82rem"}} onClick={()=>go("pricing")}>عرض كل الباقات</button><button className="btn btn-g" style={{justifyContent:"center",fontSize:".82rem"}} onClick={back}>العودة</button></div></div></div>);}
-
-
-
-/* ═══════════════════ FOOTER ═══════════════════ */
-function Footer({go}){
+function Paywall({trial,subscribe,back,go}){
   return(
-    <footer style={{
-      marginTop:48,padding:"28px 0 20px",
-      borderTop:"1px solid rgba(255,255,255,.06)",
-      display:"flex",flexDirection:"column",gap:16
-    }}>
-      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:14}}>
-        <div style={{display:"flex",alignItems:"center",gap:10}}>
-          <div style={{width:34,height:34,borderRadius:10,background:"linear-gradient(135deg,#f97316,#ea580c)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:"1rem",fontWeight:900,color:"#0a0f1e"}}>ف</div>
-          <div>
-            <p style={{fontWeight:800,color:"#fff",fontSize:".85rem",lineHeight:1}}>فهمني</p>
-            <p style={{fontSize:".62rem",color:"#334155",marginTop:2}}>منصة القدرات الذكية</p>
-          </div>
-        </div>
-        <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
-          {[["privacy","سياسة الخصوصية"],["terms","الشروط والأحكام"],["refund","سياسة الاسترداد"],["contact","تواصل معنا"]].map(([p,l])=>(
-            <button key={p} onClick={()=>go(p)} style={{background:"none",border:"none",cursor:"pointer",fontSize:".74rem",color:"#475569",fontFamily:"Cairo,sans-serif",padding:"4px 8px",borderRadius:7,transition:"color .15s"}}
-              onMouseEnter={e=>e.target.style.color="#f97316"} onMouseLeave={e=>e.target.style.color="#475569"}>
-              {l}
-            </button>
+    <div style={{display:"grid",gap:14,maxWidth:560,margin:"0 auto",width:"100%"}}>
+
+      {/* Header */}
+      <div style={{padding:"36px 28px",borderRadius:22,
+        background:"linear-gradient(135deg,rgba(249,115,22,.12),rgba(34,211,238,.06))",
+        border:"1.5px solid rgba(249,115,22,.28)",textAlign:"center"}}>
+        <span className="badge b-o" style={{marginBottom:12}}>انتهت التجربة المجانية</span>
+        <h1 style={{fontSize:"1.8rem",fontWeight:900,color:"#fff",lineHeight:1.3,marginBottom:8}}>
+          جرّبت المنصة<br/>
+          <span style={{color:"#fdba74"}}>اشترك بـ 29 ريال فقط 🎯</span>
+        </h1>
+        <p style={{fontSize:".85rem",color:"#64748b",lineHeight:1.8}}>
+          أسئلة AI لا تنتهي · وضع المعلم · محاكاة قياس كاملة
+        </p>
+      </div>
+
+      {/* Features */}
+      <div className="gl" style={{padding:"22px 24px"}}>
+        <p style={{fontSize:".68rem",color:"#f97316",fontWeight:700,letterSpacing:".08em",marginBottom:14}}>
+          كل شيء مفتوح في الاشتراك
+        </p>
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:9}}>
+          {["أسئلة AI غير محدودة","وضع المعلم الشخصي","وضع المحاكاة ⚡","تايمر 90 ثانية ⏱","أصوات الطبيعة 🌿","بطاقة النتيجة","سؤال التشخيص","وضع المراجعة"].map((f,i)=>(
+            <div key={i} style={{display:"flex",alignItems:"center",gap:8}}>
+              <span style={{color:"#4ade80",fontWeight:900,flexShrink:0}}>✓</span>
+              <span style={{fontSize:".8rem",color:"#e2e8f0"}}>{f}</span>
+            </div>
           ))}
         </div>
       </div>
-      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:8,paddingTop:14,borderTop:"1px solid rgba(255,255,255,.04)"}}>
-        <p style={{fontSize:".68rem",color:"#1e293b"}}>© {new Date().getFullYear()} فهمني — جميع الحقوق محفوظة</p>
-        <p style={{fontSize:".68rem",color:"#1e293b"}}>المملكة العربية السعودية 🇸🇦</p>
+
+      {/* Price + CTA */}
+      <div className="gl" style={{padding:"22px 24px",textAlign:"center",
+        background:"linear-gradient(145deg,rgba(249,115,22,.08),rgba(5,9,26,.95))",
+        border:"1.5px solid rgba(249,115,22,.3)"}}>
+        <p style={{fontSize:".68rem",color:"#f97316",fontWeight:700,marginBottom:8}}>الاشتراك الشهري</p>
+        <div style={{display:"flex",alignItems:"baseline",gap:6,justifyContent:"center",marginBottom:6}}>
+          <span style={{fontSize:"3rem",fontWeight:900,color:"#fff",lineHeight:1}}>29</span>
+          <div style={{textAlign:"right"}}>
+            <p style={{fontSize:".75rem",fontWeight:700,color:"#94a3b8"}}>ريال</p>
+            <p style={{fontSize:".65rem",color:"#475569"}}>/ شهر</p>
+          </div>
+        </div>
+        <p style={{fontSize:".72rem",color:"#475569",marginBottom:16}}>شامل ضريبة القيمة المضافة</p>
+        <button style={{
+          width:"100%",padding:"14px",borderRadius:13,
+          background:"linear-gradient(135deg,#f97316,#fb923c)",
+          border:"none",cursor:"not-allowed",opacity:.55,
+          fontSize:".92rem",fontWeight:800,color:"#0a0f1e",
+          fontFamily:"Cairo,sans-serif"
+        }}>🔒 الدفع قريباً — Moyasar</button>
+        <p style={{fontSize:".65rem",color:"#334155",marginTop:10}}>
+          مدى · Visa · Mastercard · Apple Pay
+        </p>
       </div>
-    </footer>
+
+      {/* Actions */}
+      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
+        <button className="btn btn-g" style={{justifyContent:"center"}} onClick={back}>
+          ← العودة
+        </button>
+        <button className="btn btn-g" style={{justifyContent:"center"}} onClick={()=>go("pricing")}>
+          عرض كل الباقات
+        </button>
+      </div>
+
+    </div>
   );
 }
 
@@ -2928,7 +3043,11 @@ export default function Fahmni(){
 
   const openLesson=t=>{setLessonTopic(t);go("lesson");};
 
-  const R=()=>{switch(page){
+  // حماية الصفحات — لو ما في session يرجع للصفحة الرئيسية
+  const PROTECTED=["dashboard","roadmap","session","bank","sim","review","lesson","diagnostic","placement","placementResult","onboarding"];
+  const R=()=>{
+    if(PROTECTED.includes(page)&&!session){go("landing");return null;}
+    switch(page){
     case"login":case"signup":return <Auth mode={page} go={go} onLogin={handleLogin}/>;
     case"onboarding":return <Onboarding finish={d=>{setProfile(d);go("placement");}}/>;
     case"placement":return <PlacementQuiz profile={profile} onFinish={ans=>{setPAnswers(ans);const r=getRec({...profile,score:ans.filter(a=>a.ok).length,answers:ans});setRec(r);setSettings(p=>({...p,section:profile.section,topic:r.topic}));go("placementResult");}}/>;
@@ -2950,7 +3069,7 @@ export default function Fahmni(){
     case"sim":return <SimMode settings={settings} go={go} updateUser={updateUser} addMistake={addMistake}/>;
     case"review":return <ReviewMode mistakes={mistakes} go={go} onRedo={()=>go("session")}/>;
     case"pricing":return <Pricing go={go}/>;
-    case"paywall":return <Paywall trial={trial} go={go} subscribe={()=>{setTrial(p=>({...p,isSubscribed:true}));go("dashboard");}} back={()=>go("dashboard")}/>;
+    case"paywall":return <Paywall trial={trial} go={go} subscribe={()=>{/* Moyasar coming soon */}} back={()=>go("pricing")}/>;
     case"privacy":return <Privacy go={go}/>;
     case"terms":return <Terms go={go}/>;
     case"contact":return <Contact go={go}/>;
