@@ -35,7 +35,7 @@ const GS = () => (<style>{`
   .gl-c{background:rgba(34,211,238,.06);border:1px solid rgba(34,211,238,.2);border-radius:18px;}
   .gl-g{background:rgba(74,222,128,.06);border:1px solid rgba(74,222,128,.2);border-radius:18px;}
   .gl-v{background:rgba(167,139,250,.07);border:1px solid rgba(167,139,250,.22);border-radius:18px;}
-  .nav{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid rgba(255,255,255,.06);position:sticky;top:0;z-index:200;background:rgba(5,9,26,.88);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);margin-bottom:0;}
+  .nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:32px;padding-bottom:20px;border-bottom:1px solid rgba(255,255,255,.06);}
   .logo{width:44px;height:44px;border-radius:14px;background:linear-gradient(135deg,#f97316,#ea580c);display:flex;align-items:center;justify-content:center;font-size:1.25rem;font-weight:900;color:#0a0f1e;box-shadow:0 4px 20px rgba(249,115,22,.42);transition:transform .2s;cursor:default;}
   .logo:hover{transform:rotate(-7deg)scale(1.07);}
   .btn{padding:11px 20px;border-radius:13px;font-size:.855rem;font-weight:800;cursor:pointer;transition:all .2s;border:none;outline:none;display:inline-flex;align-items:center;gap:7px;white-space:nowrap;}
@@ -59,7 +59,7 @@ const GS = () => (<style>{`
   .pt{height:5px;border-radius:99px;background:rgba(255,255,255,.07);overflow:hidden;}
   .pt8{height:8px;border-radius:99px;background:rgba(255,255,255,.07);overflow:hidden;}
   .pf{height:100%;border-radius:99px;background:linear-gradient(90deg,#f97316,#22d3ee);transition:width 1s cubic-bezier(.22,1,.36,1);}
-  .ans{width:100%;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 17px;border-radius:15px;border:1.5px solid rgba(255,255,255,.09);background:rgba(5,9,26,.7);color:#e2e8f0;font-size:.88rem;font-weight:600;cursor:pointer;text-align:right;transition:all .18s;line-height:1.7;}
+  .ans{width:100%;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 17px;border-radius:15px;border:1.5px solid rgba(255,255,255,.09);background:rgba(5,9,26,.7);color:#e2e8f0;font-size:.88rem;font-weight:600;cursor:pointer;text-align:right;transition:all .18s;line-height:1.65;}
   .ans:hover:not(.lk){border-color:rgba(249,115,22,.35);background:rgba(249,115,22,.07);transform:translateX(-3px);}
   .ans.sel{border-color:rgba(249,115,22,.55);background:rgba(249,115,22,.11);color:#fff;}
   .ans.ok{border-color:rgba(74,222,128,.55);background:rgba(74,222,128,.1);color:#bbf7d0;animation:cPop .4s ease;}
@@ -109,120 +109,98 @@ const GS = () => (<style>{`
   .rg-onboard{display:grid;grid-template-columns:1.2fr .8fr;gap:14px;}
 
   /* ── Mobile overrides ── */
-  /* ══════════════════════════════════════════
-     MOBILE ONLY — max 640px (iPhone 11 = 414px)
-     ديسكتوب وتابلت ما يتأثرون أبداً
-     ══════════════════════════════════════════ */
   @media(max-width:640px){
+    .wrap{padding:16px 14px;}
+    .nav{margin-bottom:20px;padding-bottom:14px;flex-wrap:wrap;gap:10px;}
+    .nav-title{font-size:.8rem !important;}
 
-    /* ── Layout ── */
-    .wrap{padding:10px 12px 100px !important;}
-    @supports(padding-bottom:env(safe-area-inset-bottom)){
-      .wrap{padding-bottom:calc(100px + env(safe-area-inset-bottom)) !important;}
-    }
-
-    /* ── Grids → عمود واحد ── */
+    /* collapse all multi-col grids to single column */
     .rg-2,.rg-3,.rg-4,.rg-sidebar,.rg-sim,.rg-lesson,.rg-onboard{
       grid-template-columns:1fr !important;
     }
+
+    /* stats row → 2 cols on mobile */
     .rg-4{grid-template-columns:1fr 1fr !important;}
-    .pricing-grid,.bank-grid,.sim-running,.lesson-cols,.sim-tracks,.teacher-grid{
-      grid-template-columns:1fr !important;
-    }
-    .placement-stats,.landing-features,.landing-stats,.topic-btn-grid,.sim-grid{
-      grid-template-columns:1fr 1fr !important;
-    }
 
-    /* ── Nav ── */
-    .nav{padding:10px 14px !important;margin-bottom:0;}
-    .nav-burger{display:flex !important;}
-    .nav-desktop{display:none !important;}
-
-    /* ── Buttons — minimum 48px touch target (Apple HIG) ── */
-    .btn{
-      min-height:48px !important;
-      padding:13px 18px !important;
-      font-size:.92rem !important;
-      border-radius:14px !important;
-    }
-    .landing-hero-btns .btn{
-      width:100% !important;
-      justify-content:center !important;
-      font-size:1rem !important;
-      padding:16px !important;
-    }
-    .landing-hero-btns{flex-direction:column !important;align-items:stretch !important;gap:10px !important;}
-
-    /* ── Cards ── */
-    .gl{border-radius:16px;padding:14px !important;}
-    .gl2{border-radius:12px;}
-
-    /* ── Typography ── */
-    h1{font-size:1.45rem !important;line-height:1.3 !important;}
-    h2{font-size:1.1rem !important;line-height:1.4 !important;}
-    h3{font-size:.95rem !important;}
-
-    /* ── Answers — راحة في الضغط ── */
-    .ans{
-      padding:17px 14px !important;
-      font-size:.93rem !important;
-      line-height:1.7 !important;
-      border-radius:14px !important;
-    }
-    .opt-l{min-width:34px !important;height:34px !important;font-size:.76rem !important;border-radius:9px !important;}
-
-    /* ── Session sidebar مخفي على موبايل ── */
+    /* hide sidebar completely on session / sim — show inline */
     .mob-hide{display:none !important;}
     .mob-show{display:flex !important;}
 
-    /* ── Mobile stats bar (يظهر بدل السايدبار) ── */
+    /* session stats bar replaces sidebar */
     .mob-stats-bar{
       display:flex !important;
       align-items:center;
       gap:10px;
       padding:10px 14px;
       border-radius:14px;
-      background:rgba(10,18,40,.95);
-      border:1px solid rgba(255,255,255,.08);
-      margin-bottom:10px;
+      background:rgba(10,18,40,.88);
+      border:1px solid rgba(255,255,255,.085);
+      margin-bottom:12px;
       flex-wrap:wrap;
     }
 
-    /* ── Session question card ── */
-    .si{padding:18px !important;}
+    /* answer options bigger tap target */
+    .ans{padding:16px 14px;font-size:.9rem;}
+    .opt-l{min-width:32px;height:32px;font-size:.74rem;}
 
-    /* ── Roadmap tabs scrollable ── */
-    .roadmap-tabs{
-      overflow-x:auto;
-      -webkit-overflow-scrolling:touch;
-      white-space:nowrap;
-      padding-bottom:4px;
-      scrollbar-width:none;
-    }
-    .roadmap-tabs::-webkit-scrollbar{display:none;}
-    .topic-btn-grid .sc{padding:12px 10px !important;}
-
-    /* ── Override large inline paddings on mobile ── */
-    .gl-pad-lg{padding:18px !important;}
-    /* ── Misc ── */
+    /* buttons full width on mobile */
     .mob-full{width:100% !important;justify-content:center !important;}
-    .next-cd-btn{width:100% !important;justify-content:center !important;}
-    .orb{display:none;}
-    .mob-cta{position:sticky;bottom:14px;z-index:100;display:flex;gap:9px;justify-content:center;flex-wrap:wrap;}
 
-    /* ── Large paddings → ضغط على موبايل فقط ── */
-    [style*="padding:"32px"],[style*="padding:"34px"],[style*="padding:"36px"],
-    [style*="padding:"38px"],[style*="padding:"48px"],[style*="padding:"60px"]{
-      padding:16px !important;
+    /* typography scale down */
+    h1{font-size:1.45rem !important;}
+    h2{font-size:1.1rem !important;}
+
+    /* cards padding */
+    .gl{border-radius:18px;}
+    .gl2{border-radius:13px;}
+
+    /* pricing 1 col */
+    .pricing-grid{grid-template-columns:1fr !important;}
+
+    /* roadmap topic buttons */
+    .topic-btn-grid{grid-template-columns:1fr 1fr !important;}
+
+    /* bank 1 col */
+    .bank-grid{grid-template-columns:1fr !important;}
+
+    /* sim running — stack main + sidebar */
+    .sim-running{grid-template-columns:1fr !important;}
+
+    /* bottom sticky CTA on mobile */
+    .mob-cta{
+      position:sticky;
+      bottom:14px;
+      z-index:100;
+      display:flex;
+      gap:9px;
+      justify-content:center;
+      flex-wrap:wrap;
     }
-  }
 
-  /* ── iPhone SE / صغير جداً ── */
-  @media(max-width:375px){
-    .btn{font-size:.84rem !important;padding:12px 14px !important;}
-    h1{font-size:1.25rem !important;}
-    .ans{font-size:.85rem !important;padding:14px 12px !important;}
-    .wrap{padding:8px 10px 100px !important;}
+    /* next countdown button full width */
+    .next-cd-btn{width:100% !important;justify-content:center !important;}
+
+    /* lesson page 1 col */
+    .lesson-cols{grid-template-columns:1fr !important;}
+
+    /* placement result stats 2x2 */
+    .placement-stats{grid-template-columns:1fr 1fr !important;}
+
+    /* landing features 2x2 */
+    .landing-features{grid-template-columns:1fr 1fr !important;}
+
+    /* sim setup track cards stacked */
+    .sim-tracks{grid-template-columns:1fr !important;}
+
+    /* teacher mode responsive */
+    .teacher-grid{grid-template-columns:1fr !important;}
+
+    /* hide decorative orbs on mobile for perf */
+    .orb{display:none;}
+
+    /* scrollable tabs for roadmap */
+    .roadmap-tabs{overflow-x:auto;-webkit-overflow-scrolling:touch;white-space:nowrap;padding-bottom:4px;}
+    .roadmap-tabs::-webkit-scrollbar{height:0;}
   }
 
   /* ── Tablet (641-900px) ── */
@@ -515,16 +493,14 @@ function getRec({goal,confidence,minutes,section,score,answers}){
 const SUPABASE_URL="https://esdralrxesslaxvpyypa.supabase.co";
 const SUPABASE_ANON="sb_publishable_jEwd6TpXzAh1Z-66mPOE5g_52l6-8zL";
 
-/* استخدام Anthropic API مباشرة — يعمل داخل artifacts */
 const callClaude=async(prompt,maxTok=800)=>{
-  const r=await fetch("https://api.anthropic.com/v1/messages",{
+  const r=await fetch(`${SUPABASE_URL}/functions/v1/ask-claude`,{
     method:"POST",
-    headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({
-      model:"claude-haiku-4-5-20251001",
-      max_tokens:maxTok,
-      messages:[{role:"user",content:prompt}]
-    })
+    headers:{
+      "Content-Type":"application/json",
+      "Authorization":`Bearer ${SUPABASE_ANON}`
+    },
+    body:JSON.stringify({prompt,maxTokens:maxTok})
   });
   const d=await r.json();
   if(!r.ok||d.error) throw new Error(d.error?.message||`HTTP ${r.status}`);
@@ -663,69 +639,7 @@ JSON فقط: {"grade":"ممتاز"|"جيد"|"يحتاج مراجعة","headline"
 }
 
 /* ═══════════════════ NAV ═══════════════════ */
-function Nav({isPub,go,userName,title,onLogout}){
-  const[menuOpen,setMenuOpen]=useState(false);
-  return(
-    <nav className="nav">
-      <div style={{display:"flex",alignItems:"center",gap:10,maxWidth:1020,margin:"0 auto",width:"100%",padding:"0 16px"}}>
-        {/* Logo + name */}
-        <div style={{display:"flex",alignItems:"center",gap:10,flex:1,minWidth:0,cursor:"pointer"}} onClick={()=>{go(isPub?"landing":"dashboard");setMenuOpen(false);}}>
-          <div className="logo" style={{flexShrink:0}}>ف</div>
-          <div style={{textAlign:"right",minWidth:0}}>
-            <p style={{fontSize:"1rem",fontWeight:900,color:"#fff",lineHeight:1}}>فهمني</p>
-            <p style={{fontSize:".58rem",color:"#64748b",marginTop:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{isPub?"ذاكر بذكاء على القدرات":title||""}</p>
-          </div>
-        </div>
-
-        {/* Desktop buttons */}
-        <div className="nav-desktop" style={{display:"flex",gap:7,alignItems:"center"}}>
-          {isPub?(
-            <>
-              <button className="btn btn-g" style={{fontSize:".78rem",padding:"8px 14px"}} onClick={()=>go("login")}>دخول</button>
-              <button className="btn btn-p" style={{fontSize:".78rem",padding:"8px 14px"}} onClick={()=>go("signup")}>ابدأ مجانًا ←</button>
-            </>
-          ):(
-            <>
-              <button className="btn btn-g" style={{fontSize:".72rem",padding:"7px 11px"}} onClick={()=>go("landing")}>🏠</button>
-              <button className="btn btn-g" style={{fontSize:".72rem",padding:"7px 11px"}} onClick={()=>go("dashboard")}>↩ لوحتي</button>
-              <div style={{padding:"5px 10px",borderRadius:9,background:"rgba(249,115,22,.1)",border:"1px solid rgba(249,115,22,.2)",fontSize:".72rem",fontWeight:700,color:"#fdba74",maxWidth:90,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{userName}</div>
-              {onLogout&&<button className="btn btn-g" style={{fontSize:".7rem",padding:"6px 10px",color:"#64748b"}} onClick={onLogout}>خروج</button>}
-            </>
-          )}
-        </div>
-
-        {/* Mobile hamburger */}
-        <button className="nav-burger" onClick={()=>setMenuOpen(p=>!p)} style={{
-          display:"none",background:"none",border:"1px solid rgba(255,255,255,.1)",
-          borderRadius:9,padding:"8px 10px",cursor:"pointer",color:"#94a3b8",fontSize:"1.1rem",flexShrink:0
-        }}>☰</button>
-      </div>
-
-      {/* Mobile dropdown */}
-      {menuOpen&&(
-        <div style={{
-          padding:"12px 16px",borderTop:"1px solid rgba(255,255,255,.06)",
-          display:"flex",flexDirection:"column",gap:8,
-          background:"rgba(5,9,26,.97)"
-        }}>
-          {isPub?(
-            <>
-              <button className="btn btn-g" style={{width:"100%",justifyContent:"center",padding:"13px",fontSize:".88rem"}} onClick={()=>{go("login");setMenuOpen(false);}}>تسجيل الدخول</button>
-              <button className="btn btn-p" style={{width:"100%",justifyContent:"center",padding:"13px",fontSize:".88rem"}} onClick={()=>{go("signup");setMenuOpen(false);}}>ابدأ مجانًا ←</button>
-            </>
-          ):(
-            <>
-              {userName&&<div style={{padding:"10px 14px",borderRadius:10,background:"rgba(249,115,22,.08)",border:"1px solid rgba(249,115,22,.15)",fontSize:".82rem",fontWeight:700,color:"#fdba74",textAlign:"center"}}>👤 {userName}</div>}
-              <button className="btn btn-g" style={{width:"100%",justifyContent:"center",padding:"12px",fontSize:".85rem"}} onClick={()=>{go("dashboard");setMenuOpen(false);}}>↩ لوحة التحكم</button>
-              <button className="btn btn-g" style={{width:"100%",justifyContent:"center",padding:"12px",fontSize:".85rem"}} onClick={()=>{go("landing");setMenuOpen(false);}}>🏠 الرئيسية</button>
-              {onLogout&&<button className="btn btn-g" style={{width:"100%",justifyContent:"center",padding:"12px",fontSize:".85rem",color:"#f87171"}} onClick={()=>{onLogout();setMenuOpen(false);}}>خروج</button>}
-            </>
-          )}
-        </div>
-      )}
-    </nav>
-  );
-}
+function Nav({isPub,go,userName,title}){return(<nav className="nav"><div style={{display:"flex",alignItems:"center",gap:12}}><div className="logo">ف</div><div style={{textAlign:"right"}}><p style={{fontSize:"1.2rem",fontWeight:900,color:"#fff",lineHeight:1}}>فهمني</p><p style={{fontSize:".67rem",color:"#64748b",marginTop:3}}>{isPub?"ذاكر بذكاء، وافهم أسرع":title||""}</p></div></div><div style={{display:"flex",gap:8,alignItems:"center"}}>{isPub?<><button className="btn btn-g" onClick={()=>go("login")}>تسجيل الدخول</button><button className="btn btn-p" onClick={()=>go("signup")}>ابدأ مجانًا ←</button></>:<><button className="btn btn-g" style={{fontSize:".78rem",padding:"9px 14px"}} onClick={()=>go("dashboard")}>↩ لوحة الطالب</button><div style={{padding:"7px 13px",borderRadius:11,background:"rgba(249,115,22,.1)",border:"1px solid rgba(249,115,22,.2)",fontSize:".78rem",fontWeight:700,color:"#fdba74"}}>{userName}</div></>}</div></nav>);}
 
 /* ═══════════════════ PLACEMENT QUIZ ═══════════════════ */
 function PlacementQuiz({profile,onFinish}){
@@ -747,7 +661,7 @@ function PlacementQuiz({profile,onFinish}){
         <div style={{display:"flex",justifyContent:"space-between",marginBottom:10,fontSize:".75rem",color:"#64748b"}}><span style={{color:"#f97316",fontWeight:700}}>{pct}%</span><span>السؤال {idx+1} من {PLACEMENT_Q.length}</span></div>
         <div className="pt"><div className="pf" style={{width:`${pct}%`}}/></div>
       </div>
-      <div className="gl si gl-pad-lg" style={{padding:"28px"}}>
+      <div className="gl si" style={{padding:"28px"}}>
         <div style={{display:"flex",gap:8,marginBottom:18}}><span className={`badge ${q.sec==="كمي"?"b-o":"b-c"}`}>{q.sec}</span>{revealed&&<span className={`badge pi ${ok?"b-g":"b-r"}`}>{ok?"✓ صحيح":"✗ خطأ"}</span>}</div>
         <h2 style={{fontSize:"1.1rem",fontWeight:800,color:"#fff",lineHeight:1.8,marginBottom:22}}>{q.q}</h2>
         <div style={{display:"flex",flexDirection:"column",gap:9}}>
@@ -848,12 +762,11 @@ function TeacherSummary({topic,history,onContinue,onReview}){
 
 /* ═══════════════════ REVIEW MODE ═══════════════════ */
 function ReviewMode({mistakes,go,onRedo}){
-  useEffect(()=>{window.scrollTo({top:0,behavior:"instant"});},[]);
   const[active,setActive]=useState(null);
   const[redone,setRedone]=useState([]);
   const total=mistakes.length,solved=redone.length;
   return(<div style={{display:"grid",gap:16}}>
-    <div className="gl gl-pad-lg" style={{padding:"32px"}}>
+    <div className="gl" style={{padding:"32px"}}>
       <span className="badge b-r" style={{marginBottom:12}}>📋 وضع المراجعة</span>
       <h1 style={{fontSize:"1.8rem",fontWeight:900,color:"#fff",marginBottom:8}}>الأسئلة التي أخطأت فيها</h1>
       <p style={{color:"#64748b",lineHeight:1.8}}>راجع كل سؤال بهدوء وافهم لماذا أخطأت.</p>
@@ -920,7 +833,7 @@ function buildTopicPlan(track){
   return plan;
 }
 
-function SimMode({settings,go,updateUser,addMistake,trial={}}){  useEffect(()=>{window.scrollTo({top:0,behavior:"instant"});if(!trial.isSubscribed&&trial.used>=trial.limit){go("paywall");}},[]); 
+function SimMode({settings,go,updateUser,addMistake}){
   const[phase,setPhase]=useState("setup");
   const[difficulty,setDifficulty]=useState("متوسط");
   const[track,setTrack]=useState("علمي");
@@ -1117,7 +1030,7 @@ function SimMode({settings,go,updateUser,addMistake,trial={}}){  useEffect(()=>{
         <div style={{display:"flex",flexDirection:"column",gap:13}}>
 
           {/* Top bar */}
-          <div className="gl mob-compact" style={{padding:"13px 18px"}}>
+          <div className="gl" style={{padding:"13px 18px"}}>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:9,marginBottom:10}}>
               <div style={{display:"flex",gap:7,alignItems:"center"}}>
                 <span className="badge b-v">⚡ قياس</span>
@@ -1253,7 +1166,7 @@ function SimMode({settings,go,updateUser,addMistake,trial={}}){  useEffect(()=>{
         {showCard&&<ResultCard stats={{topic:track,section:"محاكاة",correct,total:answers.length,avgTime:avgT}} onClose={()=>setShowCard(false)}/>}
 
         {/* Header */}
-        <div className="gl gl-pad-lg" style={{padding:"34px 30px"}}>
+        <div className="gl" style={{padding:"34px 30px"}}>
           <span className="badge b-g" style={{marginBottom:12}}>✓ انتهى الاختبار</span>
           <h1 style={{fontSize:"1.85rem",fontWeight:900,color:"#fff",marginBottom:18}}>
             نتائج محاكاة قياس
@@ -1274,7 +1187,7 @@ function SimMode({settings,go,updateUser,addMistake,trial={}}){  useEffect(()=>{
         </div>
 
         {/* Section breakdown */}
-        <div className="rg-2" style={{display:"grid",gap:12}}>
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
           {[
             {sec:"كمي",label:"القسم الكمي",cor:qCorrect,tot:qTotal,color:"#f97316",icon:"🔢"},
             {sec:"لفظي",label:"القسم اللفظي",cor:vCorrect,tot:vTotal,color:"#22d3ee",icon:"📝"},
@@ -1350,121 +1263,43 @@ function SimMode({settings,go,updateUser,addMistake,trial={}}){  useEffect(()=>{
 
 /* ═══════════════════ PRICING PAGE ═══════════════════ */
 function Pricing({go}){
-  useEffect(()=>{window.scrollTo({top:0,behavior:"instant"});},[]); 
-  const PLANS=[
-    {id:"free",name:"مجاني",price:0,per:"",color:"#22d3ee",badge:"ابدأ هنا 🎁",
-     features:["20 سؤال مجاني","بطاقات المفهوم","خريطة المسار","اختبار تحديد المستوى"],
-     btn:"ابدأ مجانًا ←",isPaid:false},
-    {id:"month",name:"الشهري",price:29,per:"شهر",color:"#f97316",badge:"الأكثر شيوعاً ⭐",
-     features:["أسئلة AI غير محدودة","وضع المعلم الشخصي","وضع المحاكاة الكامل","تايمر لكل سؤال","أصوات الطبيعة 🌿","بطاقة النتيجة"],
-     btn:"اشترك الآن ←",isPaid:true},
-    {id:"exam",name:"باقة الاختبار",price:69,per:"3 أشهر",color:"#a78bfa",badge:"وفّر 18 ريال 💜",
-     features:["كل مميزات الشهري","توفير 18 ريال","مثالية لموسم قياس","أولوية في الدعم"],
-     btn:"اختر الباقة ←",isPaid:true},
+  const plans=[
+    {id:"free",name:"مجاني",price:0,per:"",color:"#22d3ee",badge:"ابدأ هنا",features:["20 سؤال مجاني","بطاقات المفهوم","خريطة المسار","اختبار تحديد المستوى"],btn:"ابدأ مجانًا",action:"signup"},
+    {id:"month",name:"الشهري",price:29,per:"/ شهر",color:"#f97316",badge:"الأكثر شيوعاً ⭐",features:["أسئلة AI غير محدودة","وضع المعلم الشخصي","وضع المحاكاة الكامل","تايمر لكل سؤال","أصوات الطبيعة 🌿","بطاقة النتيجة القابلة للمشاركة"],btn:"اشترك الآن ←",action:"dashboard"},
+    {id:"exam",name:"باقة الاختبار",price:69,per:"/ 3 أشهر",color:"#a78bfa",badge:"وفّر 18 ريال",features:["كل مميزات الشهري","توفير 18 ريال","مثالية لموسم قياس","أولوية في الدعم"],btn:"اختر الباقة ←",action:"dashboard"},
   ];
-  return(
-    <div style={{display:"grid",gap:16}}>
-      {/* Header */}
-      <div className="gl" style={{padding:"36px 32px",textAlign:"center"}}>
-        <span className="badge b-o" style={{marginBottom:14}}>💰 الأسعار</span>
-        <h1 style={{fontSize:"2rem",fontWeight:900,color:"#fff",marginBottom:10}}>بسيط وواضح — بدون مفاجآت</h1>
-        <p style={{color:"#64748b",lineHeight:1.9}}>جرّب مجاناً · اشترك لو ناسبك · ألغِ في أي وقت</p>
-      </div>
-
-      {/* Cards */}
-      <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(240px,1fr))",gap:14}}>
-        {PLANS.map((p,i)=>(
-          <div key={p.id} className={`gl au d${i+1}`} style={{
-            padding:"28px 22px",position:"relative",
-            border:`1.5px solid ${p.color}35`,
-            display:"flex",flexDirection:"column",gap:0,
-            boxShadow:p.id==="month"?`0 8px 32px ${p.color}18`:"none"
-          }}>
-            {/* Badge */}
-            <div style={{marginBottom:16}}>
-              <span style={{
-                display:"inline-block",padding:"4px 12px",borderRadius:99,
-                background:`${p.color}15`,border:`1px solid ${p.color}35`,
-                fontSize:".65rem",fontWeight:700,color:p.color
-              }}>{p.badge}</span>
-            </div>
-
-            {/* Name */}
-            <p style={{fontSize:"1rem",fontWeight:800,color:"#fff",marginBottom:10}}>{p.name}</p>
-
-            {/* Price */}
-            <div style={{display:"flex",alignItems:"baseline",gap:6,marginBottom:20}}>
-              {p.price===0?(
-                <span style={{fontSize:"1.8rem",fontWeight:900,color:p.color}}>مجاني</span>
-              ):(
-                <>
-                  <span style={{fontSize:"2.6rem",fontWeight:900,color:p.color,lineHeight:1}}>{p.price}</span>
-                  <div>
-                    <p style={{fontSize:".72rem",fontWeight:700,color:"#94a3b8"}}>ريال</p>
-                    <p style={{fontSize:".65rem",color:"#475569"}}>/ {p.per}</p>
-                  </div>
-                </>
-              )}
-            </div>
-
-            {/* Features */}
-            <div style={{display:"flex",flexDirection:"column",gap:8,marginBottom:24,flex:1}}>
-              {p.features.map((f,fi)=>(
-                <div key={fi} style={{display:"flex",alignItems:"center",gap:9}}>
-                  <span style={{color:p.color,fontWeight:900,fontSize:".8rem",flexShrink:0}}>✓</span>
-                  <span style={{fontSize:".82rem",color:"#cbd5e1",lineHeight:1.5}}>{f}</span>
-                </div>
-              ))}
-            </div>
-
-            {/* CTA */}
-            {p.isPaid?(
-              <div style={{display:"flex",flexDirection:"column",gap:8}}>
-                <button
-                  className={p.id==="month"?"btn btn-p":"btn"}
-                  style={{
-                    width:"100%",justifyContent:"center",padding:"13px",
-                    borderRadius:13,fontSize:".88rem",fontWeight:800,cursor:"not-allowed",opacity:.55,
-                    background:p.id==="month"?"linear-gradient(135deg,#f97316,#fb923c)":"transparent",
-                    border:`1.5px solid ${p.color}50`,color:p.id==="month"?"#0a0f1e":p.color,
-                    fontFamily:"Cairo,sans-serif"
-                  }}>
-                  🔒 قريباً
-                </button>
-                <p style={{fontSize:".65rem",color:"#334155",textAlign:"center"}}>الدفع عبر Moyasar — قريباً</p>
-              </div>
-            ):(
-              <button className="btn"
-                style={{width:"100%",justifyContent:"center",padding:"14px",borderRadius:13,fontSize:".9rem",fontWeight:800,
-                  background:`linear-gradient(135deg,${p.color}22,${p.color}11)`,
-                  border:`1.5px solid ${p.color}60`,color:p.color,cursor:"pointer",
-                  transition:"all .2s",fontFamily:"Cairo,sans-serif"}}
-                onClick={()=>go("signup")}>
-                {p.btn}
-              </button>
-            )}
-          </div>
-        ))}
-      </div>
-
-      {/* Security bar */}
-      <div className="gl-c" style={{padding:"16px 22px",display:"flex",alignItems:"center",gap:12,flexWrap:"wrap"}}>
-        <span style={{fontSize:"1.2rem"}}>🔒</span>
-        <p style={{fontSize:".82rem",color:"#e2e8f0",lineHeight:1.8,flex:1}}>
-          الدفع الآمن عبر <strong style={{color:"#67e8f9"}}>Moyasar</strong> المرخصة من ساما ·
-          مدى · Visa · Mastercard · Apple Pay · إلغاء في أي وقت
-        </p>
-      </div>
-
-      {/* Back */}
-      <button className="btn btn-g" style={{justifyContent:"center"}} onClick={()=>go("landing")}>
-        ← العودة للرئيسية
-      </button>
+  return(<div style={{display:"grid",gap:14}}>
+    <div className="gl" style={{padding:"36px 32px",textAlign:"center"}}>
+      <span className="badge b-o" style={{marginBottom:14}}>💰 الأسعار</span>
+      <h1 style={{fontSize:"2rem",fontWeight:900,color:"#fff",marginBottom:10}}>بسيط وواضح — بدون مفاجآت</h1>
+      <p style={{color:"#64748b",lineHeight:1.9}}>جرّب مجاناً. اشترك لو ناسبك. ألغِ في أي وقت.</p>
     </div>
-  );
+    <div className="pricing-grid rg-3" style={{gap:14}}>
+      {plans.map((p,i)=>(
+        <div key={p.id} className={`gl au d${i+1}`} style={{padding:"26px 20px",position:"relative",border:`1.5px solid ${p.color}28`}}>
+          <span className="badge" style={{position:"absolute",top:16,left:16,background:`${p.color}15`,border:`1px solid ${p.color}30`,color:p.color,fontSize:".6rem"}}>{p.badge}</span>
+          <p style={{fontWeight:800,color:"#fff",marginTop:32,marginBottom:8}}>{p.name}</p>
+          <div style={{display:"flex",alignItems:"baseline",gap:5,marginBottom:20}}>
+            <span style={{fontSize:p.price===0?"1.4rem":"2.4rem",fontWeight:900,color:p.color}}>{p.price===0?"مجاني":p.price}</span>
+            {p.price>0&&<span style={{fontSize:".8rem",color:"#64748b"}}>ريال {p.per}</span>}
+          </div>
+          <div style={{display:"flex",flexDirection:"column",gap:9,marginBottom:22}}>
+            {p.features.map((f,fi)=><div key={fi} style={{display:"flex",alignItems:"center",gap:8}}><span style={{color:p.color,fontWeight:700,fontSize:".74rem"}}>✓</span><span style={{fontSize:".8rem",color:"#cbd5e1"}}>{f}</span></div>)}
+          </div>
+          <button className={`btn ${p.id==="month"?"btn-p":"btn-g"}`}
+            style={{width:"100%",justifyContent:"center",border:p.id!=="month"?`1.5px solid ${p.color}40 !important`:"none",color:p.id!=="month"?p.color:undefined}}
+            onClick={()=>go(p.action)}>{p.btn}</button>
+        </div>
+      ))}
+    </div>
+    <div className="gl-c" style={{padding:"18px 22px",display:"flex",alignItems:"center",gap:13,flexWrap:"wrap"}}>
+      <span style={{fontSize:"1.3rem"}}>🔒</span>
+      <p style={{fontSize:".84rem",color:"#e2e8f0",lineHeight:1.75,flex:1}}>الدفع آمن عبر <strong style={{color:"#67e8f9"}}>مويسر (Moyasar)</strong> · مدى · Visa · MasterCard · Apple Pay · إلغاء في أي وقت</p>
+    </div>
+  </div>);
 }
 
-
+/* ═══════════════════ AUTO-ADVANCE COUNTDOWN ═══════════════════ */
 function NextCountdown({onNext,seconds=5}){
   const[left,setLeft]=useState(seconds);
   const pct=Math.round((left/seconds)*100);
@@ -1498,7 +1333,6 @@ function NextCountdown({onNext,seconds=5}){
 
 /* ═══════════════════ AI SESSION ═══════════════════ */
 function Session({settings,go,updateUser,trial,setTrial,addMistake}){
-  useEffect(()=>{window.scrollTo({top:0,behavior:"instant"});},[]);
   const[qData,setQData]=useState(null);
   const[loading,setLoading]=useState(false);
   const[err,setErr]=useState("");
@@ -1550,10 +1384,7 @@ function Session({settings,go,updateUser,trial,setTrial,addMistake}){
     finally{setLoading(false);}
   },[settings,trial]);
 
-  useEffect(()=>{
-    if(!trial.isSubscribed&&trial.used>=trial.limit){go("paywall");return;}
-    fetchQ();
-  },[]);
+  useEffect(()=>{fetchQ();},[]);
 
   /* ── تشغيل فوري عند اختيار الإجابة ── */
   const pickAnswer=(i)=>{
@@ -1573,12 +1404,7 @@ function Session({settings,go,updateUser,trial,setTrial,addMistake}){
       correctAns:qData?.options[qData?.correct],steps:qData?.steps,tip:qData?.tip};
     const nh=[...history,entry];
     setHistory(nh);
-    setTrial(p=>{
-      const nu=p.isSubscribed?p:{...p,used:p.used+1};
-      if(!IS_ARTIFACT&&session?.userId&&!p.isSubscribed)
-        sbSaveProgress(session.userId,session.token,{totalSolved:user.totalSolved,correct:user.correct,streak:user.streak,trialUsed:nu.used}).catch(()=>{});
-      return nu;
-    });
+    setTrial(p=>p.isSubscribed?p:{...p,used:p.used+1});
     updateUser(ok);
     if(!ok)addMistake(entry);
     /* ── كل الشرح يظهر فوراً دفعة واحدة ── */
@@ -1639,21 +1465,6 @@ function Session({settings,go,updateUser,trial,setTrial,addMistake}){
         )}
       </div>
 
-      {/* Mobile stats bar (replaces sidebar) */}
-      <div className="mob-show" style={{display:"none"}}>
-        <div className="mob-stats-bar">
-          <Ring pct={acc} size={44} color={acc>=70?"#4ade80":acc>=50?"#f97316":"#f87171"} label=""/>
-          <div style={{flex:1}}>
-            <p style={{fontSize:".7rem",color:"#64748b"}}>الصحيح / الكلي</p>
-            <p style={{fontSize:".9rem",fontWeight:900,color:"#fff"}}>{correct} / {history.length}</p>
-          </div>
-          {!trial.isSubscribed&&<div style={{textAlign:"left",minWidth:80}}>
-            <p style={{fontSize:".62rem",color:"#f97316",fontWeight:700,marginBottom:3}}>{trial.used}/{trial.limit} سؤال</p>
-            <div className="pt"><div className="pf" style={{width:`${Math.min((trial.used/trial.limit)*100,100)}%`}}/></div>
-          </div>}
-        </div>
-      </div>
-
       {/* Loading */}
       {loading&&<div className="gl si" style={{padding:"48px",textAlign:"center"}}>
         <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:13}}>
@@ -1674,7 +1485,7 @@ function Session({settings,go,updateUser,trial,setTrial,addMistake}){
           <p style={{color:"#fca5a5",fontWeight:700,fontSize:".84rem"}}>⏱ انتهى الوقت! الإجابة الصحيحة أسفله</p>
         </div>}
         {qData.shape&&<ShapeRender shape={qData.shape}/>}
-        <h2 style={{fontSize:"clamp(.95rem,3vw,1.12rem)",fontWeight:800,color:"#fff",lineHeight:1.85,marginBottom:18}}>{qData.question}</h2>
+        <h2 style={{fontSize:"1.12rem",fontWeight:800,color:"#fff",lineHeight:1.85,marginBottom:22}}>{qData.question}</h2>
 
         {/* Options — click = answer immediately */}
         <div style={{display:"flex",flexDirection:"column",gap:9}}>
@@ -1781,7 +1592,7 @@ function Session({settings,go,updateUser,trial,setTrial,addMistake}){
     </div>
 
     {/* ── Sidebar ── */}
-    <div className="mob-hide" style={{display:"flex",flexDirection:"column",gap:11,alignSelf:"start",position:"sticky",top:20}}>
+    <div style={{display:"flex",flexDirection:"column",gap:11,alignSelf:"start",position:"sticky",top:20}}>
       {qData&&!loading&&!checked&&<QuestionTimer key={timerKey} seconds={90} onExpire={handleExpire} paused={checked}/>}
       <div className="gl" style={{padding:"17px"}}>
         <p style={{fontSize:".67rem",color:"#f97316",fontWeight:700,letterSpacing:".08em",marginBottom:11}}>جلستك</p>
@@ -1817,477 +1628,12 @@ function Session({settings,go,updateUser,trial,setTrial,addMistake}){
 }
 
 /* ═══════════════════ REMAINING PAGES (compact) ═══════════════════ */
-function AnimCounter({target,suffix="",duration=1800}){
-  const[val,setVal]=useState(0);
-  const ref=useRef(null);
-  useEffect(()=>{
-    const obs=new IntersectionObserver(([e])=>{
-      if(e.isIntersecting){
-        let start=0,step=target/60;
-        const t=setInterval(()=>{start+=step;if(start>=target){setVal(target);clearInterval(t);}else setVal(Math.floor(start));},duration/60);
-      }
-    },{threshold:.3});
-    if(ref.current)obs.observe(ref.current);
-    return()=>obs.disconnect();
-  },[target]);
-  return <span ref={ref}>{val.toLocaleString()}{suffix}</span>;
-}
+function Landing({go}){return(<div style={{display:"grid",gap:16}}><div className="gl au" style={{padding:"46px 36px"}}><span className="badge b-o" style={{marginBottom:14}}>✦ أسئلة لا نهائية · وضع المعلم · خريطة مسار</span><h1 style={{fontSize:"2.4rem",fontWeight:900,lineHeight:1.22,color:"#fff",maxWidth:560}}>بعض الأسئلة تحتاج أحد<br/><span style={{background:"linear-gradient(135deg,#f97316,#fb923c,#22d3ee)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent"}}>يفهّمك إياها صح</span></h1><p style={{marginTop:12,fontSize:".92rem",lineHeight:1.9,color:"#64748b",maxWidth:500}}>فهمني منصتك الكاملة للقدرات — AI يولّد أسئلة لا تنتهي، وضع المعلم يشخّص أداءك بعد 5 أسئلة، وبطاقات المفهوم تشرح كل باب.</p><div style={{display:"flex",gap:11,marginTop:22,flexWrap:"wrap"}}><button className="btn btn-p" style={{fontSize:".93rem",padding:"13px 26px"}} onClick={()=>go("signup")}>ابدأ مجانًا ← 20 سؤال</button><button className="btn btn-g" onClick={()=>go("session")}>جرّب سؤالاً الآن</button></div></div>
+<div className="landing-features rg-4" style={{gap:12}}>{[["🗺️","خريطة المسار","رحلة من التأسيس للتميز","#a78bfa"],["🎓","وضع المعلم","تحليل شخصي بعد كل 5 أسئلة","#f97316"],["🧪","سؤال التشخيص","يحدد مستواك في الباب بسؤال واحد","#22d3ee"],["📋","وضع المراجعة","كل أخطاءك مجموعة للمراجعة","#4ade80"]].map(([ic,t,d,c],i)=>(<div key={i} className={`gl2 au d${i+1}`} style={{padding:"18px 15px"}}><div style={{fontSize:"1.5rem",marginBottom:8}}>{ic}</div><h3 style={{fontWeight:800,color:"#fff",fontSize:".9rem",marginBottom:5}}>{t}</h3><p style={{fontSize:".75rem",lineHeight:1.75,color:"#64748b"}}>{d}</p></div>))}</div>
+<div className="gl" style={{padding:"20px 26px",display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:12}}><p style={{fontWeight:700,color:"#e2e8f0"}}>جاهز تبدأ؟</p><div style={{display:"flex",gap:9}}><button className="btn btn-g" onClick={()=>go("login")}>عندي حساب</button><button className="btn btn-p" onClick={()=>go("signup")}>أنا مستخدم جديد ←</button></div></div>
+</div>);}
 
-function Landing({go}){
-  const[bannerClosed,setBannerClosed]=useState(false);
-  const[activeFeature,setActiveFeature]=useState(0);
-
-  const FEATURES=[
-    {icon:"🤖",title:"أسئلة AI لا تنتهي",desc:"كل سؤال يولّده الذكاء الاصطناعي خصيصاً لمستواك — لن تتكرر نفس الأسئلة أبداً.",color:"#f97316",demo:(
-      <div style={{padding:"16px",borderRadius:14,background:"rgba(5,9,26,.9)",border:"1px solid rgba(249,115,22,.2)"}}>
-        <p style={{fontSize:".7rem",color:"#f97316",fontWeight:700,marginBottom:8}}>🤖 سؤال مولّد الآن</p>
-        <p style={{fontSize:".85rem",color:"#fff",lineHeight:1.8,marginBottom:12}}>إذا كان متوسط 5 طلاب هو 80، وأربعة منهم درجاتهم 75، 85، 90، 70 — ما درجة الخامس؟</p>
-        <div style={{display:"flex",flexDirection:"column",gap:6}}>
-          {["60","70","80","90"].map((o,i)=><div key={i} style={{padding:"8px 12px",borderRadius:9,background:i===2?"rgba(74,222,128,.12)":"rgba(255,255,255,.04)",border:`1px solid ${i===2?"rgba(74,222,128,.3)":"rgba(255,255,255,.07)"}`,fontSize:".78rem",color:i===2?"#86efac":"#94a3b8",display:"flex",justifyContent:"space-between"}}><span>{o}</span>{i===2&&<span>✓ صحيح</span>}</div>)}
-        </div>
-      </div>
-    )},
-    {icon:"🎓",title:"وضع المعلم الذكي",desc:"بعد كل 5 أسئلة، يحلل AI أداءك بالتفصيل ويخبرك وين تحسّن.",color:"#a78bfa",demo:(
-      <div style={{padding:"16px",borderRadius:14,background:"rgba(5,9,26,.9)",border:"1px solid rgba(167,139,250,.2)"}}>
-        <p style={{fontSize:".7rem",color:"#a78bfa",fontWeight:700,marginBottom:10}}>🎓 تقرير المعلم</p>
-        {[{t:"نقطة قوة",v:"إجابتك على النسبة والتناسب كانت سريعة ودقيقة.",c:"#86efac"},{t:"نقطة ضعف",v:"في الأعمار تنسى تغيير كلا الشخصين.",c:"#fca5a5"},{t:"التوصية",v:"ركّز على 3 أسئلة إضافية في الأعمار.",c:"#fdba74"}].map((r,i)=>(
-          <div key={i} style={{padding:"8px 11px",borderRadius:9,background:"rgba(255,255,255,.04)",marginBottom:6}}>
-            <p style={{fontSize:".6rem",color:"#475569",marginBottom:2}}>{r.t}</p>
-            <p style={{fontSize:".76rem",color:r.c,lineHeight:1.6}}>{r.v}</p>
-          </div>
-        ))}
-      </div>
-    )},
-    {icon:"⚡",title:"محاكاة قياس حقيقية",desc:"120 سؤال · 150 دقيقة — نفس اختبار قياس بالضبط. جهّز نفسك قبل اليوم الحقيقي.",color:"#22d3ee",demo:(
-      <div style={{padding:"16px",borderRadius:14,background:"rgba(5,9,26,.9)",border:"1px solid rgba(34,211,238,.2)"}}>
-        <div style={{display:"flex",justifyContent:"space-between",marginBottom:12}}>
-          <p style={{fontSize:".7rem",color:"#22d3ee",fontWeight:700}}>⚡ محاكاة جارية</p>
-          <p style={{fontSize:".7rem",color:"#f87171",fontWeight:700}}>⏱ 1:24:38</p>
-        </div>
-        <div style={{display:"grid",gridTemplateColumns:"repeat(10,1fr)",gap:3,marginBottom:10}}>
-          {Array.from({length:30}).map((_,i)=><div key={i} style={{height:14,borderRadius:3,background:i<18?i%4===3?"rgba(248,113,113,.3)":"rgba(74,222,128,.2)":"rgba(255,255,255,.06)",border:`1px solid ${i<18?i%4===3?"rgba(248,113,113,.3)":"rgba(74,222,128,.2)":"rgba(255,255,255,.04)"}`}}/>)}
-        </div>
-        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:7}}>
-          {[["أُجيب",18,"#22d3ee"],["صحيح",14,"#4ade80"],["متبقي",102,"#475569"]].map(([l,v,c])=>(
-            <div key={l} style={{padding:"7px",borderRadius:8,background:"rgba(255,255,255,.04)",textAlign:"center"}}>
-              <p style={{fontSize:"1rem",fontWeight:900,color:c}}>{v}</p>
-              <p style={{fontSize:".58rem",color:"#475569"}}>{l}</p>
-            </div>
-          ))}
-        </div>
-      </div>
-    )},
-    {icon:"🗺️",title:"خريطة المسار الكاملة",desc:"17 باب مرتّب من الأسهل للأصعب — كل باب فيه شرح AI + تشخيص + تدريب.",color:"#4ade80",demo:(
-      <div style={{padding:"16px",borderRadius:14,background:"rgba(5,9,26,.9)",border:"1px solid rgba(74,222,128,.2)"}}>
-        <p style={{fontSize:".7rem",color:"#4ade80",fontWeight:700,marginBottom:10}}>🗺️ مسارك الشخصي</p>
-        {[{t:"النسبة والتناسب",s:"مكتمل",c:"#4ade80",p:100},{t:"الأعمار",s:"جاري",c:"#f97316",p:60},{t:"المتوسط الحسابي",s:"التالي",c:"#475569",p:0}].map((r,i)=>(
-          <div key={i} style={{marginBottom:8}}>
-            <div style={{display:"flex",justifyContent:"space-between",marginBottom:4}}>
-              <p style={{fontSize:".76rem",color:r.c,fontWeight:700}}>{r.t}</p>
-              <p style={{fontSize:".65rem",color:r.c}}>{r.s}</p>
-            </div>
-            <div style={{height:4,borderRadius:99,background:"rgba(255,255,255,.07)"}}>
-              <div style={{height:"100%",borderRadius:99,background:r.c,width:`${r.p}%`,transition:"width 1s ease"}}/>
-            </div>
-          </div>
-        ))}
-      </div>
-    )},
-  ];
-
-  return(
-    <div style={{display:"grid",gap:0}}>
-
-      {/* ── بانر الإعلان ── */}
-      {!bannerClosed&&(
-        <div style={{position:"relative",overflow:"hidden",padding:"11px 20px",
-          background:"linear-gradient(90deg,rgba(249,115,22,.2),rgba(251,146,60,.14),rgba(34,211,238,.08))",
-          border:"none",borderBottom:"1px solid rgba(249,115,22,.3)",
-          display:"flex",alignItems:"center",justifyContent:"center",gap:16,flexWrap:"wrap",marginBottom:0}}>
-          <div style={{position:"absolute",inset:0,background:"linear-gradient(90deg,transparent,rgba(249,115,22,.05),transparent)",animation:"gridAnim 3s ease-in-out infinite",pointerEvents:"none"}}/>
-          <p style={{fontSize:".83rem",fontWeight:700,color:"#fff",position:"relative"}}>
-            🔥 عرض محدود — اشترك بـ <span style={{color:"#fde047",fontWeight:900}}>29 ريال/شهر</span> وافتح كل المميزات
-          </p>
-          <div style={{display:"flex",gap:8,position:"relative"}}>
-            <button className="btn btn-p" style={{fontSize:".75rem",padding:"7px 16px"}} onClick={()=>go("pricing")}>اشترك الآن ←</button>
-            <button onClick={()=>setBannerClosed(true)} style={{background:"none",border:"none",cursor:"pointer",color:"#475569",fontSize:"1rem",fontFamily:"Cairo,sans-serif",padding:"4px 6px"}}>✕</button>
-          </div>
-        </div>
-      )}
-
-      {/* ── Hero ── */}
-      <div style={{padding:"clamp(28px,7vw,64px) 0 clamp(24px,5vw,48px)",textAlign:"center",position:"relative",overflow:"hidden"}}>
-        <div style={{position:"absolute",inset:0,background:"radial-gradient(ellipse 70% 60% at 50% 0%,rgba(249,115,22,.13) 0%,transparent 70%)",pointerEvents:"none"}}/>
-        <div style={{position:"relative"}}>
-          <div style={{display:"inline-flex",alignItems:"center",gap:8,padding:"7px 18px",borderRadius:99,
-            background:"linear-gradient(135deg,rgba(249,115,22,.12),rgba(34,211,238,.08))",
-            border:"1px solid rgba(249,115,22,.28)",marginBottom:22,animation:"fadeUp .5s both"}}>
-            <span style={{width:7,height:7,borderRadius:"50%",background:"#4ade80",boxShadow:"0 0 8px #4ade80",display:"inline-block",animation:"streakGlow 2s infinite"}}/>
-            <span style={{fontSize:".73rem",fontWeight:700,color:"#fdba74"}}>مبني بالذكاء الاصطناعي · خصيصاً لاختبار القدرات</span>
-          </div>
-
-          <h1 style={{fontSize:"clamp(2rem,5vw,3.2rem)",fontWeight:900,lineHeight:1.15,color:"#fff",marginBottom:18,animation:"fadeUp .5s .08s both"}}>
-            ذاكر بذكاء<br/>
-            <span style={{background:"linear-gradient(135deg,#f97316,#fb923c,#fbbf24,#22d3ee)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",backgroundSize:"200%"}}>
-              وافهم أسرع
-            </span>
-          </h1>
-
-          <p style={{fontSize:"clamp(.88rem,2vw,1.05rem)",lineHeight:1.9,color:"#64748b",maxWidth:520,margin:"0 auto 30px",animation:"fadeUp .5s .14s both"}}>
-            فهمني منصة القدرات الأذكى في السعودية — AI يولّد أسئلة لا تنتهي، ويشخّص أداءك، ويشرح كل باب بلغة تفهمها.
-          </p>
-
-          <div className="landing-hero-btns" style={{display:"flex",gap:12,justifyContent:"center",flexWrap:"wrap",animation:"fadeUp .5s .2s both"}}>
-            <button className="btn btn-p" style={{fontSize:"1rem",padding:"14px 32px",borderRadius:16}} onClick={()=>go("signup")}>
-              ابدأ مجانًا ← 20 سؤال
-            </button>
-            <button className="btn btn-g" style={{fontSize:".93rem",padding:"14px 24px",borderRadius:16}} onClick={()=>go("signup")}>
-              جرّب سؤالاً الآن
-            </button>
-          </div>
-
-          {/* Social proof */}
-          <div style={{display:"flex",gap:20,justifyContent:"center",flexWrap:"wrap",marginTop:28,animation:"fadeUp .5s .26s both"}}>
-            {[["🎯","دقة التشخيص","98%"],["⚡","وقت التوليد","< 3 ثوانٍ"],["📚","عدد الأبواب","17 باب"]].map(([ic,l,v],i)=>(
-              <div key={i} style={{display:"flex",alignItems:"center",gap:7}}>
-                <span style={{fontSize:".9rem"}}>{ic}</span>
-                <span style={{fontSize:".75rem",color:"#475569"}}>{l}</span>
-                <span style={{fontSize:".82rem",fontWeight:800,color:"#f97316"}}>{v}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* ── إحصائيات ── */}
-      <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:1,borderTop:"1px solid rgba(255,255,255,.06)",borderBottom:"1px solid rgba(255,255,255,.06)",background:"rgba(255,255,255,.03)",marginBottom:40}}>
-        {[["+ أسئلة مولّدة",50000,""],["باب كمي ولفظي",17,""],["% دقة الـ AI",99,""],["ريال/شهر فقط",29,""]].map(([l,v,s],i)=>(
-          <div key={i} style={{padding:"22px 16px",textAlign:"center",borderLeft:i>0?"1px solid rgba(255,255,255,.06)":"none"}}>
-            <p style={{fontSize:"clamp(1.4rem,3vw,1.9rem)",fontWeight:900,color:["#f97316","#22d3ee","#4ade80","#a78bfa"][i],lineHeight:1}}>
-              <AnimCounter target={v} suffix={s}/>
-            </p>
-            <p style={{fontSize:".72rem",color:"#475569",marginTop:5}}>{l}</p>
-          </div>
-        ))}
-      </div>
-
-      {/* ── المميزات التفاعلية ── */}
-      <div style={{padding:"0 0 48px"}}>
-        <div style={{textAlign:"center",marginBottom:28}}>
-          <span className="badge b-v" style={{marginBottom:10}}>المميزات</span>
-          <h2 style={{fontSize:"clamp(1.4rem,3vw,1.9rem)",fontWeight:900,color:"#fff"}}>كل اللي تحتاجه في مكان واحد</h2>
-        </div>
-        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14}}>
-          {/* أزرار الاختيار */}
-          <div style={{display:"flex",flexDirection:"column",gap:10}}>
-            {FEATURES.map((f,i)=>(
-              <button key={i} onClick={()=>setActiveFeature(i)} style={{
-                padding:"16px 18px",borderRadius:16,cursor:"pointer",textAlign:"right",
-                border:`1.5px solid ${activeFeature===i?f.color+"55":"rgba(255,255,255,.07)"}`,
-                background:activeFeature===i?f.color+"0d":"rgba(255,255,255,.025)",
-                transition:"all .25s",display:"flex",gap:13,alignItems:"flex-start"
-              }}>
-                <div style={{width:40,height:40,borderRadius:11,flexShrink:0,
-                  background:activeFeature===i?f.color+"18":"rgba(255,255,255,.06)",
-                  border:`1px solid ${activeFeature===i?f.color+"35":"rgba(255,255,255,.08)"}`,
-                  display:"flex",alignItems:"center",justifyContent:"center",fontSize:"1.2rem",
-                  transition:"all .25s"}}>
-                  {f.icon}
-                </div>
-                <div style={{textAlign:"right"}}>
-                  <p style={{fontWeight:800,color:activeFeature===i?f.color:"#fff",fontSize:".9rem",marginBottom:4,transition:"color .2s"}}>{f.title}</p>
-                  <p style={{fontSize:".75rem",color:"#64748b",lineHeight:1.65}}>{f.desc}</p>
-                </div>
-              </button>
-            ))}
-          </div>
-          {/* العرض التفاعلي */}
-          <div style={{position:"sticky",top:80,alignSelf:"start"}}>
-            <div style={{borderRadius:20,overflow:"hidden",border:`1px solid ${FEATURES[activeFeature].color}25`,
-              background:"rgba(10,18,40,.95)",transition:"border-color .3s",
-              boxShadow:`0 20px 60px rgba(0,0,0,.5), 0 0 40px ${FEATURES[activeFeature].color}0d`}}>
-              <div style={{padding:"12px 16px",borderBottom:"1px solid rgba(255,255,255,.06)",
-                background:"rgba(255,255,255,.03)",display:"flex",alignItems:"center",gap:8}}>
-                <div style={{display:"flex",gap:5}}>{["#f87171","#fbbf24","#4ade80"].map((c,i)=><div key={i} style={{width:9,height:9,borderRadius:"50%",background:c}}/>)}</div>
-                <p style={{fontSize:".65rem",color:"#334155",fontWeight:600}}>fahmni.sa — {FEATURES[activeFeature].title}</p>
-              </div>
-              <div style={{padding:"18px",animation:"scaleIn .3s cubic-bezier(.22,1,.36,1)"}}>
-                {FEATURES[activeFeature].demo}
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* ── الأبواب ── */}
-      <div style={{padding:"40px 0",borderTop:"1px solid rgba(255,255,255,.05)"}}>
-        <div style={{textAlign:"center",marginBottom:24}}>
-          <span className="badge b-o" style={{marginBottom:10}}>17 باب</span>
-          <h2 style={{fontSize:"1.6rem",fontWeight:900,color:"#fff",marginBottom:8}}>يغطي كل أبواب القدرات</h2>
-          <p style={{color:"#475569",fontSize:".85rem"}}>كمي ولفظي — حسب المنهج الرسمي لمركز القياس</p>
-        </div>
-        <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(150px,1fr))",gap:8}}>
-          {[...TOPICS.كمي,...TOPICS.لفظي].map((t,i)=>(
-            <div key={i} onClick={()=>go("signup")} style={{
-              padding:"11px 13px",borderRadius:12,cursor:"pointer",
-              background:"rgba(255,255,255,.03)",border:"1px solid rgba(255,255,255,.06)",
-              display:"flex",alignItems:"center",gap:8,transition:"all .18s"
-            }}
-            onMouseEnter={e=>{e.currentTarget.style.borderColor="rgba(249,115,22,.3)";e.currentTarget.style.background="rgba(249,115,22,.05)";}}
-            onMouseLeave={e=>{e.currentTarget.style.borderColor="rgba(255,255,255,.06)";e.currentTarget.style.background="rgba(255,255,255,.03)";}}>
-              <span style={{fontSize:".85rem"}}>{CONCEPTS[t]?.icon||"📌"}</span>
-              <span style={{fontSize:".75rem",fontWeight:600,color:"#94a3b8"}}>{t}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* ── كيف يشتغل ── */}
-      <div style={{padding:"40px 0",borderTop:"1px solid rgba(255,255,255,.05)"}}>
-        <div style={{textAlign:"center",marginBottom:28}}>
-          <span className="badge b-c" style={{marginBottom:10}}>كيف تبدأ</span>
-          <h2 style={{fontSize:"1.6rem",fontWeight:900,color:"#fff"}}>3 خطوات وأنت جاهز</h2>
-        </div>
-        <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:14}}>
-          {[
-            {n:"01",ic:"🎯",t:"اختبار التحديد",d:"6 أسئلة تحدد مستواك وتبني لك خطة ذكية مخصصة.",c:"#f97316"},
-            {n:"02",ic:"🤖",t:"تدرّب مع AI",d:"أسئلة لا تنتهي مع شرح فوري + تحليل المعلم بعد كل 5 أسئلة.",c:"#a78bfa"},
-            {n:"03",ic:"⚡",t:"اختبر نفسك",d:"محاكاة قياس كاملة — نفس الوقت ونفس الأسئلة.",c:"#22d3ee"},
-          ].map((s,i)=>(
-            <div key={i} className={`gl au d${i+1}`} style={{padding:"24px 20px",position:"relative",overflow:"hidden"}}>
-              <div style={{position:"absolute",top:14,left:14,fontSize:"2.5rem",fontWeight:900,color:s.c,opacity:.08,lineHeight:1}}>{s.n}</div>
-              <div style={{width:44,height:44,borderRadius:13,background:`${s.c}18`,border:`1.5px solid ${s.c}30`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:"1.4rem",marginBottom:14}}>{s.ic}</div>
-              <h3 style={{fontWeight:800,color:"#fff",fontSize:".92rem",marginBottom:7}}>{s.t}</h3>
-              <p style={{fontSize:".78rem",color:"#64748b",lineHeight:1.75}}>{s.d}</p>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* ── CTA النهائي ── */}
-      <div style={{padding:"clamp(24px,5vw,48px) clamp(20px,4vw,32px)",borderRadius:24,
-        background:"linear-gradient(135deg,rgba(249,115,22,.12),rgba(251,146,60,.08),rgba(34,211,238,.06))",
-        border:"1.5px solid rgba(249,115,22,.25)",textAlign:"center",
-        position:"relative",overflow:"hidden",marginTop:8}}>
-        <div style={{position:"absolute",inset:0,background:"radial-gradient(ellipse 60% 80% at 50% 50%,rgba(249,115,22,.07) 0%,transparent 70%)",pointerEvents:"none"}}/>
-        <div style={{position:"relative"}}>
-          <h2 style={{fontSize:"clamp(1.4rem,4vw,2.2rem)",fontWeight:900,color:"#fff",marginBottom:10}}>
-            جاهز ترفع درجتك في القدرات؟
-          </h2>
-          <p style={{color:"#64748b",marginBottom:24,fontSize:".9rem",lineHeight:1.8}}>
-            20 سؤال مجاناً · لا يحتاج بطاقة · ابدأ الآن
-          </p>
-          <div style={{display:"flex",gap:12,justifyContent:"center",flexWrap:"wrap"}}>
-            <button className="btn btn-p" style={{fontSize:"1.05rem",padding:"15px 36px",borderRadius:16}} onClick={()=>go("signup")}>
-              ابدأ مجانًا الآن ←
-            </button>
-            <button className="btn btn-g" style={{fontSize:".92rem",padding:"15px 24px",borderRadius:16}} onClick={()=>go("pricing")}>
-              عرض الأسعار
-            </button>
-          </div>
-          <p style={{marginTop:18,fontSize:".72rem",color:"#334155"}}>
-            ✓ بدون إعلانات · ✓ بدون حفظ بيانات · ✓ إلغاء في أي وقت
-          </p>
-        </div>
-      </div>
-
-      {/* ── روابط قانونية ── */}
-      <div style={{
-        marginTop:32,paddingTop:20,
-        borderTop:"1px solid rgba(255,255,255,.05)",
-        display:"flex",flexDirection:"column",alignItems:"center",gap:12
-      }}>
-        <div style={{display:"flex",gap:6,flexWrap:"wrap",justifyContent:"center"}}>
-          {[["privacy","سياسة الخصوصية"],["terms","الشروط والأحكام"],["contact","تواصل معنا"]].map(([p,l])=>(
-            <button key={p} onClick={()=>go(p)} style={{
-              background:"none",border:"none",cursor:"pointer",
-              fontSize:".76rem",color:"#334155",fontFamily:"Cairo,sans-serif",
-              padding:"5px 10px",borderRadius:8,transition:"color .15s"
-            }}
-            onMouseEnter={e=>e.target.style.color="#f97316"}
-            onMouseLeave={e=>e.target.style.color="#334155"}>
-              {l}
-            </button>
-          ))}
-        </div>
-        <p style={{fontSize:".65rem",color:"#1e293b"}}>© {new Date().getFullYear()} فهمني — المملكة العربية السعودية 🇸🇦</p>
-      </div>
-
-    </div>
-  );
-}
-
-/* ═══════════════════ SUPABASE AUTH API ═══════════════════ */
-const sbSignup=async(name,email,password)=>{
-  const r=await fetch(`${SUPABASE_URL}/auth/v1/signup`,{
-    method:"POST",
-    headers:{"Content-Type":"application/json","apikey":SUPABASE_ANON},
-    body:JSON.stringify({email,password,data:{full_name:name}})
-  });
-  const d=await r.json();
-  if(d.error||d.msg) throw new Error(d.error?.message||d.msg||"فشل إنشاء الحساب");
-  return d; // access_token موجود = تسجيل مباشر، غير موجود = يحتاج تأكيد بريد
-};
-const sbLogin=async(email,password)=>{
-  const r=await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`,{
-    method:"POST",
-    headers:{"Content-Type":"application/json","apikey":SUPABASE_ANON},
-    body:JSON.stringify({email,password})
-  });
-  const d=await r.json();
-  if(d.error_description||d.error) throw new Error(d.error_description||d.error||"بيانات خاطئة");
-  return d;
-};
-const sbLogout=async(token)=>{
-  await fetch(`${SUPABASE_URL}/auth/v1/logout`,{
-    method:"POST",
-    headers:{"Content-Type":"application/json","apikey":SUPABASE_ANON,"Authorization":`Bearer ${token}`}
-  }).catch(()=>{});
-};
-
-/* ═══════════════════ SUPABASE DB ═══════════════════ */
-const IS_ARTIFACT=typeof window!=="undefined"&&window.location.hostname.includes("claude");
-const sbH=(token)=>({"Content-Type":"application/json","apikey":SUPABASE_ANON,"Authorization":`Bearer ${token}`,"Prefer":"return=minimal"});
-
-const sbLoadProgress=async(userId,token)=>{
-  if(IS_ARTIFACT) return null;
-  try{
-    const[pRes,mRes]=await Promise.all([
-      fetch(`${SUPABASE_URL}/rest/v1/profiles?id=eq.${userId}&select=total_solved,total_correct,current_streak,trial_used,trial_limit`,{headers:sbH(token)}),
-      fetch(`${SUPABASE_URL}/rest/v1/saved_mistakes?user_id=eq.${userId}&select=question_snapshot,is_reviewed&order=created_at.desc&limit=50`,{headers:sbH(token)})
-    ]);
-    const[profiles,mistakes]=await Promise.all([pRes.json(),mRes.json()]);
-    const p=Array.isArray(profiles)&&profiles[0];
-    const m=Array.isArray(mistakes)?mistakes.map(x=>{const s=x.question_snapshot||{};return{q:s.q||"",chosen:s.chosen||"",correctAns:s.correctAns||"",topic:s.topic||"",section:s.section||"",steps:s.steps||[],tip:s.tip||"",ok:false};}):[];
-    return{totalSolved:p?.total_solved||0,correct:p?.total_correct||0,streak:p?.current_streak||0,trialUsed:p?.trial_used||0,trialLimit:p?.trial_limit||20,mistakes:m};
-  }catch(e){return null;}
-};
-
-const sbSaveProgress=async(userId,token,{totalSolved,correct,streak})=>{
-  if(IS_ARTIFACT||!userId||userId==="guest") return;
-  try{
-    await fetch(`${SUPABASE_URL}/rest/v1/profiles?id=eq.${userId}`,{
-      method:"PATCH",headers:sbH(token),
-      body:JSON.stringify({total_solved:totalSolved,total_correct:correct,current_streak:streak,updated_at:new Date().toISOString()})
-    });
-  }catch(e){}
-};
-
-const sbSaveMistake=async(userId,token,m)=>{
-  if(IS_ARTIFACT||!userId||userId==="guest") return;
-  try{
-    await fetch(`${SUPABASE_URL}/rest/v1/saved_mistakes`,{
-      method:"POST",headers:sbH(token),
-      body:JSON.stringify({user_id:userId,question_snapshot:{q:m.q,chosen:m.chosen,correctAns:m.correctAns,topic:m.topic,section:m.section,steps:m.steps||[],tip:m.tip||""}})
-    });
-  }catch(e){}
-};
-
-const sbCreateProfile=async(userId,token,name)=>{
-  if(IS_ARTIFACT) return;
-  try{
-    await fetch(`${SUPABASE_URL}/rest/v1/profiles`,{
-      method:"POST",headers:{...sbH(token),"Prefer":"resolution=ignore-duplicates"},
-      body:JSON.stringify({id:userId,full_name:name,total_solved:0,total_correct:0,current_streak:0})
-    });
-  }catch(e){}
-};
-
-function Auth({mode,go,onLogin}){
-  const isLogin=mode==="login";
-  const[name,setName]=useState("");
-  const[email,setEmail]=useState("");
-  const[pass,setPass]=useState("");
-  const[pass2,setPass2]=useState("");
-  const[loading,setLoading]=useState(false);
-  const[err,setErr]=useState("");
-  const[info,setInfo]=useState("");
-
-  /* في الـ artifact — Supabase محجوب. على Vercel يشتغل كامل */
-  const IS_ARTIFACT=typeof window!=="undefined"&&(window.location.hostname.includes("claude.ai")||window.location.hostname==="localhost");
-
-  const guestLogin=()=>{
-    const guestName=name||"طالب";
-    onLogin({token:"guest",userId:"guest",name:guestName,email:"guest@fahmni.sa",isGuest:true,trialUsed:0,trialLimit:5});
-  };
-
-  const submit=async()=>{
-    setErr("");setInfo("");
-    if(IS_ARTIFACT){guestLogin();return;}
-    if(!email||!pass){setErr("أدخل البريد وكلمة المرور");return;}
-    if(!isLogin&&!name){setErr("أدخل اسمك");return;}
-    if(!isLogin&&pass!==pass2){setErr("كلمتا المرور غير متطابقتين");return;}
-    if(pass.length<6){setErr("كلمة المرور 6 أحرف على الأقل");return;}
-    setLoading(true);
-    try{
-      if(isLogin){
-        const d=await sbLogin(email,pass);
-        const userName=d.user?.user_metadata?.full_name||d.user?.email?.split("@")[0]||"طالب";
-        onLogin({token:d.access_token,userId:d.user?.id,name:userName,email:d.user?.email});
-      }else{
-        const d=await sbSignup(name,email,pass);
-        if(d.access_token){
-          // تأكيد البريد مطفي — تسجيل دخول مباشر
-          const userName=d.user?.user_metadata?.full_name||name||d.user?.email?.split("@")[0]||"طالب";
-          onLogin({token:d.access_token,userId:d.user?.id,name:userName,email:d.user?.email});
-        }else{
-          // تأكيد البريد مفعّل — يحتاج تفعيل
-          setInfo("✉️ تم إنشاء حسابك! تحقق من بريدك لتفعيله ثم سجّل دخولك.");
-        }
-      }
-    }catch(e){setErr(e.message||"حدث خطأ، حاول مرة أخرى");}
-    finally{setLoading(false);}
-  };
-  return(
-    <div className="rg-2" style={{display:"grid",gap:16}}>
-      <div className="gl" style={{padding:"40px 30px"}}>
-        <span className={`badge ${isLogin?"b-o":"b-c"}`} style={{marginBottom:12}}>{isLogin?"أهلًا بك":"بداية جديدة"}</span>
-        <h1 style={{fontSize:"1.9rem",fontWeight:900,color:"#fff",lineHeight:1.2,whiteSpace:"pre-line"}}>{isLogin?"تسجيل\nالدخول":"إنشاء\nحساب"}</h1>
-        <p style={{marginTop:11,fontSize:".85rem",lineHeight:1.9,color:"#64748b"}}>{isLogin?"ادخل حتى تكمل من آخر جلسة.":"أنشئ حسابك ونرتب لك المسار."}</p>
-        {IS_ARTIFACT?(
-          <div style={{marginTop:22,padding:"14px 16px",borderRadius:13,background:"rgba(249,115,22,.08)",border:"1px solid rgba(249,115,22,.25)"}}>
-            <p style={{fontSize:".75rem",color:"#fdba74",fontWeight:700,marginBottom:6}}>⚡ وضع المعاينة</p>
-            <p style={{fontSize:".72rem",color:"#94a3b8",lineHeight:1.8}}>الـ Auth الحقيقي يشتغل على الموقع المنشور.<br/>هنا اكتب اسمك واضغط دخول للتجربة.</p>
-          </div>
-        ):(
-          <div style={{marginTop:22,padding:"14px 16px",borderRadius:13,background:"rgba(34,211,238,.06)",border:"1px solid rgba(34,211,238,.16)"}}>
-            <p style={{fontSize:".72rem",color:"#67e8f9",lineHeight:1.8}}>🔒 محمي بـ <strong>Supabase Auth</strong> — كلمة مرورك مشفّرة</p>
-          </div>
-        )}
-      </div>
-      <div className="gl" style={{padding:"28px"}}>
-        <div style={{display:"flex",flexDirection:"column",gap:11}}>
-          {!isLogin&&<input className="inp" placeholder="الاسم الكامل" value={name} onChange={e=>setName(e.target.value)}/>}
-          <input className="inp" placeholder="البريد الإلكتروني" type="email" value={email} onChange={e=>setEmail(e.target.value)}/>
-          <input className="inp" placeholder="كلمة المرور (6 أحرف+)" type="password" value={pass} onChange={e=>setPass(e.target.value)} onKeyDown={e=>e.key==="Enter"&&submit()}/>
-          {!isLogin&&<input className="inp" placeholder="تأكيد كلمة المرور" type="password" value={pass2} onChange={e=>setPass2(e.target.value)}/>}
-          {err&&<div style={{padding:"10px 14px",borderRadius:11,background:"rgba(248,113,113,.1)",border:"1px solid rgba(248,113,113,.25)"}}><p style={{fontSize:".8rem",color:"#fca5a5"}}>{err}</p></div>}
-          {info&&<div style={{padding:"10px 14px",borderRadius:11,background:"rgba(74,222,128,.08)",border:"1px solid rgba(74,222,128,.22)"}}><p style={{fontSize:".8rem",color:"#86efac"}}>{info}</p></div>}
-          {IS_ARTIFACT?(
-            <div style={{display:"flex",flexDirection:"column",gap:9,marginTop:4}}>
-              <input className="inp" placeholder="اسمك (اختياري)" value={name} onChange={e=>setName(e.target.value)}/>
-              <button className="btn btn-p" style={{width:"100%",justifyContent:"center",padding:"13px"}} onClick={guestLogin}>
-                ⚡ ادخل وجرّب فهمني الآن ←
-              </button>
-              <p style={{fontSize:".69rem",color:"#475569",textAlign:"center"}}>على الموقع الحقيقي يطلب بريد وكلمة مرور</p>
-            </div>
-          ):(
-            <>
-              <button className="btn btn-p" style={{width:"100%",justifyContent:"center",padding:"13px",marginTop:4}} disabled={loading} onClick={submit}>
-                {loading?<><div className="spin"/> جاري...</>:isLogin?"تسجيل الدخول ←":"إنشاء الحساب ←"}
-              </button>
-              <button className="btn btn-g" style={{width:"100%",justifyContent:"center"}} onClick={()=>{setErr("");setInfo("");go(isLogin?"signup":"login");}}>
-                {isLogin?"إنشاء حساب جديد":"عندي حساب بالفعل"}
-              </button>
-            </>
-          )}
-          <button className="btn btn-g" style={{width:"100%",justifyContent:"center",fontSize:".78rem",color:"#475569"}} onClick={()=>go("landing")}>← العودة للرئيسية</button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
+function Auth({mode,go}){const isLogin=mode==="login";return(<div style={{display:"grid",gap:16,gridTemplateColumns:"1fr 1fr"}}><div className="gl" style={{padding:"40px 30px"}}><span className={`badge ${isLogin?"b-o":"b-c"}`} style={{marginBottom:12}}>{isLogin?"أهلًا بك":"بداية جديدة"}</span><h1 style={{fontSize:"1.9rem",fontWeight:900,color:"#fff",lineHeight:1.2,whiteSpace:"pre-line"}}>{isLogin?"تسجيل\nالدخول":"إنشاء\nحساب"}</h1><p style={{marginTop:11,fontSize:".85rem",lineHeight:1.9,color:"#64748b"}}>{isLogin?"ادخل حتى تكمل من آخر جلسة.":"أنشئ حسابك ونرتب لك المسار."}</p></div><div className="gl" style={{padding:"28px"}}><div style={{display:"flex",flexDirection:"column",gap:11}}>{!isLogin&&<input className="inp" placeholder="الاسم الكامل"/>}<input className="inp" placeholder="البريد الإلكتروني" type="email"/><input className="inp" placeholder="كلمة المرور" type="password"/>{!isLogin&&<input className="inp" placeholder="تأكيد كلمة المرور" type="password"/>}<button className="btn btn-p" style={{width:"100%",justifyContent:"center",padding:"12px",marginTop:4}} onClick={()=>go("onboarding")}>{isLogin?"تسجيل الدخول ←":"إنشاء الحساب ←"}</button><button className="btn btn-g" style={{width:"100%",justifyContent:"center"}} onClick={()=>go(isLogin?"signup":"login")}>{isLogin?"إنشاء حساب جديد":"عندي حساب"}</button></div></div></div>);}
 
 function Onboarding({finish}){
   const[goal,setGoal]=useState("أرفع درجتي");const[conf,setConf]=useState("متوسط");const[sec,setSec]=useState("كمي");const[mins,setMins]=useState("40");
@@ -2299,14 +1645,13 @@ function Onboarding({finish}){
   <div className="gl" style={{padding:"20px",position:"sticky",top:20,alignSelf:"start"}}><span className="badge b-c" style={{marginBottom:12}}>الخطوة التالية</span><h2 style={{fontSize:"1.2rem",fontWeight:900,color:"#fff",marginBottom:8}}>اختبار تحديد المستوى</h2><p style={{fontSize:".78rem",lineHeight:1.8,color:"#64748b",marginBottom:14}}>6 أسئلة سريعة — نبني خطتك منها.</p>{[["الهدف",goal],["المستوى",conf],["القسم",sec],["الوقت",`${mins} دقيقة`]].map(([k,v])=>(<div key={k} className="gl2" style={{padding:"9px 12px",display:"flex",justifyContent:"space-between",marginBottom:7}}><span style={{fontSize:".76rem",fontWeight:700,color:"#f97316"}}>{v}</span><span style={{fontSize:".73rem",color:"#64748b"}}>{k}</span></div>))}<button className="btn btn-p" style={{width:"100%",justifyContent:"center",padding:"12px",marginTop:14}} onClick={()=>finish({goal,confidence:conf,section:sec,minutes:mins})}>ابدأ اختبار التحديد ←</button></div>
   </div>);}
 
-function PlacementResult({rec,score,onFinish}){if(!rec)return null;return(<div style={{display:"grid",gap:14}}><div className="gl gl-pad-lg" style={{padding:"38px 32px"}}><span className="badge b-g" style={{marginBottom:12}}>✓ تم تحليل بدايتك</span><h1 style={{fontSize:"1.85rem",fontWeight:900,color:"#fff",marginBottom:8}}>هذه أفضل بداية لك الآن</h1><div className="placement-stats rg-4" style={{gap:12,marginTop:20}}>{[["النتيجة",`${score}/${PLACEMENT_Q.length}`,"#f97316"],["المستوى",rec.level,"#22d3ee"],["الخطة",rec.plan,"#a78bfa"],["البداية",rec.topic,"#4ade80"]].map(([l,v,c],i)=>(<div key={i} className={`gl2 stat au d${i+1}`}><p style={{fontSize:".68rem",color:"#64748b"}}>{l}</p><p style={{marginTop:6,fontSize:"1.1rem",fontWeight:900,color:c,lineHeight:1.3}}>{v}</p></div>))}</div></div><div className="rg-2" style={{display:"grid",gap:14}}><div className="gl" style={{padding:"24px"}}><p style={{fontSize:".68rem",color:"#f97316",fontWeight:700,letterSpacing:".08em",marginBottom:10}}>التوصية الذكية</p><div className="gl2" style={{padding:"14px",marginBottom:12}}><p style={{fontSize:".85rem",lineHeight:1.9,color:"#94a3b8"}}>{rec.msg}</p></div></div><div className="gl" style={{padding:"20px"}}><div style={{display:"flex",justifyContent:"center",marginBottom:14}}><Ring pct={Math.round((score/PLACEMENT_Q.length)*100)} size={90}/></div><button className="btn btn-p" style={{width:"100%",justifyContent:"center",padding:"11px"}} onClick={onFinish}>اعتمد هذه البداية ←</button></div></div></div>);}
+function PlacementResult({rec,score,onFinish}){if(!rec)return null;return(<div style={{display:"grid",gap:14}}><div className="gl" style={{padding:"38px 32px"}}><span className="badge b-g" style={{marginBottom:12}}>✓ تم تحليل بدايتك</span><h1 style={{fontSize:"1.85rem",fontWeight:900,color:"#fff",marginBottom:8}}>هذه أفضل بداية لك الآن</h1><div className="placement-stats rg-4" style={{gap:12,marginTop:20}}>{[["النتيجة",`${score}/${PLACEMENT_Q.length}`,"#f97316"],["المستوى",rec.level,"#22d3ee"],["الخطة",rec.plan,"#a78bfa"],["البداية",rec.topic,"#4ade80"]].map(([l,v,c],i)=>(<div key={i} className={`gl2 stat au d${i+1}`}><p style={{fontSize:".68rem",color:"#64748b"}}>{l}</p><p style={{marginTop:6,fontSize:"1.1rem",fontWeight:900,color:c,lineHeight:1.3}}>{v}</p></div>))}</div></div><div style={{display:"grid",gridTemplateColumns:"1.2fr .8fr",gap:14}}><div className="gl" style={{padding:"24px"}}><p style={{fontSize:".68rem",color:"#f97316",fontWeight:700,letterSpacing:".08em",marginBottom:10}}>التوصية الذكية</p><div className="gl2" style={{padding:"14px",marginBottom:12}}><p style={{fontSize:".85rem",lineHeight:1.9,color:"#94a3b8"}}>{rec.msg}</p></div></div><div className="gl" style={{padding:"20px"}}><div style={{display:"flex",justifyContent:"center",marginBottom:14}}><Ring pct={Math.round((score/PLACEMENT_Q.length)*100)} size={90}/></div><button className="btn btn-p" style={{width:"100%",justifyContent:"center",padding:"11px"}} onClick={onFinish}>اعتمد هذه البداية ←</button></div></div></div>);}
 
 function Dashboard({go,user,trial,mistakes}){
-  useEffect(()=>{window.scrollTo({top:0,behavior:"instant"});},[]); 
   const acc=user.totalSolved?Math.round((user.correct/user.totalSolved)*100):0;
   const wrongCount=mistakes.length;
   return(<div style={{display:"grid",gap:14}}>
-    <div className="gl gl-pad-lg" style={{padding:"34px 30px"}}>
+    <div className="gl" style={{padding:"34px 30px"}}>
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",flexWrap:"wrap",gap:16}}>
         <div><h1 style={{fontSize:"1.8rem",fontWeight:900,color:"#fff",marginTop:12}}>أهلًا {user.name}، <span style={{color:"#f97316"}}>{acc>=80?"ممتاز 🏆":acc>=60?"جيد جدًا ⭐":acc>0?"فيه تقدم 📈":"ابدأ الآن 💪"}</span></h1></div>
         <Ring pct={acc} size={96} color={acc>=70?"#4ade80":acc>=50?"#f97316":"#f87171"}/>
@@ -2322,7 +1667,7 @@ function Dashboard({go,user,trial,mistakes}){
     {!trial.isSubscribed&&(<div style={{padding:"18px 22px",borderRadius:18,background:"linear-gradient(135deg,rgba(249,115,22,.1),rgba(34,211,238,.06))",border:"1px solid rgba(249,115,22,.18)",display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:12}}><div><p style={{fontWeight:700,color:"#fdba74"}}>التجربة المجانية — {trial.limit-trial.used} سؤال متبقي</p></div><div className="pt" style={{width:110}}><div className="pf" style={{width:`${(trial.used/trial.limit)*100}%`}}/></div></div>)}
   </div>);}
 
-function Bank({settings,setSettings,go,trial={}}){  useEffect(()=>{window.scrollTo({top:0,behavior:"instant"});if(!trial.isSubscribed&&trial.used>=trial.limit){go("paywall");}},[]); return(<div style={{display:"grid",gap:14}}><div className="gl" style={{padding:"30px"}}><span className="badge b-o" style={{marginBottom:11}}>بنك الأسئلة</span><h1 style={{fontSize:"1.75rem",fontWeight:900,color:"#fff",marginBottom:7}}>اختر مسارك ثم ابدأ</h1></div><div className="rg-3 bank-grid" style={{gap:14}}><div className="gl" style={{padding:"18px"}}><p style={{fontSize:".68rem",color:"#f97316",fontWeight:700,letterSpacing:".08em",marginBottom:11}}>القسم</p>{["كمي","لفظي"].map(s=>(<button key={s} className={`sc ${settings.section===s?"on":""}`} style={{marginBottom:8}} onClick={()=>setSettings(p=>({...p,section:s,topic:TOPICS[s][0]}))}><p style={{fontWeight:800,color:"#fff"}}>{s}</p></button>))}</div><div className="gl" style={{padding:"18px"}}><p style={{fontSize:".68rem",color:"#f97316",fontWeight:700,letterSpacing:".08em",marginBottom:11}}>الصعوبة</p>{[{v:"سهل",d:"بداية هادئة"},{v:"متوسط",d:"تثبيت"},{v:"صعب",d:"تحدٍّ"}].map(d=>(<button key={d.v} className={`sc ${settings.difficulty===d.v?"on":""}`} style={{marginBottom:8}} onClick={()=>setSettings(p=>({...p,difficulty:d.v}))}><p style={{fontWeight:800,color:"#fff"}}>{d.v}</p><p style={{marginTop:3,fontSize:".76rem",color:"#64748b"}}>{d.d}</p></button>))}</div><div className="gl" style={{padding:"18px"}}><p style={{fontSize:".68rem",color:"#f97316",fontWeight:700,letterSpacing:".08em",marginBottom:11}}>الباب</p><div style={{maxHeight:260,overflowY:"auto",display:"flex",flexDirection:"column",gap:6}}>{TOPICS[settings.section].map(t=>(<button key={t} className={`sc ${settings.topic===t?"on":""}`} style={{padding:"10px 13px"}} onClick={()=>setSettings(p=>({...p,topic:t}))}><div style={{display:"flex",alignItems:"center",gap:7}}>{GEO.includes(t)&&<span style={{fontSize:".6rem",padding:"1px 6px",borderRadius:99,background:"rgba(167,139,250,.12)",border:"1px solid rgba(167,139,250,.2)",color:"#c4b5fd"}}>📐</span>}<p style={{fontWeight:700,color:"#fff",fontSize:".84rem"}}>{t}</p></div></button>))}</div></div></div>
+function Bank({settings,setSettings,go}){return(<div style={{display:"grid",gap:14}}><div className="gl" style={{padding:"30px"}}><span className="badge b-o" style={{marginBottom:11}}>بنك الأسئلة</span><h1 style={{fontSize:"1.75rem",fontWeight:900,color:"#fff",marginBottom:7}}>اختر مسارك ثم ابدأ</h1></div><div className="rg-3 bank-grid" style={{gap:14}}><div className="gl" style={{padding:"18px"}}><p style={{fontSize:".68rem",color:"#f97316",fontWeight:700,letterSpacing:".08em",marginBottom:11}}>القسم</p>{["كمي","لفظي"].map(s=>(<button key={s} className={`sc ${settings.section===s?"on":""}`} style={{marginBottom:8}} onClick={()=>setSettings(p=>({...p,section:s,topic:TOPICS[s][0]}))}><p style={{fontWeight:800,color:"#fff"}}>{s}</p></button>))}</div><div className="gl" style={{padding:"18px"}}><p style={{fontSize:".68rem",color:"#f97316",fontWeight:700,letterSpacing:".08em",marginBottom:11}}>الصعوبة</p>{[{v:"سهل",d:"بداية هادئة"},{v:"متوسط",d:"تثبيت"},{v:"صعب",d:"تحدٍّ"}].map(d=>(<button key={d.v} className={`sc ${settings.difficulty===d.v?"on":""}`} style={{marginBottom:8}} onClick={()=>setSettings(p=>({...p,difficulty:d.v}))}><p style={{fontWeight:800,color:"#fff"}}>{d.v}</p><p style={{marginTop:3,fontSize:".76rem",color:"#64748b"}}>{d.d}</p></button>))}</div><div className="gl" style={{padding:"18px"}}><p style={{fontSize:".68rem",color:"#f97316",fontWeight:700,letterSpacing:".08em",marginBottom:11}}>الباب</p><div style={{maxHeight:260,overflowY:"auto",display:"flex",flexDirection:"column",gap:6}}>{TOPICS[settings.section].map(t=>(<button key={t} className={`sc ${settings.topic===t?"on":""}`} style={{padding:"10px 13px"}} onClick={()=>setSettings(p=>({...p,topic:t}))}><div style={{display:"flex",alignItems:"center",gap:7}}>{GEO.includes(t)&&<span style={{fontSize:".6rem",padding:"1px 6px",borderRadius:99,background:"rgba(167,139,250,.12)",border:"1px solid rgba(167,139,250,.2)",color:"#c4b5fd"}}>📐</span>}<p style={{fontWeight:700,color:"#fff",fontSize:".84rem"}}>{t}</p></div></button>))}</div></div></div>
 <div style={{padding:"22px 26px",borderRadius:18,background:"linear-gradient(135deg,rgba(34,211,238,.08),rgba(249,115,22,.06))",border:"1px solid rgba(34,211,238,.16)",display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:12}}><div><p style={{fontSize:".68rem",color:"#67e8f9",fontWeight:700,marginBottom:5}}>جاهز</p><p style={{fontSize:"1.3rem",fontWeight:900,color:"#fff"}}>{settings.topic} · {settings.difficulty}</p></div><div style={{display:"flex",gap:9}}><button className="btn btn-out" style={{fontSize:".8rem"}} onClick={()=>go("diagnostic")}>🧪 تشخيص أولاً</button><button className="btn btn-p" style={{padding:"11px 22px"}} onClick={()=>go("session")}>ابدأ مباشرة ←</button></div></div>
 </div>);}
 
@@ -2827,242 +2172,7 @@ function Roadmap({go,setSettings,openLesson}){
   );
 }
 
-function Paywall({trial,subscribe,back,go}){
-  useEffect(()=>{window.scrollTo({top:0,behavior:"instant"});},[]); 
-  return(
-    <div style={{display:"grid",gap:14,maxWidth:560,margin:"0 auto",width:"100%"}}>
-
-      {/* Header */}
-      <div style={{padding:"clamp(20px,4vw,36px) clamp(16px,3vw,28px)",borderRadius:22,
-        background:"linear-gradient(135deg,rgba(249,115,22,.12),rgba(34,211,238,.06))",
-        border:"1.5px solid rgba(249,115,22,.28)",textAlign:"center"}}>
-        <span className="badge b-o" style={{marginBottom:12}}>انتهت التجربة المجانية</span>
-        <h1 style={{fontSize:"1.8rem",fontWeight:900,color:"#fff",lineHeight:1.3,marginBottom:8}}>
-          جرّبت المنصة<br/>
-          <span style={{color:"#fdba74"}}>اشترك بـ 29 ريال فقط 🎯</span>
-        </h1>
-        <p style={{fontSize:".85rem",color:"#64748b",lineHeight:1.8}}>
-          أسئلة AI لا تنتهي · وضع المعلم · محاكاة قياس كاملة
-        </p>
-      </div>
-
-      {/* Features */}
-      <div className="gl" style={{padding:"22px 24px"}}>
-        <p style={{fontSize:".68rem",color:"#f97316",fontWeight:700,letterSpacing:".08em",marginBottom:14}}>
-          كل شيء مفتوح في الاشتراك
-        </p>
-        <div className="rg-2" style={{display:"grid",gap:9}}>
-          {["أسئلة AI غير محدودة","وضع المعلم الشخصي","وضع المحاكاة ⚡","تايمر 90 ثانية ⏱","أصوات الطبيعة 🌿","بطاقة النتيجة","سؤال التشخيص","وضع المراجعة"].map((f,i)=>(
-            <div key={i} style={{display:"flex",alignItems:"center",gap:8}}>
-              <span style={{color:"#4ade80",fontWeight:900,flexShrink:0}}>✓</span>
-              <span style={{fontSize:".8rem",color:"#e2e8f0"}}>{f}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Price + CTA */}
-      <div className="gl" style={{padding:"22px 24px",textAlign:"center",
-        background:"linear-gradient(145deg,rgba(249,115,22,.08),rgba(5,9,26,.95))",
-        border:"1.5px solid rgba(249,115,22,.3)"}}>
-        <p style={{fontSize:".68rem",color:"#f97316",fontWeight:700,marginBottom:8}}>الاشتراك الشهري</p>
-        <div style={{display:"flex",alignItems:"baseline",gap:6,justifyContent:"center",marginBottom:6}}>
-          <span style={{fontSize:"3rem",fontWeight:900,color:"#fff",lineHeight:1}}>29</span>
-          <div style={{textAlign:"right"}}>
-            <p style={{fontSize:".75rem",fontWeight:700,color:"#94a3b8"}}>ريال</p>
-            <p style={{fontSize:".65rem",color:"#475569"}}>/ شهر</p>
-          </div>
-        </div>
-        <p style={{fontSize:".72rem",color:"#475569",marginBottom:16}}>شامل ضريبة القيمة المضافة</p>
-        <button style={{
-          width:"100%",padding:"14px",borderRadius:13,
-          background:"linear-gradient(135deg,#f97316,#fb923c)",
-          border:"none",cursor:"not-allowed",opacity:.55,
-          fontSize:".92rem",fontWeight:800,color:"#0a0f1e",
-          fontFamily:"Cairo,sans-serif"
-        }}>🔒 الدفع قريباً — Moyasar</button>
-        <p style={{fontSize:".65rem",color:"#334155",marginTop:10}}>
-          مدى · Visa · Mastercard · Apple Pay
-        </p>
-      </div>
-
-      {/* Actions */}
-      <div className="rg-2" style={{display:"grid",gap:10}}>
-        <button className="btn btn-g" style={{justifyContent:"center"}} onClick={back}>
-          ← العودة
-        </button>
-        <button className="btn btn-g" style={{justifyContent:"center"}} onClick={()=>go("pricing")}>
-          عرض كل الباقات
-        </button>
-      </div>
-
-    </div>
-  );
-}
-
-/* ═══════════════════ LEGAL PAGE TEMPLATE ═══════════════════ */
-function LegalPage({title,badge,badgeClass,sections,go}){
-  return(
-    <div style={{display:"grid",gap:14,maxWidth:720,margin:"0 auto",width:"100%"}}>
-      <div className="gl au gl-pad-lg" style={{padding:"36px 32px"}}>
-        <span className={`badge ${badgeClass}`} style={{marginBottom:12}}>{badge}</span>
-        <h1 style={{fontSize:"1.8rem",fontWeight:900,color:"#fff",marginBottom:8}}>{title}</h1>
-        <p style={{fontSize:".78rem",color:"#475569"}}>آخر تحديث: {new Date().toLocaleDateString("ar-SA")}</p>
-      </div>
-      {sections.map((s,i)=>(
-        <div key={i} className="gl" style={{padding:"22px 26px"}}>
-          <h2 style={{fontSize:".95rem",fontWeight:800,color:"#f97316",marginBottom:12}}>{s.title}</h2>
-          <div style={{display:"flex",flexDirection:"column",gap:8}}>
-            {s.items.map((item,j)=>(
-              <div key={j} style={{display:"flex",gap:10,alignItems:"flex-start"}}>
-                <span style={{color:"#f97316",fontWeight:900,flexShrink:0,marginTop:2}}>•</span>
-                <p style={{fontSize:".83rem",lineHeight:1.85,color:"#94a3b8"}}>{item}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      ))}
-      <button className="btn btn-g" style={{justifyContent:"center"}} onClick={()=>go("landing")}>← العودة للرئيسية</button>
-    </div>
-  );
-}
-
-function Privacy({go}){
-  return <LegalPage go={go} title="سياسة الخصوصية" badge="🔒 الخصوصية" badgeClass="b-c" sections={[
-    {title:"ما المعلومات التي نجمعها؟",items:[
-      "الاسم والبريد الإلكتروني عند إنشاء الحساب.",
-      "بيانات الأداء: عدد الأسئلة المحلولة، الإجابات الصحيحة والخاطئة، الأبواب المدروسة.",
-      "معلومات الاشتراك وبيانات الدفع (تُعالَج عبر Moyasar ولا نحتفظ بأرقام البطاقات).",
-      "بيانات الاستخدام العامة مثل وقت الجلسة والصفحات المزارة."
-    ]},
-    {title:"كيف نستخدم معلوماتك؟",items:[
-      "تخصيص مسار التعلم وتوليد أسئلة مناسبة لمستواك.",
-      "تحسين أداء المنصة وتطوير ميزات جديدة.",
-      "إرسال إشعارات تتعلق بحسابك أو اشتراكك (لا نرسل إعلانات بريدية غير مطلوبة).",
-      "الامتثال للمتطلبات القانونية والتنظيمية في المملكة العربية السعودية."
-    ]},
-    {title:"مشاركة البيانات",items:[
-      "لا نبيع بياناتك لأي طرف ثالث تحت أي ظرف.",
-      "نستخدم Supabase لتخزين البيانات وAnthropic لتوليد الأسئلة — وكلاهما يلتزمان بمعايير خصوصية عالية.",
-      "قد نشارك بيانات مجهولة الهوية وإحصائية لأغراض بحثية فقط.",
-    ]},
-    {title:"حقوقك",items:[
-      "يحق لك طلب نسخة من بياناتك المحفوظة في أي وقت.",
-      "يمكنك حذف حسابك وجميع بياناتك نهائياً من إعدادات الحساب.",
-      "للاستفسار أو طلب الحذف: support@fahmni.sa"
-    ]}
-  ]}/>;
-}
-
-function Terms({go}){
-  return <LegalPage go={go} title="الشروط والأحكام" badge="📋 الشروط" badgeClass="b-o" sections={[
-    {title:"قبول الشروط",items:[
-      "باستخدام فهمني فأنت توافق على هذه الشروط. إذا كنت دون سن 18 فيجب الحصول على موافقة ولي الأمر.",
-      "نحتفظ بحق تعديل هذه الشروط مع إشعار مسبق عبر البريد الإلكتروني.",
-    ]},
-    {title:"الاشتراكات والمدفوعات",items:[
-      "الاشتراك الشهري: 29 ريال سعودي شاملاً ضريبة القيمة المضافة.",
-      "باقة الاختبار: 69 ريال سعودي لمدة 3 أشهر شاملاً ضريبة القيمة المضافة.",
-      "يتجدد الاشتراك تلقائياً ما لم تلغِه قبل 24 ساعة من موعد التجديد.",
-      "تُعالَج جميع المدفوعات بشكل آمن عبر بوابة Moyasar المرخصة من البنك المركزي السعودي (ساما).",
-    ]},
-    {title:"الاستخدام المقبول",items:[
-      "المنصة مخصصة للاستخدام الشخصي التعليمي فقط.",
-      "يُحظر مشاركة الحساب مع أشخاص آخرين أو بيع بيانات الاشتراك.",
-      "يُحظر نسخ الأسئلة أو المحتوى المولّد لأغراض تجارية.",
-      "نحتفظ بحق إيقاف الحسابات التي تنتهك هذه الشروط دون استرداد."
-    ]},
-    {title:"إخلاء المسؤولية",items:[
-      "فهمني منصة تعليمية مساعدة وليست بديلاً عن الدراسة الرسمية.",
-      "لا نضمن نتائج معينة في الاختبارات، لكننا نبذل قصارى جهدنا لتقديم محتوى دقيق.",
-      "المحتوى مولّد بالذكاء الاصطناعي وقد يحتوي على أخطاء — نرحب بالإبلاغ عنها."
-    ]}
-  ]}/>;
-}
-
-function Refund({go}){
-  return <LegalPage go={go} title="سياسة الاسترداد" badge="💳 الاسترداد" badgeClass="b-g" sections={[
-    {title:"حق الاسترداد",items:[
-      "يحق لك الاسترداد الكامل خلال 7 أيام من أول اشتراك إذا لم تستخدم المنصة (أقل من 10 أسئلة).",
-      "بعد 7 أيام أو عند الاستخدام الفعلي لا يحق الاسترداد إلا في حالات استثنائية.",
-      "في حالة وجود خلل تقني من جانبنا يمنعك من الوصول للمنصة لأكثر من 48 ساعة، يحق لك استرداد نسبي.",
-    ]},
-    {title:"كيف تطلب الاسترداد؟",items:[
-      "أرسل طلبك على support@fahmni.sa مع ذكر سبب الطلب ورقم الطلب.",
-      "سنرد خلال 3 أيام عمل ونُعالج المبلغ خلال 5-7 أيام عمل.",
-      "يُعاد المبلغ لنفس وسيلة الدفع المستخدمة."
-    ]},
-    {title:"حالات لا يُقبل فيها الاسترداد",items:[
-      "بعد مرور 7 أيام من تاريخ الاشتراك.",
-      "عند استخدام المنصة بشكل فعلي (أكثر من 10 أسئلة أو جلسات متعددة).",
-      "في حالة انتهاك شروط الاستخدام."
-    ]}
-  ]}/>;
-}
-
-function Contact({go}){
-  const[name,setName]=useState("");
-  const[email,setEmail]=useState("");
-  const[msg,setMsg]=useState("");
-  const[sent,setSent]=useState(false);
-  const[loading,setLoading]=useState(false);
-
-  const send=async()=>{
-    if(!name||!email||!msg) return;
-    setLoading(true);
-    try{
-      await fetch(`${SUPABASE_URL}/rest/v1/contact_leads`,{
-        method:"POST",
-        headers:{"Content-Type":"application/json","apikey":SUPABASE_ANON,"Authorization":`Bearer ${SUPABASE_ANON}`},
-        body:JSON.stringify({name,email,message:msg,source:"contact_page"})
-      });
-      setSent(true);
-    }catch(e){setSent(true);}
-    finally{setLoading(false);}
-  };
-
-  return(
-    <div style={{display:"grid",gap:14,maxWidth:720,margin:"0 auto",width:"100%"}}>
-      <div className="gl au gl-pad-lg" style={{padding:"36px 32px"}}>
-        <span className="badge b-v" style={{marginBottom:12}}>💬 تواصل معنا</span>
-        <h1 style={{fontSize:"1.8rem",fontWeight:900,color:"#fff",marginBottom:8}}>نحب نسمع منك</h1>
-        <p style={{fontSize:".85rem",color:"#64748b",lineHeight:1.8}}>سواء عندك سؤال، اقتراح، أو مشكلة — فريقنا يرد خلال 24 ساعة.</p>
-      </div>
-
-      {sent?(
-        <div className="gl" style={{padding:"36px",textAlign:"center"}}>
-          <div style={{fontSize:"2.5rem",marginBottom:14}}>✅</div>
-          <h2 style={{fontWeight:900,color:"#fff",marginBottom:8}}>وصلت رسالتك!</h2>
-          <p style={{color:"#64748b",marginBottom:20}}>نرد عليك خلال 24 ساعة على بريدك.</p>
-          <button className="btn btn-p" style={{justifyContent:"center"}} onClick={()=>go("landing")}>العودة للرئيسية ←</button>
-        </div>
-      ):(
-        <div className="gl" style={{padding:"28px",display:"flex",flexDirection:"column",gap:13}}>
-          <div className="rg-2" style={{display:"grid",gap:12}}>
-            <div>
-              <p style={{fontSize:".72rem",color:"#f97316",fontWeight:700,marginBottom:7}}>الاسم</p>
-              <input className="inp" placeholder="اسمك الكامل" value={name} onChange={e=>setName(e.target.value)}/>
-            </div>
-            <div>
-              <p style={{fontSize:".72rem",color:"#f97316",fontWeight:700,marginBottom:7}}>البريد الإلكتروني</p>
-              <input className="inp" placeholder="email@example.com" type="email" value={email} onChange={e=>setEmail(e.target.value)}/>
-            </div>
-          </div>
-          <div>
-            <p style={{fontSize:".72rem",color:"#f97316",fontWeight:700,marginBottom:7}}>رسالتك</p>
-            <textarea className="inp" placeholder="اكتب رسالتك هنا..." value={msg} onChange={e=>setMsg(e.target.value)}
-              style={{minHeight:130,resize:"vertical",lineHeight:1.8}}/>
-          </div>
-
-          <button className="btn btn-p" style={{justifyContent:"center",padding:"13px"}} disabled={loading||!name||!email||!msg} onClick={send}>
-            {loading?<><div className="spin"/> يرسل...</>:"إرسال الرسالة ←"}
-          </button>
-        </div>
-      )}
-      <button className="btn btn-g" style={{justifyContent:"center"}} onClick={()=>go("landing")}>← العودة للرئيسية</button>
-    </div>
-  );
-}
+function Paywall({trial,subscribe,back,go}){return(<div style={{display:"grid",gap:14}}><div style={{padding:"40px 34px",borderRadius:22,background:"linear-gradient(135deg,rgba(249,115,22,.13),rgba(34,211,238,.07))",border:"1px solid rgba(249,115,22,.22)"}}><span className="badge b-o" style={{marginBottom:12}}>انتهت التجربة المجانية</span><h1 style={{fontSize:"1.9rem",fontWeight:900,color:"#fff"}}>جرّبت المنصة — والآن<span style={{display:"block",marginTop:7,color:"#fdba74"}}>اشترك بـ 29 ريال فقط 🎯</span></h1></div><div style={{display:"grid",gridTemplateColumns:"1.2fr .8fr",gap:14}}><div className="gl" style={{padding:"24px"}}><p style={{fontSize:".68rem",color:"#f97316",fontWeight:700,letterSpacing:".08em",marginBottom:13}}>كل شيء مفتوح في الاشتراك</p>{["أسئلة AI غير محدودة","وضع المعلم بعد كل 5 أسئلة","وضع المحاكاة الكامل ⚡","تايمر 90 ثانية/سؤال ⏱","أصوات الطبيعة للتركيز 🌿","بطاقة النتيجة القابلة للمشاركة","سؤال التشخيص لكل باب","وضع المراجعة الذكي"].map((item,i)=>(<div key={i} style={{display:"flex",alignItems:"center",gap:10,marginBottom:8}}><span style={{color:"#4ade80",fontWeight:900}}>✓</span><span style={{fontSize:".84rem",color:"#e2e8f0"}}>{item}</span></div>))}</div><div style={{display:"flex",flexDirection:"column",gap:11}}><div className="gl" style={{padding:"20px",textAlign:"center",background:"linear-gradient(145deg,rgba(249,115,22,.1),rgba(5,9,26,.9))",border:"1px solid rgba(249,115,22,.3)"}}><p style={{fontSize:".68rem",color:"#f97316",fontWeight:700,marginBottom:8}}>الاشتراك الشهري</p><p style={{fontSize:"3rem",fontWeight:900,color:"#fff",lineHeight:1}}>29</p><p style={{fontSize:".8rem",color:"#fdba74",fontWeight:700,marginBottom:16}}>ريال / شهر</p><button className="btn btn-p" style={{width:"100%",justifyContent:"center",padding:"12px"}} onClick={subscribe}>اشترك الآن ←</button></div><button className="btn btn-g" style={{justifyContent:"center",fontSize:".82rem"}} onClick={()=>go("pricing")}>عرض كل الباقات</button><button className="btn btn-g" style={{justifyContent:"center",fontSize:".82rem"}} onClick={back}>العودة</button></div></div></div>);}
 
 /* ═══════════════════ ROOT APP ═══════════════════ */
 export default function Fahmni(){
@@ -3070,74 +2180,28 @@ export default function Fahmni(){
   const[profile,setProfile]=useState({goal:"أرفع درجتي",confidence:"متوسط",section:"كمي",minutes:"40"});
   const[pAnswers,setPAnswers]=useState([]);
   const[rec,setRec]=useState(null);
-  const[session,setSession]=useState(null); // {token, userId, name, email}
-  const[user,setUser]=useState({name:"",streak:0,totalSolved:0,correct:0});
+  const[user,setUser]=useState({name:"فيصل",streak:5,totalSolved:0,correct:0});
   const[settings,setSettings]=useState({section:"كمي",difficulty:"متوسط",topic:"النسبة والتناسب"});
   const[trial,setTrial]=useState({isSubscribed:false,used:0,limit:20});
   const[mistakes,setMistakes]=useState([]);
   const[lessonTopic,setLessonTopic]=useState(null);
 
-  const handleLogin=async(sess)=>{
-    setSession(sess);
-    setUser(u=>({...u,name:sess.name}));
-    // إنشاء بروفايل لو ما كان موجود
-    if(!sess.isGuest) sbCreateProfile(sess.userId,sess.token,sess.name);
-    // تحميل التقدم المحفوظ
-    const prog=await sbLoadProgress(sess.userId,sess.token);
-    const isReturning = prog && prog.totalSolved > 0;
-    if(prog){
-      setUser({name:sess.name,totalSolved:prog.totalSolved,correct:prog.correct,streak:prog.streak});
-      setMistakes(prog.mistakes||[]);
-      if(!sess.isGuest) setTrial(t=>({...t,used:prog.trialUsed||0,limit:prog.trialLimit||20}));
-    else setTrial({isSubscribed:false,used:0,limit:sess.trialLimit||5});
-    }
-    // مستخدم جديد → onboarding | مستخدم قديم عنده تقدم → dashboard مباشرة
-    go(isReturning ? "dashboard" : "onboarding");
-  };
-
-  const handleLogout=async()=>{
-    if(session?.token) await sbLogout(session.token);
-    setSession(null);
-    setUser({name:"",streak:0,totalSolved:0,correct:0});
-    setMistakes([]);
-    setTrial({isSubscribed:false,used:0,limit:20});
-    go("landing");
-  };
-
-  const PUB=["landing","login","signup","pricing","privacy","terms","contact"];
-  const TITLES={onboarding:"بداية ذكية",placement:"تحديد المستوى",placementResult:"نتيجة التحديد",dashboard:"لوحة الطالب",bank:"بنك الأسئلة",session:"جلسة التدريب",roadmap:"خريطة المسار",lesson:"شرح الباب",diagnostic:"سؤال التشخيص",review:"وضع المراجعة",paywall:"الاشتراك",sim:"وضع المحاكاة",pricing:"الأسعار",privacy:"سياسة الخصوصية",terms:"الشروط والأحكام",contact:"تواصل معنا"};
+  const PUB=["landing","login","signup"];
+  const TITLES={onboarding:"بداية ذكية",placement:"تحديد المستوى",placementResult:"نتيجة التحديد",dashboard:"لوحة الطالب",bank:"بنك الأسئلة",session:"جلسة التدريب",roadmap:"خريطة المسار",lesson:"شرح الباب",diagnostic:"سؤال التشخيص",review:"وضع المراجعة",paywall:"الاشتراك",sim:"وضع المحاكاة",pricing:"الأسعار"};
 
   const go=p=>{setPage(p);window.scrollTo({top:0,behavior:"smooth"});};
-
   const updateUser=ok=>setUser(u=>{
+    // كل 5 أسئلة صحيحة = +1 يوم في أطول سلسلة (محاكاة)
     const newCorrect=u.correct+(ok?1:0);
     const newStreak=(newCorrect>0&&newCorrect%5===0)?u.streak+1:u.streak;
-    const updated={...u,totalSolved:u.totalSolved+1,correct:newCorrect,streak:newStreak};
-    // احفظ كل 5 أسئلة في DB
-    if(session&&!session.isGuest&&updated.totalSolved%5===0){
-      sbSaveProgress(session.userId,session.token,updated);
-    }
-    return updated;
+    return{...u,totalSolved:u.totalSolved+1,correct:newCorrect,streak:newStreak};
   });
-
-  const addMistake=m=>setMistakes(p=>{
-    const exists=p.some(x=>x.q===m.q);
-    if(exists) return p;
-    // احفظ الخطأ في DB فوراً
-    if(session&&!session.isGuest) sbSaveMistake(session.userId,session.token,m);
-    return[...p,m];
-  });
+  const addMistake=m=>setMistakes(p=>{const exists=p.some(x=>x.q===m.q);return exists?p:[...p,m];});
 
   const openLesson=t=>{setLessonTopic(t);go("lesson");};
 
-  // حماية الصفحات — لو ما في session يرجع للصفحة الرئيسية
-  const PROTECTED=["dashboard","roadmap","session","bank","sim","review","lesson","diagnostic","placement","placementResult","onboarding"];
-  const PAID_ONLY=["sim"]; // require subscription
-  const R=()=>{
-    if(PROTECTED.includes(page)&&!session){go("landing");return null;}
-    if(PAID_ONLY.includes(page)&&!trial.isSubscribed&&trial.used>=trial.limit){go("paywall");return null;}
-    switch(page){
-    case"login":case"signup":return <Auth mode={page} go={go} onLogin={handleLogin}/>;
+  const R=()=>{switch(page){
+    case"login":case"signup":return <Auth mode={page} go={go}/>;
     case"onboarding":return <Onboarding finish={d=>{setProfile(d);go("placement");}}/>;
     case"placement":return <PlacementQuiz profile={profile} onFinish={ans=>{setPAnswers(ans);const r=getRec({...profile,score:ans.filter(a=>a.ok).length,answers:ans});setRec(r);setSettings(p=>({...p,section:profile.section,topic:r.topic}));go("placementResult");}}/>;
     case"placementResult":return <PlacementResult rec={rec} score={pAnswers.filter(a=>a.ok).length} onFinish={()=>go("dashboard")}/>;
@@ -3153,23 +2217,20 @@ export default function Fahmni(){
           }}/>
       : <Roadmap go={go} setSettings={setSettings} openLesson={openLesson}/>;
     case"diagnostic":return <DiagnosticQ topic={settings.topic} section={settings.section} onResult={level=>{setSettings(p=>({...p,difficulty:level==="متقدم"?"صعب":"سهل"}));go("session");}} onSkip={()=>go("session")}/>;
-    case"bank":return <Bank settings={settings} setSettings={setSettings} go={go} trial={trial}/>;
+    case"bank":return <Bank settings={settings} setSettings={setSettings} go={go}/>;
     case"session":return <Session settings={settings} go={go} updateUser={updateUser} trial={trial} setTrial={setTrial} addMistake={addMistake}/>;
-    case"sim":return <SimMode settings={settings} go={go} updateUser={updateUser} addMistake={addMistake} trial={trial}/>;
+    case"sim":return <SimMode settings={settings} go={go} updateUser={updateUser} addMistake={addMistake}/>;
     case"review":return <ReviewMode mistakes={mistakes} go={go} onRedo={()=>go("session")}/>;
     case"pricing":return <Pricing go={go}/>;
-    case"paywall":return <Paywall trial={trial} go={go} subscribe={()=>{/* Moyasar coming soon */}} back={()=>go("pricing")}/>;
-    case"privacy":return <Privacy go={go}/>;
-    case"terms":return <Terms go={go}/>;
-    case"contact":return <Contact go={go}/>;
+    case"paywall":return <Paywall trial={trial} go={go} subscribe={()=>{setTrial(p=>({...p,isSubscribed:true}));go("dashboard");}} back={()=>go("dashboard")}/>;
     default:return <Landing go={go}/>;
   }};
 
   return(
     <div className="app">
       <GS/><Bg/>
-      <Nav isPub={PUB.includes(page)} go={go} userName={session?.name||user.name} title={TITLES[page]||""} onLogout={session?handleLogout:null}/>
-      <div className="wrap" style={{paddingTop:24}}>
+      <div className="wrap">
+        <Nav isPub={PUB.includes(page)} go={go} userName={user.name} title={TITLES[page]||""}/>
         <R/>
       </div>
     </div>
