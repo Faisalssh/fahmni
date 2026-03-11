@@ -137,6 +137,7 @@ const GS = () => (<style>{`
     .nav{padding:10px 14px !important;margin-bottom:0;}
     .nav-burger{display:flex !important;}
     .nav-desktop{display:none !important;}
+    .nav-mob-cta{display:flex !important;}
 
     /* ── Buttons — minimum 48px touch target (Apple HIG) ── */
     .btn{
@@ -204,6 +205,40 @@ const GS = () => (<style>{`
 
     /* ── Override large inline paddings on mobile ── */
     .gl-pad-lg{padding:18px !important;}
+    /* ── Landing page mobile overhaul ── */
+
+    /* Stats bar → 2x2 */
+    .landing-stats-bar{grid-template-columns:1fr 1fr !important;}
+    .landing-stats-bar>div{border-left:none !important;border-bottom:1px solid rgba(255,255,255,.06);}
+
+    /* Features → 1 col, hide demo panel */
+    .landing-feat-grid{grid-template-columns:1fr !important;}
+    .feat-demo{display:none !important;}
+
+    /* Feature buttons — more compact */
+    .landing-feat-grid button{padding:12px 14px !important;}
+    .landing-feat-grid button>div:first-child{width:36px !important;height:36px !important;}
+
+    /* Steps → 1 col horizontal cards */
+    .landing-steps{grid-template-columns:1fr !important;gap:10px !important;}
+    .landing-step-card{
+      display:flex !important;
+      align-items:center !important;
+      gap:14px !important;
+      padding:16px !important;
+    }
+    .landing-step-card>div:first-child{
+      position:static !important;
+      font-size:1.6rem !important;
+      opacity:1 !important;
+      color:inherit !important;
+      flex-shrink:0;
+    }
+
+    /* CTA buttons full width */
+    .landing-cta-btns{flex-direction:column !important;align-items:stretch !important;}
+    .landing-cta-btns .btn{width:100% !important;justify-content:center !important;}
+
     /* ── Misc ── */
     .mob-full{width:100% !important;justify-content:center !important;}
     .next-cd-btn{width:100% !important;justify-content:center !important;}
@@ -668,12 +703,23 @@ function Nav({isPub,go,userName,title,onLogout}){
   return(
     <nav className="nav">
       <div style={{display:"flex",alignItems:"center",gap:10,maxWidth:1020,margin:"0 auto",width:"100%",padding:"0 16px"}}>
-        {/* Logo + name */}
-        <div style={{display:"flex",alignItems:"center",gap:10,flex:1,minWidth:0,cursor:"pointer"}} onClick={()=>{go(isPub?"landing":"dashboard");setMenuOpen(false);}}>
+
+        {/* Hamburger — يسار */}
+        <button className="nav-burger" onClick={()=>setMenuOpen(p=>!p)} style={{
+          display:"none",background:menuOpen?"rgba(249,115,22,.1)":"rgba(255,255,255,.06)",
+          border:`1px solid ${menuOpen?"rgba(249,115,22,.3)":"rgba(255,255,255,.1)"}`,
+          borderRadius:10,width:40,height:40,cursor:"pointer",
+          color:menuOpen?"#f97316":"#94a3b8",fontSize:"1rem",flexShrink:0,
+          alignItems:"center",justifyContent:"center"
+        }}>{menuOpen?"✕":"☰"}</button>
+
+        {/* Logo — يمين */}
+        <div style={{display:"flex",alignItems:"center",gap:10,flex:1,cursor:"pointer"}}
+          onClick={()=>{go(isPub?"landing":"dashboard");setMenuOpen(false);}}>
           <div className="logo" style={{flexShrink:0}}>ف</div>
-          <div style={{textAlign:"right",minWidth:0}}>
+          <div style={{textAlign:"right"}}>
             <p style={{fontSize:"1rem",fontWeight:900,color:"#fff",lineHeight:1}}>فهمني</p>
-            <p style={{fontSize:".58rem",color:"#64748b",marginTop:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{isPub?"ذاكر بذكاء على القدرات":title||""}</p>
+            <p style={{fontSize:".6rem",color:"#64748b",marginTop:1}}>{isPub?"ذاكر بذكاء على القدرات":title||""}</p>
           </div>
         </div>
 
@@ -694,31 +740,35 @@ function Nav({isPub,go,userName,title,onLogout}){
           )}
         </div>
 
-        {/* Mobile hamburger */}
-        <button className="nav-burger" onClick={()=>setMenuOpen(p=>!p)} style={{
-          display:"none",background:"none",border:"1px solid rgba(255,255,255,.1)",
-          borderRadius:9,padding:"8px 10px",cursor:"pointer",color:"#94a3b8",fontSize:"1.1rem",flexShrink:0
-        }}>☰</button>
+        {/* Mobile — CTA مباشرة بدون قائمة (للصفحات العامة) */}
+        {isPub&&(
+          <button className="nav-mob-cta" style={{
+            display:"none",background:"linear-gradient(135deg,#f97316,#fb923c)",
+            border:"none",borderRadius:10,padding:"9px 14px",cursor:"pointer",
+            color:"#0a0f1e",fontSize:".8rem",fontWeight:800,fontFamily:"Cairo,sans-serif",
+            whiteSpace:"nowrap",flexShrink:0
+          }} onClick={()=>go("signup")}>ابدأ ←</button>
+        )}
       </div>
 
-      {/* Mobile dropdown */}
+      {/* Mobile dropdown menu */}
       {menuOpen&&(
         <div style={{
-          padding:"12px 16px",borderTop:"1px solid rgba(255,255,255,.06)",
+          padding:"14px 16px",borderTop:"1px solid rgba(255,255,255,.07)",
           display:"flex",flexDirection:"column",gap:8,
-          background:"rgba(5,9,26,.97)"
+          background:"rgba(4,7,20,.98)",backdropFilter:"blur(20px)"
         }}>
           {isPub?(
             <>
-              <button className="btn btn-g" style={{width:"100%",justifyContent:"center",padding:"13px",fontSize:".88rem"}} onClick={()=>{go("login");setMenuOpen(false);}}>تسجيل الدخول</button>
-              <button className="btn btn-p" style={{width:"100%",justifyContent:"center",padding:"13px",fontSize:".88rem"}} onClick={()=>{go("signup");setMenuOpen(false);}}>ابدأ مجانًا ←</button>
+              <button className="btn btn-g" style={{width:"100%",justifyContent:"center",padding:"14px",fontSize:".9rem"}} onClick={()=>{go("login");setMenuOpen(false);}}>تسجيل الدخول</button>
+              <button className="btn btn-p" style={{width:"100%",justifyContent:"center",padding:"14px",fontSize:".9rem"}} onClick={()=>{go("signup");setMenuOpen(false);}}>ابدأ مجانًا — 20 سؤال ←</button>
             </>
           ):(
             <>
-              {userName&&<div style={{padding:"10px 14px",borderRadius:10,background:"rgba(249,115,22,.08)",border:"1px solid rgba(249,115,22,.15)",fontSize:".82rem",fontWeight:700,color:"#fdba74",textAlign:"center"}}>👤 {userName}</div>}
-              <button className="btn btn-g" style={{width:"100%",justifyContent:"center",padding:"12px",fontSize:".85rem"}} onClick={()=>{go("dashboard");setMenuOpen(false);}}>↩ لوحة التحكم</button>
-              <button className="btn btn-g" style={{width:"100%",justifyContent:"center",padding:"12px",fontSize:".85rem"}} onClick={()=>{go("landing");setMenuOpen(false);}}>🏠 الرئيسية</button>
-              {onLogout&&<button className="btn btn-g" style={{width:"100%",justifyContent:"center",padding:"12px",fontSize:".85rem",color:"#f87171"}} onClick={()=>{onLogout();setMenuOpen(false);}}>خروج</button>}
+              {userName&&<div style={{padding:"12px 14px",borderRadius:11,background:"rgba(249,115,22,.07)",border:"1px solid rgba(249,115,22,.15)",fontSize:".85rem",fontWeight:700,color:"#fdba74",textAlign:"center"}}>👤 {userName}</div>}
+              <button className="btn btn-g" style={{width:"100%",justifyContent:"center",padding:"13px",fontSize:".88rem"}} onClick={()=>{go("dashboard");setMenuOpen(false);}}>↩ لوحة التحكم</button>
+              <button className="btn btn-g" style={{width:"100%",justifyContent:"center",padding:"13px",fontSize:".88rem"}} onClick={()=>{go("landing");setMenuOpen(false);}}>🏠 الرئيسية</button>
+              {onLogout&&<button className="btn btn-g" style={{width:"100%",justifyContent:"center",padding:"13px",fontSize:".88rem",color:"#f87171",borderColor:"rgba(248,113,113,.2) !important"}} onClick={()=>{onLogout();setMenuOpen(false);}}>تسجيل الخروج</button>}
             </>
           )}
         </div>
@@ -1960,7 +2010,7 @@ function Landing({go}){
       </div>
 
       {/* ── إحصائيات ── */}
-      <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:1,borderTop:"1px solid rgba(255,255,255,.06)",borderBottom:"1px solid rgba(255,255,255,.06)",background:"rgba(255,255,255,.03)",marginBottom:40}}>
+      <div className="landing-stats-bar" style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:1,borderTop:"1px solid rgba(255,255,255,.06)",borderBottom:"1px solid rgba(255,255,255,.06)",background:"rgba(255,255,255,.03)",marginBottom:40}}>
         {[["+ أسئلة مولّدة",50000,""],["باب كمي ولفظي",17,""],["% دقة الـ AI",99,""],["ريال/شهر فقط",29,""]].map(([l,v,s],i)=>(
           <div key={i} style={{padding:"22px 16px",textAlign:"center",borderLeft:i>0?"1px solid rgba(255,255,255,.06)":"none"}}>
             <p style={{fontSize:"clamp(1.4rem,3vw,1.9rem)",fontWeight:900,color:["#f97316","#22d3ee","#4ade80","#a78bfa"][i],lineHeight:1}}>
@@ -1977,7 +2027,7 @@ function Landing({go}){
           <span className="badge b-v" style={{marginBottom:10}}>المميزات</span>
           <h2 style={{fontSize:"clamp(1.4rem,3vw,1.9rem)",fontWeight:900,color:"#fff"}}>كل اللي تحتاجه في مكان واحد</h2>
         </div>
-        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14}}>
+        <div className="landing-feat-grid" style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14}}>
           {/* أزرار الاختيار */}
           <div style={{display:"flex",flexDirection:"column",gap:10}}>
             {FEATURES.map((f,i)=>(
@@ -2002,7 +2052,7 @@ function Landing({go}){
             ))}
           </div>
           {/* العرض التفاعلي */}
-          <div style={{position:"sticky",top:80,alignSelf:"start"}}>
+          <div className="feat-demo" style={{position:"sticky",top:80,alignSelf:"start"}}>
             <div style={{borderRadius:20,overflow:"hidden",border:`1px solid ${FEATURES[activeFeature].color}25`,
               background:"rgba(10,18,40,.95)",transition:"border-color .3s",
               boxShadow:`0 20px 60px rgba(0,0,0,.5), 0 0 40px ${FEATURES[activeFeature].color}0d`}}>
@@ -2127,13 +2177,13 @@ function Landing({go}){
           <span className="badge b-c" style={{marginBottom:10}}>كيف تبدأ</span>
           <h2 style={{fontSize:"1.6rem",fontWeight:900,color:"#fff"}}>3 خطوات وأنت جاهز</h2>
         </div>
-        <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:14}}>
+        <div className="landing-steps" style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:14}}>
           {[
             {n:"01",ic:"🎯",t:"اختبار التحديد",d:"6 أسئلة تحدد مستواك وتبني لك خطة ذكية مخصصة.",c:"#f97316"},
             {n:"02",ic:"🤖",t:"تدرّب مع AI",d:"أسئلة لا تنتهي مع شرح فوري + تحليل المعلم بعد كل 5 أسئلة.",c:"#a78bfa"},
             {n:"03",ic:"⚡",t:"اختبر نفسك",d:"محاكاة قياس كاملة — نفس الوقت ونفس الأسئلة.",c:"#22d3ee"},
           ].map((s,i)=>(
-            <div key={i} className={`gl au d${i+1}`} style={{padding:"24px 20px",position:"relative",overflow:"hidden"}}>
+            <div key={i} className={`gl au d${i+1} landing-step-card`} style={{padding:"24px 20px",position:"relative",overflow:"hidden"}}>
               <div style={{position:"absolute",top:14,left:14,fontSize:"2.5rem",fontWeight:900,color:s.c,opacity:.08,lineHeight:1}}>{s.n}</div>
               <div style={{width:44,height:44,borderRadius:13,background:`${s.c}18`,border:`1.5px solid ${s.c}30`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:"1.4rem",marginBottom:14}}>{s.ic}</div>
               <h3 style={{fontWeight:800,color:"#fff",fontSize:".92rem",marginBottom:7}}>{s.t}</h3>
@@ -2156,7 +2206,7 @@ function Landing({go}){
           <p style={{color:"#64748b",marginBottom:24,fontSize:".9rem",lineHeight:1.8}}>
             20 سؤال مجاناً · لا يحتاج بطاقة · ابدأ الآن
           </p>
-          <div style={{display:"flex",gap:12,justifyContent:"center",flexWrap:"wrap"}}>
+          <div className="landing-cta-btns" style={{display:"flex",gap:12,justifyContent:"center",flexWrap:"wrap"}}>
             <button className="btn btn-p" style={{fontSize:"1.05rem",padding:"15px 36px",borderRadius:16}} onClick={()=>go("signup")}>
               ابدأ مجانًا الآن ←
             </button>
