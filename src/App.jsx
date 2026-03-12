@@ -1879,7 +1879,7 @@ function NextCountdown({onNext,seconds=5}){
 }
 
 /* ═══════════════════ AI SESSION ═══════════════════ */
-function Session({settings,go,updateUser,trial,setTrial,addMistake}){
+function Session({settings,go,updateUser,trial,setTrial,addMistake,plan="free"}){
   useEffect(()=>{window.scrollTo({top:0,behavior:"instant"});},[]);
   const[qData,setQData]=useState(null);
   const[loading,setLoading]=useState(false);
@@ -3692,6 +3692,22 @@ function Contact({go}){
 }
 
 /* ═══════════════════ ROOT APP ═══════════════════ */
+class ErrorBoundary extends React.Component{
+  constructor(p){super(p);this.state={err:null};}
+  static getDerivedStateFromError(e){return{err:e};}
+  componentDidCatch(e,info){console.error("App crash:",e,info);}
+  render(){
+    if(this.state.err)return(
+      <div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",flexDirection:"column",gap:16,background:"#05091a",color:"#fff",fontFamily:"Cairo,sans-serif",padding:24,textAlign:"center"}}>
+        <span style={{fontSize:"3rem"}}>⚠️</span>
+        <p style={{fontWeight:700,fontSize:"1.1rem"}}>حدث خطأ غير متوقع</p>
+        <p style={{color:"#64748b",fontSize:".82rem",maxWidth:300}}>{this.state.err?.message||"unknown error"}</p>
+        <button style={{marginTop:8,padding:"10px 28px",borderRadius:12,background:"#f97316",color:"#fff",border:"none",fontFamily:"Cairo,sans-serif",cursor:"pointer",fontWeight:700,fontSize:"1rem"}} onClick={()=>{this.setState({err:null});window.location.reload();}}>إعادة التحميل</button>
+      </div>
+    );
+    return this.props.children;
+  }
+}
 export default function Fahmni(){
   const[page,setPage]=useState("landing");
   const[profile,setProfile]=useState({goal:"أرفع درجتي",confidence:"متوسط",section:"كمي",minutes:"40"});
@@ -3877,14 +3893,16 @@ export default function Fahmni(){
   }};
 
   return(
-    <div className="app">
-      <GS/><Bg/>
-      <Confetti active={confetti} onDone={()=>setConfetti(false)}/>
-      {milestone&&<MilestonePopup milestone={milestone} onClose={()=>setMilestone(null)}/>}
-      <Nav isPub={PUB.includes(page)} go={go} userName={session?.name||user.name} title={TITLES[page]||""} onLogout={session?handleLogout:null}/>
-      <div className="wrap" style={{paddingTop:24}}>
-        <R/>
+    <ErrorBoundary>
+      <div className="app">
+        <GS/><Bg/>
+        <Confetti active={confetti} onDone={()=>setConfetti(false)}/>
+        {milestone&&<MilestonePopup milestone={milestone} onClose={()=>setMilestone(null)}/>}
+        <Nav isPub={PUB.includes(page)} go={go} userName={session?.name||user.name} title={TITLES[page]||""} onLogout={session?handleLogout:null}/>
+        <div className="wrap" style={{paddingTop:24}}>
+          <R/>
+        </div>
       </div>
-    </div>
+    </ErrorBoundary>
   );
 }
