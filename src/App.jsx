@@ -2442,11 +2442,11 @@ const sbSignup=async(name,email,password)=>{
   const r=await fetch(`${SUPABASE_URL}/auth/v1/signup`,{
     method:"POST",
     headers:{"Content-Type":"application/json","apikey":SUPABASE_ANON},
-    body:JSON.stringify({email,password,data:{full_name:name},options:{emailRedirectTo:"https://fahmni-silk.vercel.app"}})
+    body:JSON.stringify({email,password,data:{full_name:name}})
   });
   const d=await r.json();
   if(d.error||d.msg) throw new Error(d.error?.message||d.msg||"فشل إنشاء الحساب");
-  return d; // access_token موجود = تسجيل مباشر، غير موجود = يحتاج تأكيد بريد
+  return d;
 };
 const sbLogin=async(email,password)=>{
   const r=await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`,{
@@ -2473,7 +2473,7 @@ async function sbResetPassword(email){
   const r=await fetch(`${SUPABASE_URL}/auth/v1/recover`,{
     method:"POST",
     headers:{"apikey":SUPABASE_ANON,"Content-Type":"application/json"},
-    body:JSON.stringify({email,options:{emailRedirectTo:"https://fahmni-silk.vercel.app"}})
+    body:JSON.stringify({email})
   });
   if(!r.ok){const e=await r.json();throw new Error(e.error_description||e.msg||"فشل الإرسال");}
   return true;
