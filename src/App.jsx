@@ -794,6 +794,7 @@ const callClaude=async(prompt,maxTok=800)=>{
 /* ═══════════════════ SUPABASE CACHE ═══════════════════ */
 
 async function getCachedQuestion(topicName, difficulty){
+  return null; // cache table not yet created
   try{
     const res = await fetch(
       `${SUPABASE_URL}/rest/v1/ai_question_cache?topic_id=eq.${encodeURIComponent(topicName)}&difficulty=eq.${encodeURIComponent(difficulty)}&is_active=eq.true&order=used_count.asc&limit=5`,
@@ -817,6 +818,7 @@ async function getCachedQuestion(topicName, difficulty){
 }
 
 async function saveCachedQuestion(topicName, difficulty, q){
+  return; // cache table not yet created
   try{
     const tres = await fetch(
       `${SUPABASE_URL}/rest/v1/topics?name=eq.${encodeURIComponent(topicName)}&select=id`,
@@ -870,11 +872,7 @@ async function genQuestion({topic, difficulty, avoidQuestion=""}){
   const verbalNote = VERBAL_INSTRUCTIONS[topic]?`\n${VERBAL_INSTRUCTIONS[topic]}`:"";
   const avoidNote  = avoidQuestion?`\n⛔ لا تعيد هذا السؤال: "${avoidQuestion.slice(0,40)}"`:"";
 
-  // كاش أولاً — بدون API
-  if(!avoidQuestion){
-    const cached = await getCachedQuestion(topic, difficulty);
-    if(cached) return cached;
-  }
+  // كاش معطّل مؤقتاً
 
   const raw = await callClaude(
 `اختبار قدرات قياس. باب: ${topic} | مستوى: ${difficulty}${verbalNote}${avoidNote}
@@ -890,8 +888,7 @@ JSON فقط — لا نص خارجه:
   if(!Array.isArray(parsed.options)||parsed.options.length!==4) throw new Error("invalid options");
   if(!parsed.question||parsed.question.length<5) throw new Error("empty question");
 
-  // احفظ للمرة القادمة
-  saveCachedQuestion(topic, difficulty, parsed).catch(()=>{});
+  // حفظ كاش معطّل مؤقتاً
 
   return parsed;
 }
@@ -3706,6 +3703,7 @@ export default function Fahmni(){
   const[trial,setTrial]=useState({isSubscribed:false,used:0,limit:20,plan:'free'});
   const[mistakes,setMistakes]=useState([]);
   const[placementDone,setPlacementDone]=useState(false);
+  const placementDoneRef=useRef(false);
   const[confetti,setConfetti]=useState(false);
   const[milestone,setMilestone]=useState(null);
   const[lessonTopic,setLessonTopic]=useState(null);
@@ -3750,15 +3748,19 @@ export default function Fahmni(){
       setTrial({isSubscribed:false,used:0,limit:sess.trialLimit||5});
     }
     // تحميل حالة تحديد المستوى
-    if(prog?.placementDone) setPlacementDone(true);
+    if(prog?.placementDone) placementDoneRef.current=true;setPlacementDone(true);
     // توجيه ذكي:
     // 1) مستخدم جديد (ما أكمل onboarding) → onboarding
     // 2) أكمل onboarding لكن ما أكمل placement → placement
     // 3) أكمل كل شيء → dashboard
-    if(!prog || prog.totalSolved===0){
+    // توجيه ذكي:
+    // لو ما في profile → onboarding (مستخدم جديد)
+    // لو في profile ولكن ما أكمل placement → placement
+    // لو أكمل placement → dashboard
+    if(!prog){
       go("onboarding");
     } else if(!prog.placementDone){
-      go("placement");
+      go("onboarding");
     } else {
       go("dashboard");
     }
@@ -3768,7 +3770,7 @@ export default function Fahmni(){
     if(session?.token) await sbLogout(session.token);
     setSession(null);
     setUser({name:"",streak:0,totalSolved:0,correct:0});
-    setPlacementDone(false);
+    placementDoneRef.current=false;setPlacementDone(false);
     setMistakes([]);
     setTrial({isSubscribed:false,used:0,limit:20});
     go("landing");
@@ -3826,7 +3828,7 @@ export default function Fahmni(){
     if(PROTECTED.includes(page)&&!session){go("landing");return null;}
     // 2) مسجّل لكن ما أكمل placement → أجبره على placement
     const NEEDS_PLACEMENT=["dashboard","session","bank","sim","review","roadmap","lesson","diagnostic"];
-    if(session&&!session.isGuest&&NEEDS_PLACEMENT.includes(page)&&!placementDone){
+    if(session&&!session.isGuest&&NEEDS_PLACEMENT.includes(page)&&!placementDoneRef.current){
       go("placement");return null;
     }
     // 3) PAID_ONLY — يحتاج اشتراك
@@ -3844,7 +3846,7 @@ export default function Fahmni(){
       if(placementDone){go("dashboard");return null;}
       return <PlacementQuiz profile={profile} onFinish={ans=>{setPAnswers(ans);const r=getRec({...profile,score:ans.filter(a=>a.ok).length,answers:ans});setRec(r);setSettings(p=>({...p,section:profile.section,topic:r.topic}));go("placementResult");}}/>;
     case"placementResult":return <PlacementResult rec={rec} score={pAnswers.filter(a=>a.ok).length} onFinish={()=>{
-      setPlacementDone(true);
+      placementDoneRef.current=true;setPlacementDone(true);
       if(session&&!session.isGuest) sbSavePlacement(session.userId,session.token,rec?.level||"متوسط");
       go("dashboard");
     }}/>;
