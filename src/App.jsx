@@ -18,6 +18,7 @@ const GS = () => (<style>{`
   @keyframes gridAnim{0%,100%{opacity:.045}50%{opacity:.09}}
   @keyframes drawSVG{from{stroke-dashoffset:600}to{stroke-dashoffset:0}}
   @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+  @keyframes slideDown{from{opacity:0;transform:translate(-50%,-24px);}to{opacity:1;transform:translate(-50%,0);}}
   @keyframes teacherIn{from{opacity:0;transform:translateY(20px)scale(.96)}to{opacity:1;transform:translateY(0)scale(1)}}
   .au{animation:fadeUp .5s cubic-bezier(.22,1,.36,1) both}
   .si{animation:scaleIn .42s cubic-bezier(.22,1,.36,1) both}
@@ -388,43 +389,126 @@ function ResultCard({stats,onClose}){
   const grade=acc>=90?"ممتاز 🏆":acc>=75?"جيد جداً ⭐":acc>=60?"جيد 📈":"واصل التدريب 💪";
   const gradeC=acc>=90?"#fde047":acc>=75?"#86efac":acc>=60?"#fdba74":"#fca5a5";
   const[copied,setCopied]=useState(false);
-  const txt=`🎯 فهمني — نتيجة الجلسة\n\n📚 الباب: ${topic} (${section})\n✅ الصحيح: ${correct}/${total}\n🎯 الدقة: ${acc}%\n⏱ متوسط الوقت: ${avgTime} ثانية\n📊 التقييم: ${grade}\n\nذاكر معي على القدرات 👇\nfahmni.sa`;
-  const copy=()=>navigator.clipboard?.writeText(txt).then(()=>{setCopied(true);setTimeout(()=>setCopied(false),2200);});
+  const[shared,setShared]=useState(false);
+
+  const shareText="🎯 فهمني — نتيجة جلستي\n\n📚 الباب: "+topic+" ("+section+")\n✅ الصح: "+correct+"/"+total+"\n🎯 الدقة: "+acc+"%\n⏱ متوسط: "+avgTime+" ثانية\n📊 التقييم: "+grade+"\n\nجرّب فهمني — أذكى طريقة للقدرات 🧠\nfahmni.sa";
+  const shareUrl="https://fahmni.sa";
+
+  const doWebShare=async()=>{
+    if(navigator.share){
+      try{
+        await navigator.share({title:"فهمني — نتيجتي",text:shareText,url:shareUrl});
+        setShared(true);
+      }catch(e){}
+    }else{
+      navigator.clipboard?.writeText(shareText+"\n"+shareUrl).then(()=>{setCopied(true);setTimeout(()=>setCopied(false),2500);});
+    }
+  };
+  const shareWA=()=>window.open("https://wa.me/?text="+encodeURIComponent(shareText+"\n"+shareUrl),"_blank");
+  const shareX=()=>window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}`,"_blank");
+
   const r=32,cv=2*Math.PI*r;
-  return(<div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.78)",backdropFilter:"blur(14px)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:300,padding:20}} onClick={e=>{if(e.target===e.currentTarget)onClose();}}>
-    <div style={{width:"100%",maxWidth:420,borderRadius:24,overflow:"hidden",animation:"scaleIn .5s cubic-bezier(.22,1,.36,1) both"}}>
-      {/* top */}
-      <div style={{padding:"30px 26px 22px",background:"linear-gradient(145deg,#0f1829,#1c0b00)",position:"relative",overflow:"hidden"}}>
-        <div style={{position:"absolute",width:200,height:200,borderRadius:"50%",background:"radial-gradient(circle,rgba(249,115,22,.22) 0%,transparent 70%)",top:-60,right:-50,pointerEvents:"none"}}/>
-        <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",position:"relative"}}>
-          <div>
-            <div style={{display:"flex",alignItems:"center",gap:9,marginBottom:13}}>
-              <div className="logo" style={{width:36,height:36,fontSize:".95rem"}}>ف</div>
-              <span style={{fontSize:".76rem",fontWeight:700,color:"#64748b"}}>فهمني</span>
+  return(
+    <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.82)",backdropFilter:"blur(16px)",
+      display:"flex",alignItems:"center",justifyContent:"center",zIndex:300,padding:"16px"}}
+      onClick={e=>{if(e.target===e.currentTarget)onClose();}}>
+      <div style={{width:"100%",maxWidth:420,borderRadius:24,overflow:"hidden",animation:"scaleIn .45s cubic-bezier(.22,1,.36,1) both"}}>
+
+        {/* ── بطاقة النتيجة — قابلة للمشاركة ── */}
+        <div style={{padding:"28px 26px 22px",background:"linear-gradient(145deg,#0c1528,#180a00)",position:"relative",overflow:"hidden"}}>
+          <div style={{position:"absolute",width:220,height:220,borderRadius:"50%",
+            background:"radial-gradient(circle,rgba(249,115,22,.2) 0%,transparent 70%)",
+            top:-70,right:-60,pointerEvents:"none"}}/>
+          <div style={{position:"absolute",width:160,height:160,borderRadius:"50%",
+            background:"radial-gradient(circle,rgba(34,211,238,.1) 0%,transparent 70%)",
+            bottom:-40,left:-40,pointerEvents:"none"}}/>
+
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",position:"relative"}}>
+            <div>
+              <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:12}}>
+                <div className="logo" style={{width:34,height:34,fontSize:".9rem"}}>ف</div>
+                <div>
+                  <p style={{fontSize:".78rem",fontWeight:800,color:"#fff"}}>فهمني</p>
+                  <p style={{fontSize:".58rem",color:"#475569"}}>نتيجة الجلسة</p>
+                </div>
+              </div>
+              <p style={{fontSize:"2.8rem",fontWeight:900,
+                background:"linear-gradient(135deg,#f97316,#fdba74,#22d3ee)",
+                WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",
+                lineHeight:1}}>{acc}%</p>
+              <p style={{fontSize:".85rem",color:gradeC,fontWeight:800,marginTop:6}}>{grade}</p>
+              <p style={{fontSize:".7rem",color:"#475569",marginTop:3}}>{topic} · {section}</p>
             </div>
-            <p style={{fontSize:"2.4rem",fontWeight:900,background:"linear-gradient(135deg,#f97316,#fdba74,#22d3ee)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",lineHeight:1}}>{acc}%</p>
-            <p style={{fontSize:".82rem",color:gradeC,fontWeight:800,marginTop:7}}>{grade}</p>
+            <svg width={80} height={80} style={{transform:"rotate(-90deg)",flexShrink:0}}>
+              <circle cx={40} cy={40} r={r} fill="none" stroke="rgba(255,255,255,.07)" strokeWidth={7}/>
+              <circle cx={40} cy={40} r={r} fill="none"
+                stroke={acc>=75?"#4ade80":acc>=50?"#f97316":"#f87171"}
+                strokeWidth={7} strokeDasharray={cv}
+                strokeDashoffset={cv*(1-acc/100)} strokeLinecap="round"/>
+              <text x={40} y={40} textAnchor="middle" dominantBaseline="middle"
+                fill="#fff" fontSize={13} fontWeight={900} fontFamily="Cairo"
+                transform="rotate(90,40,40)">{acc}%</text>
+            </svg>
           </div>
-          <svg width={78} height={78} style={{transform:"rotate(-90deg)"}}>
-            <circle cx={39} cy={39} r={r} fill="none" stroke="rgba(255,255,255,.07)" strokeWidth={7}/>
-            <circle cx={39} cy={39} r={r} fill="none" stroke={acc>=75?"#4ade80":acc>=50?"#f97316":"#f87171"} strokeWidth={7} strokeDasharray={cv} strokeDashoffset={cv*(1-acc/100)} strokeLinecap="round"/>
-            <text x={39} y={39} textAnchor="middle" dominantBaseline="middle" fill="#fff" fontSize={13} fontWeight={900} fontFamily="Cairo" transform="rotate(90,39,39)">{acc}%</text>
-          </svg>
+
+          {/* Stats row */}
+          <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:8,marginTop:18}}>
+            {[["✅","الصح",`${correct}/${total}`],["⏱","متوسط",`${avgTime}ث`],["📊","القسم",section==="كمي"?"كمي":"لفظي"]]
+              .map(([ic,l,v],i)=>(
+              <div key={i} style={{padding:"9px 10px",borderRadius:10,background:"rgba(255,255,255,.05)",border:"1px solid rgba(255,255,255,.07)",textAlign:"center"}}>
+                <p style={{fontSize:".65rem",color:"#475569",marginBottom:2}}>{ic} {l}</p>
+                <p style={{fontSize:".82rem",fontWeight:800,color:"#e2e8f0"}}>{v}</p>
+              </div>
+            ))}
+          </div>
         </div>
-      </div>
-      {/* bottom */}
-      <div style={{padding:"18px 24px",background:"#070e1c",borderTop:"1px solid rgba(255,255,255,.06)"}}>
-        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:9,marginBottom:14}}>
-          {[["📚","الباب",topic],["📊","القسم",section],["✅","الإجابات",`${correct}/${total}`],["⏱","متوسط",`${avgTime}ث`]].map(([ic,l,v],i)=>(<div key={i} style={{padding:"10px 12px",borderRadius:12,background:"rgba(255,255,255,.04)",border:"1px solid rgba(255,255,255,.06)"}}><p style={{fontSize:".67rem",color:"#64748b",marginBottom:3}}>{ic} {l}</p><p style={{fontSize:".86rem",fontWeight:800,color:"#fff"}}>{v}</p></div>))}
+
+        {/* ── أزرار المشاركة ── */}
+        <div style={{padding:"18px 20px",background:"#060d1d",borderTop:"1px solid rgba(255,255,255,.06)"}}>
+          <p style={{fontSize:".72rem",color:"#475569",fontWeight:700,marginBottom:12,textAlign:"center"}}>📤 شارك نتيجتك</p>
+
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8,marginBottom:12}}>
+            {/* واتساب */}
+            <button onClick={shareWA} style={{
+              display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:5,
+              padding:"12px 8px",borderRadius:13,cursor:"pointer",
+              background:"rgba(37,211,102,.08)",border:"1px solid rgba(37,211,102,.2)",
+              color:"#25d366",fontFamily:"Cairo,sans-serif",fontSize:".68rem",fontWeight:700,
+              transition:"all .18s"
+            }}>
+              <span style={{fontSize:"1.3rem"}}>📱</span> واتساب
+            </button>
+            {/* تويتر */}
+            <button onClick={shareX} style={{
+              display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:5,
+              padding:"12px 8px",borderRadius:13,cursor:"pointer",
+              background:"rgba(255,255,255,.05)",border:"1px solid rgba(255,255,255,.12)",
+              color:"#e2e8f0",fontFamily:"Cairo,sans-serif",fontSize:".68rem",fontWeight:700,
+              transition:"all .18s"
+            }}>
+              <span style={{fontSize:"1.3rem"}}>🐦</span> تويتر/X
+            </button>
+            {/* نسخ / Web Share */}
+            <button onClick={doWebShare} style={{
+              display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:5,
+              padding:"12px 8px",borderRadius:13,cursor:"pointer",
+              background:"rgba(249,115,22,.08)",border:"1px solid rgba(249,115,22,.2)",
+              color:"#f97316",fontFamily:"Cairo,sans-serif",fontSize:".68rem",fontWeight:700,
+              transition:"all .18s"
+            }}>
+              <span style={{fontSize:"1.3rem"}}>{copied?"✅":shared?"🎉":"🔗"}</span>
+              {copied?"تم النسخ":shared?"شكراً!":"مشاركة"}
+            </button>
+          </div>
+
+          <button className="btn btn-g" style={{width:"100%",justifyContent:"center",fontSize:".85rem"}} onClick={onClose}>
+            إغلاق
+          </button>
+          <p style={{marginTop:10,fontSize:".62rem",color:"#1e293b",textAlign:"center"}}>fahmni.sa · ذاكر بذكاء على اختبار القدرات</p>
         </div>
-        <div style={{display:"flex",gap:8}}>
-          <button className="btn btn-p" style={{flex:1,justifyContent:"center",fontSize:".82rem"}} onClick={copy}>{copied?"✓ تم النسخ!":"📋 نسخ ومشاركة"}</button>
-          <button className="btn btn-g" style={{fontSize:".82rem"}} onClick={onClose}>إغلاق</button>
-        </div>
-        <p style={{marginTop:10,fontSize:".66rem",color:"#1e293b",textAlign:"center"}}>fahmni.sa · تدرّب بذكاء على اختبار القدرات</p>
       </div>
     </div>
-  </div>);
+  );
 }
 
 /* ═══════════════════ BACKGROUND ═══════════════════ */
@@ -437,6 +521,97 @@ const Bg = () => (
     <div className="orb" style={{width:280,height:280,top:"78%",left:"78%",background:"radial-gradient(circle,rgba(139,92,246,.06) 0%,transparent 70%)","--d":"10s","--dl":"2s"}}/>
   </div>
 );
+
+/* ═══════════════════ CONFETTI + MILESTONES ═══════════════════ */
+function Confetti({active,onDone}){
+  const[particles,setParticles]=useState([]);
+  useEffect(()=>{
+    if(!active)return;
+    const cols=["#f97316","#22d3ee","#a78bfa","#4ade80","#fde047","#f87171","#fdba74"];
+    const p=Array.from({length:60},(_,i)=>({
+      id:i,
+      x:Math.random()*100,
+      y:-10,
+      vx:(Math.random()-0.5)*4,
+      vy:Math.random()*6+4,
+      r:Math.random()*7+3,
+      c:cols[Math.floor(Math.random()*cols.length)],
+      rot:Math.random()*360,
+      vrot:(Math.random()-0.5)*15,
+      shape:Math.random()>0.5?"circle":"rect"
+    }));
+    setParticles(p);
+    const interval=setInterval(()=>{
+      setParticles(prev=>prev.map(p=>({...p,y:p.y+p.vy,x:p.x+p.vx,rot:p.rot+p.vrot,vy:p.vy+0.3})).filter(p=>p.y<115));
+    },30);
+    const timer=setTimeout(()=>{clearInterval(interval);setParticles([]);onDone&&onDone();},2800);
+    return()=>{clearInterval(interval);clearTimeout(timer);};
+  },[active]);
+  if(!particles.length)return null;
+  return(
+    <div style={{position:"fixed",inset:0,pointerEvents:"none",zIndex:9999,overflow:"hidden"}}>
+      {particles.map(p=>(
+        <div key={p.id} style={{
+          position:"absolute",left:`${p.x}%`,top:`${p.y}%`,
+          width:p.shape==="circle"?p.r*2:p.r*2.5,
+          height:p.shape==="circle"?p.r*2:p.r,
+          borderRadius:p.shape==="circle"?"50%":2,
+          background:p.c,opacity:.9,
+          transform:`rotate(${p.rot}deg)`,
+          transition:"none"
+        }}/>
+      ))}
+    </div>
+  );
+}
+
+/* Milestone popup */
+const MILESTONES={
+  first_correct:{icon:"🎯",title:"أول إجابة صح!",msg:"البداية دائماً أصعب — وأنت تجاوزتها 💪",color:"#4ade80"},
+  streak_5:{icon:"🔥",title:"5 صح متتالية!",msg:"ما شاء الله — تركيزك ممتاز",color:"#f97316"},
+  streak_10:{icon:"⚡",title:"10 صح متتالية!!",msg:"أداء احترافي — واصل",color:"#fde047"},
+  solved_10:{icon:"📚",title:"10 أسئلة مكتملة",msg:"إنجاز حقيقي — استمر على هذا المستوى",color:"#22d3ee"},
+  solved_25:{icon:"🏆",title:"25 سؤال!",msg:"ربع المئة — أنت تذاكر فعلاً",color:"#a78bfa"},
+  solved_50:{icon:"🌟",title:"50 سؤال!",msg:"مذاكر جاد — المنافسة ستعبك صعبة",color:"#f97316"},
+  perfect_session:{icon:"💎",title:"جلسة مثالية!",msg:"كل الأجوبة صحيحة — ما شاء الله",color:"#22d3ee"},
+};
+
+function MilestonePopup({milestone,onClose}){
+  const m=MILESTONES[milestone];
+  if(!m)return null;
+  useEffect(()=>{const t=setTimeout(onClose,3500);return()=>clearTimeout(t);},[]);
+  return(
+    <div style={{
+      position:"fixed",top:80,left:"50%",transform:"translateX(-50%)",
+      zIndex:9998,animation:"slideDown .45s cubic-bezier(.22,1,.36,1) both",
+      width:"calc(100% - 32px)",maxWidth:360
+    }}>
+      <div style={{
+        borderRadius:18,overflow:"hidden",
+        background:"rgba(4,7,20,.97)",
+        border:`1.5px solid ${m.color}40`,
+        boxShadow:`0 20px 60px rgba(0,0,0,.7), 0 0 30px ${m.color}20`,
+        backdropFilter:"blur(20px)"
+      }}>
+        <div style={{height:3,background:`linear-gradient(90deg,${m.color},${m.color}88)`}}/>
+        <div style={{padding:"18px 20px",display:"flex",alignItems:"center",gap:14}}>
+          <div style={{
+            width:52,height:52,borderRadius:14,flexShrink:0,
+            background:`${m.color}15`,border:`1.5px solid ${m.color}30`,
+            display:"flex",alignItems:"center",justifyContent:"center",fontSize:"1.6rem"
+          }}>{m.icon}</div>
+          <div style={{flex:1,minWidth:0}}>
+            <p style={{fontWeight:900,color:m.color,fontSize:".92rem",marginBottom:3}}>{m.title}</p>
+            <p style={{fontSize:".78rem",color:"#94a3b8",lineHeight:1.55}}>{m.msg}</p>
+          </div>
+          <button onClick={onClose} style={{background:"none",border:"none",cursor:"pointer",color:"#334155",fontSize:"1rem",padding:4,flexShrink:0}}>✕</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* slideDown animation */
 
 /* ═══════════════════ SVG SHAPES ═══════════════════ */
 const Tx=({x,y,children,anchor="middle",size=11,color="#22d3ee",bold=false})=>(
@@ -548,7 +723,7 @@ function getRec({goal,confidence,minutes,section,score,answers}){
 
 /* ═══════════════════ AI HELPERS ═══════════════════ */
 const SUPABASE_URL="https://esdralrxesslaxvpyypa.supabase.co";
-const SUPABASE_ANON="sb_publishable_jEwd6TpXzAh1Z-66mPOE5g_52l6-8zL";
+const SUPABASE_ANON="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVzZHJhbHJ4ZXNzbGF4dnB5eXBhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMxNzE0NTgsImV4cCI6MjA4ODc0NzQ1OH0.WiHlteyRHs8SUch4Q9msuZb5pWwLi9IWx9L_f5Fp_Ho";
 
 /* استخدام Anthropic API مباشرة — يعمل داخل artifacts */
 const callClaude=async(prompt,maxTok=800)=>{
@@ -658,7 +833,7 @@ JSON فقط — لا نص خارجه:
 {"question":"...","options":["...","...","...","..."],"correct":0,"explanation_title":"...","steps":["خطوة 1","خطوة 2","خطوة 3","النتيجة"],"tip":"نصيحة","topic":"${topic}",${shapeHint}}`,800
   );
 
-  const raw2=raw.replace(/\`\`\`json|\`\`\`/g,"").trim();
+  const raw2=raw.replace(/```json|```/g,"").trim();
   const s=raw2.indexOf("{"),e=raw2.lastIndexOf("}");
   const parsed = JSON.parse(s>-1&&e>-1?raw2.slice(s,e+1):raw2);
 
@@ -2267,7 +2442,7 @@ const sbSignup=async(name,email,password)=>{
   const r=await fetch(`${SUPABASE_URL}/auth/v1/signup`,{
     method:"POST",
     headers:{"Content-Type":"application/json","apikey":SUPABASE_ANON},
-    body:JSON.stringify({email,password,data:{full_name:name}})
+    body:JSON.stringify({email,password,data:{full_name:name},options:{emailRedirectTo:"https://fahmni-silk.vercel.app"}})
   });
   const d=await r.json();
   if(d.error||d.msg) throw new Error(d.error?.message||d.msg||"فشل إنشاء الحساب");
@@ -2292,6 +2467,17 @@ const sbLogout=async(token)=>{
 
 /* ═══════════════════ SUPABASE DB ═══════════════════ */
 const IS_ARTIFACT=typeof window!=="undefined"&&window.location.hostname.includes("claude");
+
+/* ── إعادة تعيين كلمة المرور ── */
+async function sbResetPassword(email){
+  const r=await fetch(`${SUPABASE_URL}/auth/v1/recover`,{
+    method:"POST",
+    headers:{"apikey":SUPABASE_ANON,"Content-Type":"application/json"},
+    body:JSON.stringify({email,options:{emailRedirectTo:"https://fahmni-silk.vercel.app"}})
+  });
+  if(!r.ok){const e=await r.json();throw new Error(e.error_description||e.msg||"فشل الإرسال");}
+  return true;
+}
 const sbH=(token)=>({"Content-Type":"application/json","apikey":SUPABASE_ANON,"Authorization":`Bearer ${token}`,"Prefer":"return=minimal"});
 
 const sbLoadProgress=async(userId,token)=>{
@@ -2347,13 +2533,23 @@ function Auth({mode,go,onLogin}){
   const[loading,setLoading]=useState(false);
   const[err,setErr]=useState("");
   const[info,setInfo]=useState("");
-
-  /* في الـ artifact — Supabase محجوب. على Vercel يشتغل كامل */
+  const[forgotMode,setForgotMode]=useState(false);
   const IS_ARTIFACT=typeof window!=="undefined"&&(window.location.hostname.includes("claude.ai")||window.location.hostname==="localhost");
 
   const guestLogin=()=>{
     const guestName=name||"طالب";
     onLogin({token:"guest",userId:"guest",name:guestName,email:"guest@fahmni.sa",isGuest:true,trialUsed:0,trialLimit:5});
+  };
+
+  const sendReset=async()=>{
+    setErr("");setInfo("");
+    if(!email){setErr("أدخل بريدك الإلكتروني");return;}
+    setLoading(true);
+    try{
+      await sbResetPassword(email);
+      setInfo("✉️ تم إرسال رابط إعادة التعيين! تحقق من بريدك.");
+    }catch(e){setErr(e.message||"حدث خطأ، حاول مرة أخرى");}
+    finally{setLoading(false);}
   };
 
   const submit=async()=>{
@@ -2372,22 +2568,49 @@ function Auth({mode,go,onLogin}){
       }else{
         const d=await sbSignup(name,email,pass);
         if(d.access_token){
-          // تأكيد البريد مطفي — تسجيل دخول مباشر
           const userName=d.user?.user_metadata?.full_name||name||d.user?.email?.split("@")[0]||"طالب";
           onLogin({token:d.access_token,userId:d.user?.id,name:userName,email:d.user?.email});
         }else{
-          // تأكيد البريد مفعّل — يحتاج تفعيل
           setInfo("✉️ تم إنشاء حسابك! تحقق من بريدك لتفعيله ثم سجّل دخولك.");
         }
       }
     }catch(e){setErr(e.message||"حدث خطأ، حاول مرة أخرى");}
     finally{setLoading(false);}
   };
+
+  /* ── وضع نسيت كلمة المرور ── */
+  if(forgotMode) return(
+    <div style={{display:"flex",alignItems:"center",justifyContent:"center",minHeight:"60vh",padding:"0 16px"}}>
+      <div className="gl au" style={{width:"100%",maxWidth:400,padding:"clamp(24px,5vw,36px)"}}>
+        <div style={{textAlign:"center",marginBottom:24}}>
+          <div style={{fontSize:"2.5rem",marginBottom:10}}>🔑</div>
+          <h2 style={{fontWeight:900,color:"#fff",marginBottom:6}}>نسيت كلمة المرور؟</h2>
+          <p style={{fontSize:".82rem",color:"#64748b",lineHeight:1.75}}>أدخل بريدك وسنرسل لك رابط إعادة التعيين</p>
+        </div>
+        <div style={{display:"flex",flexDirection:"column",gap:11}}>
+          <input className="inp" placeholder="البريد الإلكتروني" type="email" value={email}
+            onChange={e=>setEmail(e.target.value)}
+            onKeyDown={e=>e.key==="Enter"&&sendReset()}/>
+          {err&&<div style={{padding:"10px 14px",borderRadius:11,background:"rgba(248,113,113,.1)",border:"1px solid rgba(248,113,113,.25)"}}><p style={{fontSize:".8rem",color:"#fca5a5"}}>{err}</p></div>}
+          {info&&<div style={{padding:"10px 14px",borderRadius:11,background:"rgba(74,222,128,.08)",border:"1px solid rgba(74,222,128,.22)"}}><p style={{fontSize:".8rem",color:"#86efac"}}>{info}</p></div>}
+          <button className="btn btn-p" style={{width:"100%",justifyContent:"center",padding:"13px",marginTop:4}}
+            disabled={loading} onClick={sendReset}>
+            {loading?<><div className="spin"/> جاري الإرسال...</>:"إرسال الرابط ←"}
+          </button>
+          <button className="btn btn-g" style={{width:"100%",justifyContent:"center"}}
+            onClick={()=>{setForgotMode(false);setErr("");setInfo("");}}>
+            ← العودة لتسجيل الدخول
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+
   return(
     <div className="rg-2" style={{display:"grid",gap:16}}>
       <div className="gl" style={{padding:"40px 30px"}}>
         <span className={`badge ${isLogin?"b-o":"b-c"}`} style={{marginBottom:12}}>{isLogin?"أهلًا بك":"بداية جديدة"}</span>
-        <h1 style={{fontSize:"1.9rem",fontWeight:900,color:"#fff",lineHeight:1.2,whiteSpace:"pre-line"}}>{isLogin?"تسجيل\nالدخول":"إنشاء\nحساب"}</h1>
+        <h1 style={{fontSize:"1.9rem",fontWeight:900,color:"#fff",lineHeight:1.2}}>{isLogin?"تسجيل الدخول":"إنشاء حساب"}</h1>
         <p style={{marginTop:11,fontSize:".85rem",lineHeight:1.9,color:"#64748b"}}>{isLogin?"ادخل حتى تكمل من آخر جلسة.":"أنشئ حسابك ونرتب لك المسار."}</p>
         {IS_ARTIFACT?(
           <div style={{marginTop:22,padding:"14px 16px",borderRadius:13,background:"rgba(249,115,22,.08)",border:"1px solid rgba(249,115,22,.25)"}}>
@@ -2421,6 +2644,12 @@ function Auth({mode,go,onLogin}){
               <button className="btn btn-p" style={{width:"100%",justifyContent:"center",padding:"13px",marginTop:4}} disabled={loading} onClick={submit}>
                 {loading?<><div className="spin"/> جاري...</>:isLogin?"تسجيل الدخول ←":"إنشاء الحساب ←"}
               </button>
+              {isLogin&&(
+                <button className="btn btn-g" style={{width:"100%",justifyContent:"center",fontSize:".8rem",color:"#64748b"}}
+                  onClick={()=>{setForgotMode(true);setErr("");setInfo("");}}>
+                  🔑 نسيت كلمة المرور؟
+                </button>
+              )}
               <button className="btn btn-g" style={{width:"100%",justifyContent:"center"}} onClick={()=>{setErr("");setInfo("");go(isLogin?"signup":"login");}}>
                 {isLogin?"إنشاء حساب جديد":"عندي حساب بالفعل"}
               </button>
@@ -2432,7 +2661,6 @@ function Auth({mode,go,onLogin}){
     </div>
   );
 }
-
 
 function Onboarding({finish}){
   const[goal,setGoal]=useState("أرفع درجتي");const[conf,setConf]=useState("متوسط");const[sec,setSec]=useState("كمي");const[mins,setMins]=useState("40");
@@ -3220,6 +3448,8 @@ export default function Fahmni(){
   const[settings,setSettings]=useState({section:"كمي",difficulty:"متوسط",topic:"النسبة والتناسب"});
   const[trial,setTrial]=useState({isSubscribed:false,used:0,limit:20});
   const[mistakes,setMistakes]=useState([]);
+  const[confetti,setConfetti]=useState(false);
+  const[milestone,setMilestone]=useState(null);
   const[lessonTopic,setLessonTopic]=useState(null);
 
   const handleLogin=async(sess)=>{
@@ -3255,12 +3485,25 @@ export default function Fahmni(){
   const go=p=>{setPage(p);window.scrollTo({top:0,behavior:"smooth"});};
 
   const updateUser=ok=>setUser(u=>{
+    const newTotal=u.totalSolved+1;
     const newCorrect=u.correct+(ok?1:0);
     const newStreak=(newCorrect>0&&newCorrect%5===0)?u.streak+1:u.streak;
-    const updated={...u,totalSolved:u.totalSolved+1,correct:newCorrect,streak:newStreak};
+    const updated={...u,totalSolved:newTotal,correct:newCorrect,streak:newStreak};
     // احفظ كل 5 أسئلة في DB
-    if(session&&!session.isGuest&&updated.totalSolved%5===0){
+    if(session&&!session.isGuest&&newTotal%5===0){
       sbSaveProgress(session.userId,session.token,updated);
+    }
+    // 🎉 Confetti + Milestones
+    if(ok){
+      setConfetti(true);
+      if(newCorrect===1) setMilestone("first_correct");
+      else if(newCorrect===10&&newTotal===10) setMilestone("perfect_session");
+      else if(newTotal===10) setMilestone("solved_10");
+      else if(newTotal===25) setMilestone("solved_25");
+      else if(newTotal===50) setMilestone("solved_50");
+      // عداد الصح المتتالي
+      else if(newCorrect>0&&newCorrect%10===0&&newCorrect===newTotal) setMilestone("streak_10");
+      else if(newCorrect>0&&newCorrect%5===0&&newCorrect===newTotal) setMilestone("streak_5");
     }
     return updated;
   });
@@ -3313,6 +3556,8 @@ export default function Fahmni(){
   return(
     <div className="app">
       <GS/><Bg/>
+      <Confetti active={confetti} onDone={()=>setConfetti(false)}/>
+      {milestone&&<MilestonePopup milestone={milestone} onClose={()=>setMilestone(null)}/>}
       <Nav isPub={PUB.includes(page)} go={go} userName={session?.name||user.name} title={TITLES[page]||""} onLogout={session?handleLogout:null}/>
       <div className="wrap" style={{paddingTop:24}}>
         <R/>
