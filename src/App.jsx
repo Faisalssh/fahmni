@@ -2628,16 +2628,26 @@ const sbLoadProgress=async(userId,token)=>{
   if(IS_ARTIFACT) return null;
   try{
     const[pRes,mRes]=await Promise.all([
-      fetch(`${SUPABASE_URL}/rest/v1/profiles?id=eq.${userId}&select=total_solved,total_correct,current_streak,trial_used,trial_limit,plan,subscribed_until`,{headers:sbH(token)}),
+      fetch(`${SUPABASE_URL}/rest/v1/profiles?id=eq.${userId}&select=total_solved,total_correct,current_streak,trial_used,trial_limit,plan,subscribed_until,placement_done,placement_level`,{headers:sbH(token)}),
       fetch(`${SUPABASE_URL}/rest/v1/saved_mistakes?user_id=eq.${userId}&select=question_snapshot,is_reviewed&order=created_at.desc&limit=50`,{headers:sbH(token)})
     ]);
     const[profiles,mistakes]=await Promise.all([pRes.json(),mRes.json()]);
     const p=Array.isArray(profiles)&&profiles[0];
     const m=Array.isArray(mistakes)?mistakes.map(x=>{const s=x.question_snapshot||{};return{q:s.q||"",chosen:s.chosen||"",correctAns:s.correctAns||"",topic:s.topic||"",section:s.section||"",steps:s.steps||[],tip:s.tip||"",ok:false};}):[];
-    return{totalSolved:p?.total_solved||0,correct:p?.total_correct||0,streak:p?.current_streak||0,trialUsed:p?.trial_used||0,trialLimit:p?.trial_limit||20,plan:p?.plan||'free',subscribedUntil:p?.subscribed_until||null,mistakes:m};
+    return{totalSolved:p?.total_solved||0,correct:p?.total_correct||0,streak:p?.current_streak||0,trialUsed:p?.trial_used||0,trialLimit:p?.trial_limit||20,plan:p?.plan||'free',subscribedUntil:p?.subscribed_until||null,placementDone:p?.placement_done||false,placementLevel:p?.placement_level||null,mistakes:m};
   }catch(e){return null;}
 };
 
+const sbSavePlacement=async(userId,token,level)=>{
+  if(IS_ARTIFACT||!userId||userId==="guest") return;
+  try{
+    await fetch(`${SUPABASE_URL}/rest/v1/profiles?id=eq.${userId}`,{
+      method:"PATCH",
+      headers:{...sbH(token),"Prefer":"return=minimal"},
+      body:JSON.stringify({placement_done:true,placement_level:level})
+    });
+  }catch(e){}
+};
 const sbSaveProgress=async(userId,token,{totalSolved,correct,streak})=>{
   if(IS_ARTIFACT||!userId||userId==="guest") return;
   try{
@@ -2663,7 +2673,7 @@ const sbCreateProfile=async(userId,token,name)=>{
   try{
     await fetch(`${SUPABASE_URL}/rest/v1/profiles`,{
       method:"POST",headers:{...sbH(token),"Prefer":"resolution=ignore-duplicates"},
-      body:JSON.stringify({id:userId,full_name:name,total_solved:0,total_correct:0,current_streak:0,trial_used:0,trial_limit:20,plan:'free'})
+      body:JSON.stringify({id:userId,full_name:name,total_solved:0,total_correct:0,current_streak:0,trial_used:0,trial_limit:20,plan:'free',placement_done:false,placement_level:null})
     });
   }catch(e){}
 };
@@ -3194,7 +3204,7 @@ function TopicLesson({topic,onClose,onStartPractice}){
   );
 }
 
-function Roadmap({go,setSettings,openLesson}){
+function Roadmap({go,setSettings,openLesson,trial={}}){
   const[active,setActive]=useState("كمي");
 
   const launch=t=>{
@@ -3342,7 +3352,7 @@ function Roadmap({go,setSettings,openLesson}){
                 </div>
                 {/* Two buttons */}
                 <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:7}}>
-                  <button onClick={()=>openLesson(t)} style={{
+                  <button onClick={()=>trial.isSubscribed?openLesson(t):go("paywall")} style={{
                     padding:"8px 6px",borderRadius:9,cursor:"pointer",
                     border:`1px solid ${grp.color}30`,
                     background:`${grp.color}0a`,color:grp.color,
@@ -3351,9 +3361,9 @@ function Roadmap({go,setSettings,openLesson}){
                   }}
                   onMouseEnter={e=>{e.currentTarget.style.background=`${grp.color}18`;}}
                   onMouseLeave={e=>{e.currentTarget.style.background=`${grp.color}0a`;}}>
-                    📖 اعرف الباب
+                    {trial.isSubscribed?"📖 اعرف الباب":"🔒 اعرف الباب"}
                   </button>
-                  <button onClick={()=>launch(t)} style={{
+                  <button onClick={()=>trial.isSubscribed?launch(t):go("paywall")} style={{
                     padding:"8px 6px",borderRadius:9,cursor:"pointer",
                     border:"1px solid rgba(249,115,22,.3)",
                     background:"rgba(249,115,22,.08)",color:"#f97316",
@@ -3362,7 +3372,7 @@ function Roadmap({go,setSettings,openLesson}){
                   }}
                   onMouseEnter={e=>{e.currentTarget.style.background="rgba(249,115,22,.18)";}}
                   onMouseLeave={e=>{e.currentTarget.style.background="rgba(249,115,22,.08)";}}>
-                    🎯 تدرّب
+                    {trial.isSubscribed?"🎯 تدرّب":"🔒 تدرّب"}
                   </button>
                 </div>
               </div>
@@ -3695,6 +3705,7 @@ export default function Fahmni(){
   const[settings,setSettings]=useState({section:"كمي",difficulty:"متوسط",topic:"النسبة والتناسب"});
   const[trial,setTrial]=useState({isSubscribed:false,used:0,limit:20,plan:'free'});
   const[mistakes,setMistakes]=useState([]);
+  const[placementDone,setPlacementDone]=useState(false);
   const[confetti,setConfetti]=useState(false);
   const[milestone,setMilestone]=useState(null);
   const[lessonTopic,setLessonTopic]=useState(null);
@@ -3738,14 +3749,26 @@ export default function Fahmni(){
     }else{
       setTrial({isSubscribed:false,used:0,limit:sess.trialLimit||5});
     }
-    // مستخدم جديد → onboarding | مستخدم قديم عنده تقدم → dashboard مباشرة
-    go(isReturning ? "dashboard" : "onboarding");
+    // تحميل حالة تحديد المستوى
+    if(prog?.placementDone) setPlacementDone(true);
+    // توجيه ذكي:
+    // 1) مستخدم جديد (ما أكمل onboarding) → onboarding
+    // 2) أكمل onboarding لكن ما أكمل placement → placement
+    // 3) أكمل كل شيء → dashboard
+    if(!prog || prog.totalSolved===0){
+      go("onboarding");
+    } else if(!prog.placementDone){
+      go("placement");
+    } else {
+      go("dashboard");
+    }
   };
 
   const handleLogout=async()=>{
     if(session?.token) await sbLogout(session.token);
     setSession(null);
     setUser({name:"",streak:0,totalSolved:0,correct:0});
+    setPlacementDone(false);
     setMistakes([]);
     setTrial({isSubscribed:false,used:0,limit:20});
     go("landing");
@@ -3799,26 +3822,37 @@ export default function Fahmni(){
   const PROTECTED=["dashboard","roadmap","session","bank","sim","review","lesson","diagnostic","placement","placementResult","onboarding"];
   const PAID_ONLY=["sim","bank","review"]; // require subscription
   const R=()=>{
+    // 1) مو مسجّل → landing
     if(PROTECTED.includes(page)&&!session){go("landing");return null;}
-    // sim/bank/review: مجانيون يُوجَّهون للـ paywall مباشرة بعد استهلاك المجاني
-    // session: مسموح 20 سؤال مجاني، بعدها paywall من داخل fetchQ
+    // 2) مسجّل لكن ما أكمل placement → أجبره على placement
+    const NEEDS_PLACEMENT=["dashboard","session","bank","sim","review","roadmap","lesson","diagnostic"];
+    if(session&&!session.isGuest&&NEEDS_PLACEMENT.includes(page)&&!placementDone){
+      go("placement");return null;
+    }
+    // 3) PAID_ONLY — يحتاج اشتراك
     if(PAID_ONLY.includes(page)){
       if(!trial.isSubscribed){
         if(page==="session"&&trial.used<trial.limit){/* مسموح */}
         else{go("paywall");return null;}
       }
     }
-    // تحقق من خطة المستخدم للميزات المتقدمة
     const plan=trial.plan||'free';
-    const isPaidPlan=trial.isSubscribed;
     switch(page){
     case"login":case"signup":return <Auth mode={page} go={go} onLogin={handleLogin}/>;
     case"onboarding":return <Onboarding finish={d=>{setProfile(d);go("placement");}}/>;
-    case"placement":return <PlacementQuiz profile={profile} onFinish={ans=>{setPAnswers(ans);const r=getRec({...profile,score:ans.filter(a=>a.ok).length,answers:ans});setRec(r);setSettings(p=>({...p,section:profile.section,topic:r.topic}));go("placementResult");}}/>;
-    case"placementResult":return <PlacementResult rec={rec} score={pAnswers.filter(a=>a.ok).length} onFinish={()=>go("dashboard")}/>;
+    case"placement":
+      if(placementDone){go("dashboard");return null;}
+      return <PlacementQuiz profile={profile} onFinish={ans=>{setPAnswers(ans);const r=getRec({...profile,score:ans.filter(a=>a.ok).length,answers:ans});setRec(r);setSettings(p=>({...p,section:profile.section,topic:r.topic}));go("placementResult");}}/>;
+    case"placementResult":return <PlacementResult rec={rec} score={pAnswers.filter(a=>a.ok).length} onFinish={()=>{
+      setPlacementDone(true);
+      if(session&&!session.isGuest) sbSavePlacement(session.userId,session.token,rec?.level||"متوسط");
+      go("dashboard");
+    }}/>;
     case"dashboard":return <Dashboard go={go} user={user} trial={trial} mistakes={mistakes}/>;
-    case"roadmap":return <Roadmap go={go} setSettings={setSettings} openLesson={openLesson}/>;
-    case"lesson":return lessonTopic
+    case"roadmap":return <Roadmap go={go} setSettings={setSettings} openLesson={openLesson} trial={trial}/>;
+    case"lesson":
+      if(!trial.isSubscribed){go("paywall");return null;}
+      return lessonTopic
       ? <TopicLesson
           topic={lessonTopic}
           onClose={()=>go("roadmap")}
@@ -3826,7 +3860,7 @@ export default function Fahmni(){
             setSettings(p=>({...p,topic:lessonTopic,section:deriveSec(lessonTopic),difficulty:"متوسط"}));
             go("diagnostic");
           }}/>
-      : <Roadmap go={go} setSettings={setSettings} openLesson={openLesson}/>;
+      : <Roadmap go={go} setSettings={setSettings} openLesson={openLesson} trial={trial}/>;
     case"diagnostic":return <DiagnosticQ topic={settings.topic} section={settings.section} onResult={level=>{setSettings(p=>({...p,difficulty:level==="متقدم"?"صعب":"سهل"}));go("session");}} onSkip={()=>go("session")}/>;
     case"bank":return <Bank settings={settings} setSettings={setSettings} go={go} trial={trial}/>;
     case"session":return <Session settings={settings} go={go} updateUser={updateUser} trial={trial} setTrial={setTrial} addMistake={addMistake} plan={trial.plan||"free"}/>;
