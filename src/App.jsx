@@ -682,6 +682,25 @@ const TOPIC_GROUPS={
   ]
 };
 
+const ICON_LABELS={
+  "النسبة والتناسب":"نسبة",
+  "الأعمار":"عمر",
+  "المتوسط الحسابي":"وسط",
+  "السرعة والمسافة والزمن":"سرعة",
+  "الأرباح والنسب المئوية":"ربح%",
+  "الجبر والمعادلات":"جبر",
+  "المتتاليات والأنماط":"نمط",
+  "المثلثات":"△",
+  "المربعات والمستطيلات":"□",
+  "الزوايا والأضلاع":"∠",
+  "الدوائر":"○",
+  "تحليل البيانات والإحصاء":"بيان",
+  "المقارنة الكمية":"قارن",
+  "إكمال الجمل":"جمل",
+  "التناظر اللفظي":"تناظر",
+  "استيعاب المقروء":"قراءة",
+  "الخطأ السياقي":"سياق",
+};
 const CONCEPTS={
   "النسبة والتناسب":{icon:"⚖️",formula:"إذا زاد شيء → زاد الثاني (طردي) | إذا زاد شيء → نقص الثاني (عكسي)",rules:["طردي: كلما زاد أحدهما زاد الآخر","عكسي: كلما زاد أحدهما نقص الآخر","ضعف العمال = ضعف الإنتاج بنفس الوقت"],trap:"⚠ الفخ: هل العلاقة طردية أم عكسية؟ حدّدها أولاً"},
   "الأعمار":{icon:"🎂",formula:"الفرق بين عمرين لا يتغير أبداً مع الزمن",rules:["الفرق اليوم = الفرق بعد 10 سنوات","للمستقبل: أضف نفس الرقم للجميع","للماضي: اطرح نفس الرقم من الجميع"],trap:"⚠ الفخ: لا تنسَ تغيير عمر كلا الشخصين"},
@@ -3113,7 +3132,9 @@ function Roadmap({go,setSettings,openLesson}){
               background:`${grp.color}15`, border:`1.5px solid ${grp.color}30`,
               display:"flex", alignItems:"center", justifyContent:"center",
               fontSize:"1.15rem", flexShrink:0, lineHeight:1, overflow:"hidden"
-            }}>{grp.icon}</div>
+            }}>
+              <span style={{fontSize:"19px",lineHeight:"1"}}>{grp.icon}</span>
+            </div>
             <div style={{flex:1}}>
               <div style={{display:"flex",alignItems:"center",gap:8,flexWrap:"wrap"}}>
                 <h2 style={{fontWeight:900,color:"#fff",fontSize:".93rem"}}>{grp.sub}</h2>
@@ -3139,10 +3160,18 @@ function Roadmap({go,setSettings,openLesson}){
                 <div style={{display:"flex",alignItems:"flex-start",gap:10}}>
                   <div style={{
                     width:36,height:36,borderRadius:10,flexShrink:0,
-                    background:`${grp.color}14`,border:`1px solid ${grp.color}25`,
+                    background:`${grp.color}18`,border:`1.5px solid ${grp.color}35`,
                     display:"flex",alignItems:"center",justifyContent:"center",
-                    fontSize:"1.05rem",lineHeight:1,overflow:"hidden"
-                  }}>{CONCEPTS[t]?.icon||"📌"}</div>
+                    overflow:"hidden",flexDirection:"column"
+                  }}>
+                    <span style={{
+                      fontSize:"10px",fontWeight:900,color:grp.color,
+                      fontFamily:"Cairo,sans-serif",lineHeight:1,
+                      textAlign:"center",padding:"2px",
+                      whiteSpace:"nowrap",overflow:"hidden",
+                      maxWidth:34,display:"block"
+                    }}>{ICON_LABELS[t]||t.slice(0,3)}</span>
+                  </div>
                   <div style={{flex:1,minWidth:0}}>
                     <p style={{fontSize:".84rem",fontWeight:700,color:"#f1f5f9",lineHeight:1.4}}>{t}</p>
                     <p style={{fontSize:".63rem",color:"#475569",marginTop:2}}>
