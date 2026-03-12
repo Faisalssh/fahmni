@@ -3452,6 +3452,32 @@ export default function Fahmni(){
   const[milestone,setMilestone]=useState(null);
   const[lessonTopic,setLessonTopic]=useState(null);
 
+  // ── قراءة token من URL بعد تأكيد البريد ──
+  useEffect(()=>{
+    const hash=window.location.hash;
+    if(!hash) return;
+    const params=new URLSearchParams(hash.replace("#",""));
+    const access_token=params.get("access_token");
+    const type=params.get("type"); // signup | recovery
+    if(!access_token) return;
+    // امسح الـ hash من URL
+    window.history.replaceState(null,"",window.location.pathname);
+    if(type==="recovery"){
+      // نسيت كلمة المرور — اعرض صفحة تغيير الباسورد (مستقبلاً)
+      // حالياً رسالة
+      go("login");
+      return;
+    }
+    // تسجيل بعد تأكيد البريد
+    fetch(`${SUPABASE_URL}/auth/v1/user`,{
+      headers:{"apikey":SUPABASE_ANON,"Authorization":`Bearer ${access_token}`}
+    }).then(r=>r.json()).then(u=>{
+      if(!u.id) return;
+      const name=u.user_metadata?.full_name||u.email?.split("@")[0]||"طالب";
+      handleLogin({token:access_token,userId:u.id,name,email:u.email});
+    }).catch(()=>go("login"));
+  },[]);
+
   const handleLogin=async(sess)=>{
     setSession(sess);
     setUser(u=>({...u,name:sess.name}));
