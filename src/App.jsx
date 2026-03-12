@@ -911,7 +911,7 @@ function Nav({isPub,go,userName,title,onLogout}){
             </>
           ):(
             <>
-              <button className="btn btn-g" style={{fontSize:".72rem",padding:"7px 11px"}} onClick={()=>go("landing")}>🏠</button>
+              <button className="btn btn-g" style={{fontSize:".72rem",padding:"7px 11px"}} onClick={()=>go("dashboard")}>🏠</button>
               <button className="btn btn-g" style={{fontSize:".72rem",padding:"7px 11px"}} onClick={()=>go("dashboard")}>↩ لوحتي</button>
               <div style={{padding:"5px 10px",borderRadius:9,background:"rgba(249,115,22,.1)",border:"1px solid rgba(249,115,22,.2)",fontSize:".72rem",fontWeight:700,color:"#fdba74",maxWidth:90,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{userName}</div>
               {onLogout&&<button className="btn btn-g" style={{fontSize:".7rem",padding:"6px 10px",color:"#64748b"}} onClick={onLogout}>خروج</button>}
@@ -959,7 +959,7 @@ function Nav({isPub,go,userName,title,onLogout}){
               <button className="btn btn-g" style={{width:"100%",justifyContent:"center",padding:"13px",fontSize:".88rem"}} onClick={()=>{go("dashboard");setMenuOpen(false);}}>↩ لوحة التحكم</button>
               <button className="btn btn-g" style={{width:"100%",justifyContent:"center",padding:"13px",fontSize:".88rem"}} onClick={()=>{go("roadmap");setMenuOpen(false);}}>🗺️ خريطة المسار</button>
               <button className="btn btn-g" style={{width:"100%",justifyContent:"center",padding:"13px",fontSize:".88rem"}} onClick={()=>{go("session");setMenuOpen(false);}}>📝 ابدأ جلسة</button>
-              <button className="btn btn-g" style={{width:"100%",justifyContent:"center",padding:"13px",fontSize:".88rem"}} onClick={()=>{go("landing");setMenuOpen(false);}}>🏠 الرئيسية</button>
+              <button className="btn btn-g" style={{width:"100%",justifyContent:"center",padding:"13px",fontSize:".88rem"}} onClick={()=>{go("dashboard");setMenuOpen(false);}}>🏠 الرئيسية</button>
               {onLogout&&<button className="btn btn-g" style={{width:"100%",justifyContent:"center",padding:"13px",fontSize:".88rem",color:"#f87171"}} onClick={()=>{onLogout();setMenuOpen(false);}}>تسجيل الخروج</button>}
             </>
           )}
