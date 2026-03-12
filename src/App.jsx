@@ -579,7 +579,7 @@ const MILESTONES={
 function MilestonePopup({milestone,onClose}){
   const m=MILESTONES[milestone];
   if(!m)return null;
-  useEffect(()=>{const t=setTimeout(onClose,3500);return()=>clearTimeout(t);},[]);
+  useEffect(()=>{const t=setTimeout(onClose,3500);return()=>clearTimeout(t);},[onClose]);
   return(
     <div style={{
       position:"fixed",top:80,left:"50%",transform:"translateX(-50%)",
@@ -742,23 +742,40 @@ function getRec({goal,confidence,minutes,section,score,answers}){
 
 /* ═══════════════════ AI HELPERS ═══════════════════ */
 const SUPABASE_URL="https://esdralrxesslaxvpyypa.supabase.co";
+const IS_ARTIFACT=typeof window!=="undefined"&&(window.location.hostname.includes("claude.ai")||window.location.hostname==="localhost");
 const SUPABASE_ANON="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVzZHJhbHJ4ZXNzbGF4dnB5eXBhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMxNzE0NTgsImV4cCI6MjA4ODc0NzQ1OH0.WiHlteyRHs8SUch4Q9msuZb5pWwLi9IWx9L_f5Fp_Ho";
 
 /* استخدام Anthropic API مباشرة — يعمل داخل artifacts */
 const callClaude=async(prompt,maxTok=800)=>{
-  const r=await fetch("https://api.anthropic.com/v1/messages",{
-    method:"POST",
-    headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({
-      model:"claude-haiku-4-5-20251001",
-      max_tokens:maxTok,
-      messages:[{role:"user",content:prompt}]
-    })
-  });
-  const d=await r.json();
-  if(!r.ok||d.error) throw new Error(d.error?.message||`HTTP ${r.status}`);
-  if(!d.content?.length) throw new Error("empty response");
-  return d.content.map(b=>b.text||"").join("").trim();
+  // على claude.ai artifact — مباشر بدون مفتاح (يُحقن تلقائياً)
+  // على Vercel — عبر Supabase Edge Function التي تحمل المفتاح
+  const IS_ART=typeof window!=="undefined"&&window.location.hostname.includes("claude.ai");
+  const url=IS_ART
+    ?"https://api.anthropic.com/v1/messages"
+    :`${SUPABASE_URL}/functions/v1/ask-claude`;
+  const headers=IS_ART
+    ?{"Content-Type":"application/json"}
+    :{"Content-Type":"application/json","apikey":SUPABASE_ANON,"Authorization":`Bearer ${SUPABASE_ANON}`};
+  const body=IS_ART
+    ?JSON.stringify({model:"claude-haiku-4-5-20251001",max_tokens:maxTok,messages:[{role:"user",content:prompt}]})
+    :JSON.stringify({prompt,maxTokens:maxTok});
+  let lastErr;
+  for(let attempt=0;attempt<3;attempt++){
+    try{
+      const r=await fetch(url,{method:"POST",headers,body});
+      const d=await r.json();
+      if(!r.ok||d.error) throw new Error(d.error?.message||d.error||`HTTP ${r.status}`);
+      // artifact returns content array, edge function returns {text}
+      if(IS_ART){
+        if(!d.content?.length) throw new Error("empty response");
+        return d.content.map(b=>b.text||"").join("").trim();
+      }else{
+        if(!d.text) throw new Error("no text in response");
+        return d.text.trim();
+      }
+    }catch(e){lastErr=e;if(attempt<2)await new Promise(r=>setTimeout(r,800*(attempt+1)));}
+  }
+  throw lastErr;
 };
 
 /* ═══════════════════ SUPABASE CACHE ═══════════════════ */
@@ -854,15 +871,11 @@ JSON فقط — لا نص خارجه:
 
   const raw2=raw.replace(/```json|```/g,"").trim();
   const s=raw2.indexOf("{"),e=raw2.lastIndexOf("}");
-  const parsed = JSON.parse(s>-1&&e>-1?raw2.slice(s,e+1):raw2);
-
-  // ── تحقق بسيط: correct يجب أن يكون 0-3 ──
-  if(typeof parsed.correct !== "number" || parsed.correct < 0 || parsed.correct > 3){
-    parsed.correct = 0;
-  }
-  if(!Array.isArray(parsed.options) || parsed.options.length !== 4){
-    throw new Error("invalid options");
-  }
+  if(s===-1||e===-1) throw new Error("no JSON in response");
+  const parsed = JSON.parse(raw2.slice(s,e+1));
+  if(typeof parsed.correct!=="number"||parsed.correct<0||parsed.correct>3) parsed.correct=0;
+  if(!Array.isArray(parsed.options)||parsed.options.length!==4) throw new Error("invalid options");
+  if(!parsed.question||parsed.question.length<5) throw new Error("empty question");
 
   // احفظ للمرة القادمة
   saveCachedQuestion(topic, difficulty, parsed).catch(()=>{});
@@ -2485,7 +2498,6 @@ const sbLogout=async(token)=>{
 };
 
 /* ═══════════════════ SUPABASE DB ═══════════════════ */
-const IS_ARTIFACT=typeof window!=="undefined"&&window.location.hostname.includes("claude");
 
 /* ── إعادة تعيين كلمة المرور ── */
 async function sbResetPassword(email){
@@ -3518,16 +3530,15 @@ export default function Fahmni(){
   const handleLogin=async(sess)=>{
     setSession(sess);
     setUser(u=>({...u,name:sess.name}));
-    // إنشاء بروفايل لو ما كان موجود
-    if(!sess.isGuest) sbCreateProfile(sess.userId,sess.token,sess.name);
-    // تحميل التقدم المحفوظ
+    if(!sess.isGuest) await sbCreateProfile(sess.userId,sess.token,sess.name);
     const prog=await sbLoadProgress(sess.userId,sess.token);
-    const isReturning = prog && prog.totalSolved > 0;
+    const isReturning=prog&&prog.totalSolved>0;
     if(prog){
       setUser({name:sess.name,totalSolved:prog.totalSolved,correct:prog.correct,streak:prog.streak});
       setMistakes(prog.mistakes||[]);
       if(!sess.isGuest) setTrial(t=>({...t,used:prog.trialUsed||0,limit:prog.trialLimit||20}));
-    else setTrial({isSubscribed:false,used:0,limit:sess.trialLimit||5});
+    }else{
+      setTrial({isSubscribed:false,used:0,limit:sess.trialLimit||5});
     }
     // مستخدم جديد → onboarding | مستخدم قديم عنده تقدم → dashboard مباشرة
     go(isReturning ? "dashboard" : "onboarding");
@@ -3547,29 +3558,34 @@ export default function Fahmni(){
 
   const go=p=>{setPage(p);window.scrollTo({top:0,behavior:"smooth"});};
 
-  const updateUser=ok=>setUser(u=>{
-    const newTotal=u.totalSolved+1;
-    const newCorrect=u.correct+(ok?1:0);
-    const newStreak=(newCorrect>0&&newCorrect%5===0)?u.streak+1:u.streak;
-    const updated={...u,totalSolved:newTotal,correct:newCorrect,streak:newStreak};
-    // احفظ كل 5 أسئلة في DB
-    if(session&&!session.isGuest&&newTotal%5===0){
-      sbSaveProgress(session.userId,session.token,updated);
-    }
-    // 🎉 Confetti + Milestones
+  const updateUser=ok=>{
+    setUser(u=>{
+      const newTotal=u.totalSolved+1;
+      const newCorrect=u.correct+(ok?1:0);
+      const newStreak=(newCorrect>0&&newCorrect%5===0)?u.streak+1:u.streak;
+      const updated={...u,totalSolved:newTotal,correct:newCorrect,streak:newStreak};
+      if(session&&!session.isGuest&&newTotal%5===0){
+        sbSaveProgress(session.userId,session.token,updated);
+      }
+      return updated;
+    });
+    // 🎉 Confetti + Milestones — خارج setUser
     if(ok){
       setConfetti(true);
-      if(newCorrect===1) setMilestone("first_correct");
-      else if(newCorrect===10&&newTotal===10) setMilestone("perfect_session");
-      else if(newTotal===10) setMilestone("solved_10");
-      else if(newTotal===25) setMilestone("solved_25");
-      else if(newTotal===50) setMilestone("solved_50");
-      // عداد الصح المتتالي
-      else if(newCorrect>0&&newCorrect%10===0&&newCorrect===newTotal) setMilestone("streak_10");
-      else if(newCorrect>0&&newCorrect%5===0&&newCorrect===newTotal) setMilestone("streak_5");
+      setUser(u=>{
+        const newTotal=u.totalSolved+1;
+        const newCorrect=u.correct+1;
+        if(newCorrect===1) setTimeout(()=>setMilestone("first_correct"),100);
+        else if(newCorrect===10&&newTotal===10) setTimeout(()=>setMilestone("perfect_session"),100);
+        else if(newTotal===10) setTimeout(()=>setMilestone("solved_10"),100);
+        else if(newTotal===25) setTimeout(()=>setMilestone("solved_25"),100);
+        else if(newTotal===50) setTimeout(()=>setMilestone("solved_50"),100);
+        else if(newCorrect>0&&newCorrect%10===0) setTimeout(()=>setMilestone("streak_10"),100);
+        else if(newCorrect>0&&newCorrect%5===0) setTimeout(()=>setMilestone("streak_5"),100);
+        return u;
+      });
     }
-    return updated;
-  });
+  };
 
   const addMistake=m=>setMistakes(p=>{
     const exists=p.some(x=>x.q===m.q);
