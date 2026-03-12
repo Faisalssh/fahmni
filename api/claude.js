@@ -1,3 +1,5 @@
+export const config = { api: { bodyParser: true } };
+
 export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
@@ -6,7 +8,12 @@ export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
 
   try {
-    const { prompt, maxTokens = 800 } = req.body;
+    let body = req.body;
+    if (typeof body === "string") {
+      try { body = JSON.parse(body); } catch {}
+    }
+
+    const { prompt, maxTokens = 800 } = body || {};
     if (!prompt) return res.status(400).json({ error: "no prompt" });
 
     const r = await fetch("https://api.anthropic.com/v1/messages", {
@@ -18,7 +25,7 @@ export default async function handler(req, res) {
       },
       body: JSON.stringify({
         model: "claude-haiku-4-5-20251001",
-        max_tokens: maxTokens,
+        max_tokens: Number(maxTokens) || 800,
         messages: [{ role: "user", content: prompt }],
       }),
     });
@@ -26,8 +33,11 @@ export default async function handler(req, res) {
     const d = await r.json();
     if (!r.ok || d.error) throw new Error(d.error?.message || `HTTP ${r.status}`);
     const text = d.content?.map(b => b.text || "").join("").trim();
+    if (!text) throw new Error("empty response from Claude");
     return res.status(200).json({ text });
+
   } catch (e) {
+    console.error("Claude API error:", e.message);
     return res.status(500).json({ error: e.message });
   }
 }
