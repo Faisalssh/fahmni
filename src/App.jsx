@@ -747,15 +747,9 @@ const SUPABASE_ANON="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS
 
 /* استخدام Anthropic API مباشرة — يعمل داخل artifacts */
 const callClaude=async(prompt,maxTok=800)=>{
-  // على claude.ai artifact — مباشر بدون مفتاح (يُحقن تلقائياً)
-  // على Vercel — عبر Supabase Edge Function التي تحمل المفتاح
   const IS_ART=typeof window!=="undefined"&&window.location.hostname.includes("claude.ai");
-  const url=IS_ART
-    ?"https://api.anthropic.com/v1/messages"
-    :`${SUPABASE_URL}/functions/v1/ask-claude`;
-  const headers=IS_ART
-    ?{"Content-Type":"application/json"}
-    :{"Content-Type":"application/json","apikey":SUPABASE_ANON,"Authorization":`Bearer ${SUPABASE_ANON}`};
+  const url=IS_ART?"https://api.anthropic.com/v1/messages":"/api/claude";
+  const headers={"Content-Type":"application/json"};
   const body=IS_ART
     ?JSON.stringify({model:"claude-haiku-4-5-20251001",max_tokens:maxTok,messages:[{role:"user",content:prompt}]})
     :JSON.stringify({prompt,maxTokens:maxTok});
