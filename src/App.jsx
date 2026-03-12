@@ -2873,7 +2873,7 @@ function Dashboard({go,user,trial,mistakes}){
           {ic:"🤖",t:"جلسة AI",d:"سؤال + شرح فوري",p:"session",c:"#f97316",paid:false},
           {ic:"📋",t:"المراجعة",d:wrongCount+" سؤال",p:"review",c:"#f87171",paid:true},
           {ic:"⚡",t:"المحاكاة",d:"اختبار كامل",p:"sim",c:"#a78bfa",paid:true},
-          {ic:"🗺️",t:"خريطة المسار",d:"18 باب منظم",p:"roadmap",c:"#22d3ee",paid:false}
+          {ic:"🗺️",t:"خريطة المسار",d:"18 باب منظم",p:"roadmap",c:"#22d3ee",paid:true}
         ].map(function(m,i){
           var isLocked=m.paid&&!trial.isSubscribed;
           return(
@@ -3820,7 +3820,7 @@ export default function Fahmni(){
 
   // حماية الصفحات — لو ما في session يرجع للصفحة الرئيسية
   const PROTECTED=["dashboard","roadmap","session","bank","sim","review","lesson","diagnostic","placement","placementResult","onboarding"];
-  const PAID_ONLY=["sim","bank","review"]; // require subscription
+  const PAID_ONLY=["sim","bank","review","roadmap","lesson"]; // require subscription
   const R=()=>{
     // 1) مو مسجّل → landing
     if(PROTECTED.includes(page)&&!session){go("landing");return null;}
