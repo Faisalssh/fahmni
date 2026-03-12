@@ -885,13 +885,19 @@ JSON فقط — لا نص خارجه:
 {"question":"...","options":["...","...","...","..."],"correct":0,"explanation_title":"...","steps":["خطوة 1","خطوة 2","خطوة 3","النتيجة"],"tip":"نصيحة","topic":"${topic}",${shapeHint}}`,800,userId
   );
 
-  const raw2=raw.replace(/```json|```/g,"").trim();
-  const s=raw2.indexOf("{"),e=raw2.lastIndexOf("}");
-  if(s===-1||e===-1) throw new Error("no JSON in response");
-  const parsed = JSON.parse(raw2.slice(s,e+1));
+  let parsed;
+  try{
+    const raw2=raw.replace(/```json|```/g,"").trim();
+    const s=raw2.indexOf("{"),e=raw2.lastIndexOf("}");
+    if(s===-1||e===-1) throw new Error("no JSON in response");
+    parsed = JSON.parse(raw2.slice(s,e+1));
+  }catch(err){ throw new Error("ردّ غير صالح من AI — أعد المحاولة"); }
   if(typeof parsed.correct!=="number"||parsed.correct<0||parsed.correct>3) parsed.correct=0;
   if(!Array.isArray(parsed.options)||parsed.options.length!==4) throw new Error("invalid options");
   if(!parsed.question||parsed.question.length<5) throw new Error("empty question");
+  parsed.steps=Array.isArray(parsed.steps)?parsed.steps:[];
+  parsed.tip=parsed.tip||"";
+  parsed.explanation_title=parsed.explanation_title||"الحل";
 
   // حفظ كاش معطّل مؤقتاً
 
@@ -902,7 +908,18 @@ async function genDiagnostic({section,topic}){
   const raw=await callClaude(`اكتب سؤال تشخيصي واحد لباب "${topic}" (${section}) لتحديد مستوى الطالب.
 السؤال يجب أن يكشف إذا كان الطالب يملك الأساس أم لا.
 JSON فقط: {"question":"...","options":["...","...","...","..."],"correct":0,"levelIfCorrect":"متقدم","levelIfWrong":"تأسيس","explanation":"جملة واحدة تشرح المفهاهيم الأساسية"}`);
-  return JSON.parse(raw.replace(/```json|```/g,"").trim());
+  try{
+    const clean=raw.replace(/```json|```/g,"").trim();
+    const s=clean.indexOf("{"),e=clean.lastIndexOf("}");
+    if(s===-1||e===-1) throw new Error("no JSON");
+    const p=JSON.parse(clean.slice(s,e+1));
+    if(!p.question||!Array.isArray(p.options)||p.options.length!==4) throw new Error("invalid shape");
+    if(typeof p.correct!=="number"||p.correct<0||p.correct>3) p.correct=0;
+    p.levelIfCorrect=p.levelIfCorrect||"متقدم";
+    p.levelIfWrong=p.levelIfWrong||"تأسيس";
+    p.explanation=p.explanation||"";
+    return p;
+  }catch(err){ throw new Error("تعذّر توليد سؤال التشخيص"); }
 }
 
 async function genTeacherSummary({topic,history,userId=null}){
@@ -916,7 +933,20 @@ ${wrong||"لا أخطاء — أداء ممتاز!"}
 
 اكتب تقييم شخصي دقيق وصريح (3 نقاط + خلاصة عملية).
 JSON فقط: {"grade":"ممتاز"|"جيد"|"يحتاج مراجعة","headline":"جملة مميزة تلخص وضعه","insights":["ملاحظة 1","ملاحظة 2","ملاحظة 3"],"action":"توصية عملية واحدة للخطوة التالية","encourage":"جملة تشجيعية شخصية"}`,800);
-  return JSON.parse(raw.replace(/```json|```/g,"").trim());
+  try{
+    const clean=raw.replace(/```json|```/g,"").trim();
+    const s=clean.indexOf("{"),e=clean.lastIndexOf("}");
+    if(s===-1||e===-1) throw new Error("no JSON");
+    const p=JSON.parse(clean.slice(s,e+1));
+    p.grade=p.grade||"جيد";
+    p.headline=p.headline||"أداء معقول";
+    p.insights=Array.isArray(p.insights)?p.insights:["واصل التدريب وستتحسن نتائجك."];
+    p.action=p.action||"تابع أسئلة إضافية.";
+    p.encourage=p.encourage||"أنت على الطريق الصحيح!";
+    return p;
+  }catch(err){
+    return {grade:"جيد",headline:"تحليل مؤقت",insights:["واصل التدريب وستتحسن نتائجك."],action:"تابع أسئلة إضافية.",encourage:"أنت على الطريق الصحيح!"};
+  }
 }
 
 /* ═══════════════════ NAV ═══════════════════ */
@@ -1111,26 +1141,26 @@ function TeacherSummary({topic,history,onContinue,onReview,plan="free"}){
     <div style={{padding:"26px 28px",background:"rgba(5,9,26,.8)"}}>
       {loading?(<div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:12,padding:"24px 0"}}><div className="dots"><span/><span/><span/></div><p style={{color:"#64748b",fontSize:".85rem"}}>المعلم يحلل أداءك...</p></div>):summary&&(<>
         <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:20,padding:"14px 18px",borderRadius:16,background:"rgba(255,255,255,.04)",border:"1px solid rgba(255,255,255,.07)"}}>
-          <span style={{fontSize:"1.5rem"}}>{summary.grade==="ممتاز"?"🏆":summary.grade==="جيد"?"⭐":"📌"}</span>
-          <div><p style={{fontSize:".68rem",color:gradeColor,fontWeight:700,marginBottom:3}}>{summary.grade}</p><p style={{fontSize:".92rem",fontWeight:800,color:"#fff"}}>{summary.headline}</p></div>
+          <span style={{fontSize:"1.5rem"}}>{(summary?.grade==="ممتاز"?"🏆":summary?.grade==="جيد"?"⭐":"📌")}</span>
+          <div><p style={{fontSize:".68rem",color:gradeColor,fontWeight:700,marginBottom:3}}>{summary?.grade||"—"}</p><p style={{fontSize:".92rem",fontWeight:800,color:"#fff"}}>{summary?.headline||""}</p></div>
         </div>
         <p style={{fontSize:".68rem",color:"#f97316",fontWeight:700,letterSpacing:".08em",marginBottom:12}}>▸ ملاحظات المعلم</p>
         <div style={{display:"flex",flexDirection:"column",gap:9,marginBottom:18}}>
-          {(summary.insights||[]).map((ins,i)=>(<div key={i} className="teacher-insight" style={{animationDelay:`${i*.1}s`}}><div style={{display:"flex",gap:10,alignItems:"flex-start"}}><div style={{width:22,height:22,borderRadius:7,background:"rgba(249,115,22,.2)",border:"1px solid rgba(249,115,22,.3)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:".64rem",fontWeight:900,color:"#f97316",flexShrink:0,marginTop:2}}>{i+1}</div><p style={{fontSize:".84rem",lineHeight:1.75,color:"#cbd5e1"}}>{ins}</p></div></div>))}
+          {(summary?.insights||[]).map((ins,i)=>(<div key={i} className="teacher-insight" style={{animationDelay:`${i*.1}s`}}><div style={{display:"flex",gap:10,alignItems:"flex-start"}}><div style={{width:22,height:22,borderRadius:7,background:"rgba(249,115,22,.2)",border:"1px solid rgba(249,115,22,.3)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:".64rem",fontWeight:900,color:"#f97316",flexShrink:0,marginTop:2}}>{i+1}</div><p style={{fontSize:".84rem",lineHeight:1.75,color:"#cbd5e1"}}>{ins}</p></div></div>))}
         </div>
         <div className="gl-o" style={{padding:"14px 17px",marginBottom:18}}>
           <p style={{fontSize:".68rem",color:"#f97316",fontWeight:700,marginBottom:5}}>⚡ الخطوة التالية</p>
-          <p style={{fontSize:".85rem",lineHeight:1.75,color:"#fdba74"}}>{summary.action}</p>
+          <p style={{fontSize:".85rem",lineHeight:1.75,color:"#fdba74"}}>{summary?.action||""}</p>
         </div>
         <div className="gl-v" style={{padding:"13px 17px",marginBottom:22}}>
-          <p style={{fontSize:".83rem",lineHeight:1.75,color:"#c4b5fd"}}>💪 {summary.encourage}</p>
+          <p style={{fontSize:".83rem",lineHeight:1.75,color:"#c4b5fd"}}>💪 {summary?.encourage||""}</p>
         </div>
         {/* تحليل الضعف — exam فقط */}
         {plan==="exam"?(
           <div style={{padding:"14px 18px",borderRadius:14,marginBottom:18,
             background:"rgba(167,139,250,.07)",border:"1px solid rgba(167,139,250,.2)"}}>
             <p style={{fontSize:".68rem",color:"#a78bfa",fontWeight:700,marginBottom:8}}>🔬 تحليل نقاط الضعف</p>
-            <p style={{fontSize:".8rem",color:"#cbd5e1",lineHeight:1.7}}>{summary.headline}</p>
+            <p style={{fontSize:".8rem",color:"#cbd5e1",lineHeight:1.7}}>{summary?.headline||""}</p>
           </div>
         ):(
           <div style={{padding:"13px 18px",borderRadius:14,marginBottom:18,
@@ -1884,7 +1914,7 @@ function NextCountdown({onNext,seconds=5}){
 }
 
 /* ═══════════════════ AI SESSION ═══════════════════ */
-function Session({settings,go,updateUser,trial,setTrial,addMistake,plan="free"}){
+function Session({settings,go,updateUser,trial,setTrial,addMistake,plan="free",session=null,user={name:"",streak:0,totalSolved:0,correct:0}}){
   useEffect(()=>{window.scrollTo({top:0,behavior:"instant"});},[]);
   const[qData,setQData]=useState(null);
   const[loading,setLoading]=useState(false);
@@ -2066,7 +2096,7 @@ function Session({settings,go,updateUser,trial,setTrial,addMistake,plan="free"})
 
         {/* Options — click = answer immediately */}
         <div style={{display:"flex",flexDirection:"column",gap:9}}>
-          {qData.options.map((opt,i)=>{
+          {(qData.options||[]).map((opt,i)=>{
             const showOk=checked&&i===qData.correct;
             const showBad=checked&&sel===i&&i!==qData.correct;
             return(
@@ -2096,19 +2126,19 @@ function Session({settings,go,updateUser,trial,setTrial,addMistake,plan="free"})
             <span className={`badge pi ${isCorrect?"b-g":"b-r"}`} style={{marginBottom:8}}>
               {isCorrect?"✓ إجابة صحيحة 🎯":"✗ إجابة خاطئة"}
             </span>
-            <h3 style={{fontSize:".97rem",fontWeight:800,color:"#fff"}}>{qData.explanation_title}</h3>
+            <h3 style={{fontSize:".97rem",fontWeight:800,color:"#fff"}}>{qData.explanation_title||"الحل"}</h3>
           </div>
           <Ring pct={isCorrect?100:0} size={58} color={isCorrect?"#4ade80":"#f87171"}/>
         </div>
 
         {!isCorrect&&<div style={{padding:"10px 14px",borderRadius:11,marginBottom:13,background:"rgba(74,222,128,.07)",border:"1px solid rgba(74,222,128,.22)"}}>
           <p style={{fontSize:".7rem",color:"#6ee7b7",fontWeight:700,marginBottom:3}}>الإجابة الصحيحة</p>
-          <p style={{color:"#bbf7d0",fontWeight:800}}>{qData.options[qData.correct]}</p>
+          <p style={{color:"#bbf7d0",fontWeight:800}}>{(qData.options||[])[qData.correct]||""}</p>
         </div>}
 
         <p style={{fontSize:".67rem",color:"#f97316",fontWeight:700,letterSpacing:".08em",marginBottom:9}}>▸ طريقة الحل</p>
         <div style={{display:"flex",flexDirection:"column",gap:7}}>
-          {steps.map((s,i)=>(
+          {(steps||[]).map((s,i)=>(
             <div key={i} className="step" style={{animationDelay:`${i*.06}s`}}>
               <div className="snum">{i+1}</div>
               <p style={{fontSize:".84rem",lineHeight:1.85,color:"#cbd5e1"}}>{s}</p>
@@ -2920,7 +2950,8 @@ async function genTopicLesson(topic){
   const clean=raw.replace(/```json|```/g,"").trim();
   const start=clean.indexOf("{"),end=clean.lastIndexOf("}");
   if(start===-1||end===-1) throw new Error("no JSON in response");
-  return JSON.parse(clean.slice(start,end+1));
+  try{ return JSON.parse(clean.slice(start,end+1)); }
+  catch(err){ throw new Error("تعذّر قراءة رد AI — أعد المحاولة"); }
 }
 
 /* ═══════════════════ QUICK COACH (per-question AI) ═══════════════════ */
@@ -2938,7 +2969,8 @@ ${!ok?`الصحيح: "${correctAns}"`:""}
   const raw = await callClaude(prompt, 200);
   const start=raw.indexOf("{"),end=raw.lastIndexOf("}");
   if(start===-1||end===-1) return {emoji:ok?"✓":"✗",msg:ok?"إجابة صحيحة، أحسنت!":"راجع الخطوات أسفله.",tip:""};
-  return JSON.parse(raw.slice(start,end+1));
+  try{ return JSON.parse(raw.slice(start,end+1)); }
+  catch(err){ return {emoji:ok?"✓":"💡",msg:ok?"أحسنت، إجابة صحيحة!":"راجع طريقة الحل أسفله.",tip:""}; }
 }
 
 /* ═══════════════════ TOPIC LESSON PAGE ═══════════════════ */
@@ -3700,14 +3732,17 @@ function Contact({go}){
 class ErrorBoundary extends React.Component{
   constructor(p){super(p);this.state={err:null};}
   static getDerivedStateFromError(e){return{err:e};}
-  componentDidCatch(e,info){console.error("App crash:",e,info);}
+  componentDidCatch(e,info){console.error("❌ Crash:",e?.message,info?.componentStack?.slice(0,200));}
   render(){
     if(this.state.err)return(
-      <div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",flexDirection:"column",gap:16,background:"#05091a",color:"#fff",fontFamily:"Cairo,sans-serif",padding:24,textAlign:"center"}}>
+      <div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",flexDirection:"column",gap:14,background:"#05091a",color:"#fff",fontFamily:"Cairo,sans-serif",padding:24,textAlign:"center"}}>
         <span style={{fontSize:"3rem"}}>⚠️</span>
-        <p style={{fontWeight:700,fontSize:"1.1rem"}}>حدث خطأ غير متوقع</p>
-        <p style={{color:"#64748b",fontSize:".82rem",maxWidth:300}}>{this.state.err?.message||"unknown error"}</p>
-        <button style={{marginTop:8,padding:"10px 28px",borderRadius:12,background:"#f97316",color:"#fff",border:"none",fontFamily:"Cairo,sans-serif",cursor:"pointer",fontWeight:700,fontSize:"1rem"}} onClick={()=>{this.setState({err:null});window.location.reload();}}>إعادة التحميل</button>
+        <p style={{fontWeight:800,fontSize:"1.1rem"}}>حدث خطأ غير متوقع</p>
+        <p style={{color:"#64748b",fontSize:".82rem",maxWidth:320}}>{this.state.err?.message||"خطأ غير معروف"}</p>
+        <div style={{display:"flex",gap:10,flexWrap:"wrap",justifyContent:"center"}}>
+          <button style={{padding:"10px 20px",borderRadius:12,background:"rgba(249,115,22,.15)",border:"1px solid rgba(249,115,22,.3)",color:"#f97316",fontFamily:"Cairo,sans-serif",cursor:"pointer",fontWeight:700,fontSize:".9rem"}} onClick={()=>this.setState({err:null})}>حاول مرة أخرى</button>
+          <button style={{padding:"10px 28px",borderRadius:12,background:"#f97316",color:"#0a0f1e",border:"none",fontFamily:"Cairo,sans-serif",cursor:"pointer",fontWeight:700,fontSize:".9rem"}} onClick={()=>{this.setState({err:null});window.location.reload();}}>إعادة التحميل</button>
+        </div>
       </div>
     );
     return this.props.children;
@@ -3769,7 +3804,7 @@ export default function Fahmni(){
       setTrial({isSubscribed:false,used:0,limit:sess.trialLimit||5});
     }
     // تحميل حالة تحديد المستوى
-    if(prog?.placementDone) placementDoneRef.current=true;setPlacementDone(true);
+    if(prog?.placementDone){placementDoneRef.current=true;setPlacementDone(true);}
     // توجيه ذكي:
     // 1) مستخدم جديد (ما أكمل onboarding) → onboarding
     // 2) أكمل onboarding لكن ما أكمل placement → placement
@@ -3886,7 +3921,7 @@ export default function Fahmni(){
       : <Roadmap go={go} setSettings={setSettings} openLesson={openLesson} trial={trial}/>;
     case"diagnostic":return <DiagnosticQ topic={settings.topic} section={settings.section} onResult={level=>{setSettings(p=>({...p,difficulty:level==="متقدم"?"صعب":"سهل"}));go("session");}} onSkip={()=>go("session")}/>;
     case"bank":return <Bank settings={settings} setSettings={setSettings} go={go} trial={trial}/>;
-    case"session":return <Session settings={settings} go={go} updateUser={updateUser} trial={trial} setTrial={setTrial} addMistake={addMistake} plan={trial.plan||"free"}/>;
+    case"session":return <Session settings={settings} go={go} updateUser={updateUser} trial={trial} setTrial={setTrial} addMistake={addMistake} plan={trial.plan||"free"} session={session} user={user}/>;
     case"sim":return <SimMode settings={settings} go={go} updateUser={updateUser} addMistake={addMistake} trial={trial}/>;
     case"review":return <ReviewMode mistakes={mistakes} go={go} onRedo={()=>go("session")}/>;
     case"pricing":return <Pricing go={go}/>;
