@@ -765,20 +765,21 @@ const canAccess=(trial,feature)=>{
 const SUPABASE_ANON="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVzZHJhbHJ4ZXNzbGF4dnB5eXBhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMxNzE0NTgsImV4cCI6MjA4ODc0NzQ1OH0.WiHlteyRHs8SUch4Q9msuZb5pWwLi9IWx9L_f5Fp_Ho";
 
 /* استخدام Anthropic API مباشرة — يعمل داخل artifacts */
-const callClaude=async(prompt,maxTok=800)=>{
+const callClaude=async(prompt,maxTok=800,userId=null)=>{
   const IS_ART=typeof window!=="undefined"&&window.location.hostname.includes("claude.ai");
   const url=IS_ART?"https://api.anthropic.com/v1/messages":"/api/claude";
   const headers={"Content-Type":"application/json"};
   const body=IS_ART
     ?JSON.stringify({model:"claude-haiku-4-5-20251001",max_tokens:maxTok,messages:[{role:"user",content:prompt}]})
-    :JSON.stringify({prompt,maxTokens:maxTok});
+    :JSON.stringify({prompt,maxTokens:maxTok,userId});
   let lastErr;
   for(let attempt=0;attempt<3;attempt++){
     try{
       const r=await fetch(url,{method:"POST",headers,body});
       const d=await r.json();
+      // حد يومي تجاوز
+      if(r.status===429||d.limitReached) throw Object.assign(new Error(d.error||"حد يومي"),{limitReached:true});
       if(!r.ok||d.error) throw new Error(d.error?.message||d.error||`HTTP ${r.status}`);
-      // artifact returns content array, edge function returns {text}
       if(IS_ART){
         if(!d.content?.length) throw new Error("empty response");
         return d.content.map(b=>b.text||"").join("").trim();
@@ -786,7 +787,11 @@ const callClaude=async(prompt,maxTok=800)=>{
         if(!d.text) throw new Error("no text in response");
         return d.text.trim();
       }
-    }catch(e){lastErr=e;if(attempt<2)await new Promise(r=>setTimeout(r,800*(attempt+1)));}
+    }catch(e){
+      lastErr=e;
+      if(e.limitReached) throw e; // لا تعيد المحاولة
+      if(attempt<2)await new Promise(r=>setTimeout(r,800*(attempt+1)));
+    }
   }
   throw lastErr;
 };
@@ -863,7 +868,7 @@ const VERBAL_INSTRUCTIONS = {
 /* قائمة جميع الأبواب للعشوائية */
 const ALL_TOPICS=[...TOPICS.كمي,...TOPICS.لفظي];
 
-async function genQuestion({topic, difficulty, avoidQuestion=""}){
+async function genQuestion({topic, difficulty, avoidQuestion="", userId=null}){
   const section = deriveSec(topic);
   const isGeo   = GEO.includes(topic);
   const shapeHint = isGeo
@@ -877,7 +882,7 @@ async function genQuestion({topic, difficulty, avoidQuestion=""}){
   const raw = await callClaude(
 `اختبار قدرات قياس. باب: ${topic} | مستوى: ${difficulty}${verbalNote}${avoidNote}
 JSON فقط — لا نص خارجه:
-{"question":"...","options":["...","...","...","..."],"correct":0,"explanation_title":"...","steps":["خطوة 1","خطوة 2","خطوة 3","النتيجة"],"tip":"نصيحة","topic":"${topic}",${shapeHint}}`,800
+{"question":"...","options":["...","...","...","..."],"correct":0,"explanation_title":"...","steps":["خطوة 1","خطوة 2","خطوة 3","النتيجة"],"tip":"نصيحة","topic":"${topic}",${shapeHint}}`,800,userId
   );
 
   const raw2=raw.replace(/```json|```/g,"").trim();
@@ -900,7 +905,7 @@ JSON فقط: {"question":"...","options":["...","...","...","..."],"correct":0,"
   return JSON.parse(raw.replace(/```json|```/g,"").trim());
 }
 
-async function genTeacherSummary({topic,history}){
+async function genTeacherSummary({topic,history,userId=null}){
   const wrong=history.filter(h=>!h.ok).map(h=>`السؤال: "${h.q}" — أجاب: "${h.chosen}" والصحيح: "${h.correct}"`).join("\n");
   const raw=await callClaude(`أنت معلم ذكي تحلل أداء طالب في باب "${topic}".
 
@@ -1925,10 +1930,10 @@ function Session({settings,go,updateUser,trial,setTrial,addMistake,plan="free"})
     setLoading(true);setErr("");setQData(null);setSel(null);setChecked(false);
     setSteps([]);setShowTip(false);setExpired(false);setAutoNext(false);setCoach(null);setCoachLoading(false);
     try{
-      const q=await genQuestion({topic:nextTopic,difficulty:settings.difficulty,avoidQuestion:lastQRef.current});
+      const q=await genQuestion({topic:nextTopic,difficulty:settings.difficulty,avoidQuestion:lastQRef.current,userId:session?.userId||null});
       lastQRef.current=q.question||"";
       setQData({...q,topic:nextTopic});setTimerKey(k=>k+1);setQStart(Date.now());
-    }catch(e){setErr("فشل توليد السؤال. تحقق من الاتصال.");}
+    }catch(e){if(e.limitReached){setErr(e.message);go("paywall");}else{setErr("فشل توليد السؤال. تحقق من الاتصال.");}}
     finally{setLoading(false);}
   },[settings,trial]);
 
@@ -2919,7 +2924,7 @@ async function genTopicLesson(topic){
 }
 
 /* ═══════════════════ QUICK COACH (per-question AI) ═══════════════════ */
-async function genQuickCoach({topic, ok, question, chosen, correctAns, history}){
+async function genQuickCoach({topic, ok, question, chosen, correctAns, history, userId=null}){
   const acc = history.length ? Math.round(history.filter(h=>h.ok).length/history.length*100) : (ok?100:0);
   const streak = (() => { let s=0; for(let i=history.length-1;i>=0;i--){ if(history[i].ok)s++; else break; } if(ok)s++; return s; })();
   const prompt = `أنت مدرس قدرات ذكي. طالب حل سؤال في "${topic}".
