@@ -2563,14 +2563,21 @@ function Auth({mode,go,onLogin}){
     try{
       if(isLogin){
         const d=await sbLogin(email,pass);
+        // تحقق إن البريد مؤكد
+        if(!d.user?.email_confirmed_at){
+          setErr("📧 بريدك غير مؤكد — تحقق من إيميلك وافتح رابط التأكيد أولاً");
+          return;
+        }
         const userName=d.user?.user_metadata?.full_name||d.user?.email?.split("@")[0]||"طالب";
         onLogin({token:d.access_token,userId:d.user?.id,name:userName,email:d.user?.email});
       }else{
         const d=await sbSignup(name,email,pass);
-        if(d.access_token){
+        // لو رجع access_token — تحقق إن البريد مؤكد فعلاً
+        if(d.access_token && d.user?.email_confirmed_at){
           const userName=d.user?.user_metadata?.full_name||name||d.user?.email?.split("@")[0]||"طالب";
           onLogin({token:d.access_token,userId:d.user?.id,name:userName,email:d.user?.email});
         }else{
+          // إما تأكيد البريد مفعّل أو البريد غير مؤكد — لا تدخله
           setInfo("✉️ تم إنشاء حسابك! تحقق من بريدك لتفعيله ثم سجّل دخولك.");
         }
       }
