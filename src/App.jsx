@@ -911,7 +911,7 @@ async function genQuestion({topic, difficulty, avoidQuestion="", userId=null, us
     ? `"shape":{"type":"right_triangle"|"iso_triangle"|"rectangle"|"square"|"angle"|"circle","degrees":number,"unknown":"base"|"height"|"hyp"|"side"|"width"|"radius","labels":{"lBase":"...","lHeight":"...","lHyp":"...","lW":"...","lH":"...","lRadius":"...","lSide":"...","lDeg":"..."}}`
     : `"shape":null`;
   const verbalNote = VERBAL_INSTRUCTIONS[topic]?`\n${VERBAL_INSTRUCTIONS[topic]}`:"";
-  const avoidNote  = avoidQuestion?`\n⛔ لا تعيد هذا السؤال: "${avoidQuestion.slice(0,40)}"}`:"";
+  const avoidNote  = avoidQuestion?`\n⛔ لا تعيد هذا السؤال: "${avoidQuestion.slice(0,40)}"`:"";
 
   // ══ 1. ابحث في قاعدة البيانات أولاً ══
   if(userId && userId!=="guest" && userToken){
