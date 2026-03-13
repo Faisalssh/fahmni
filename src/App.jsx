@@ -26,7 +26,7 @@ const GS = () => (<style>{`
   .d1{animation-delay:.07s}.d2{animation-delay:.14s}.d3{animation-delay:.21s}
   .d4{animation-delay:.28s}.d5{animation-delay:.35s}.d6{animation-delay:.42s}
   .app{min-height:100vh;background:#05091a;color:#fff;direction:rtl;}
-  .wrap{max-width:1020px;margin:0 auto;padding:26px 18px;position:relative;z-index:1;}
+  .wrap{max-width:1080px;margin:0 auto;padding:clamp(16px,3vw,30px) clamp(12px,2.5vw,22px);position:relative;z-index:1;}
   .bg-f{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden;}
   .bg-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(249,115,22,.055)1px,transparent 1px),linear-gradient(90deg,rgba(249,115,22,.055)1px,transparent 1px);background-size:52px 52px;animation:gridAnim 5s ease-in-out infinite;}
   .orb{position:absolute;border-radius:50%;filter:blur(90px);animation:drift var(--d,10s) ease-in-out var(--dl,0s) infinite;}
@@ -268,7 +268,24 @@ const GS = () => (<style>{`
     .rg-3{grid-template-columns:1fr 1fr;}
     .pricing-grid{grid-template-columns:1fr 1fr !important;}
     .rg-sim{grid-template-columns:1fr 200px;}
+    .landing-feat-grid{grid-template-columns:1fr !important;}
+    .feat-demo{display:none !important;}
   }
+  /* ── Toast ── */
+  @keyframes slideUp{from{opacity:0;transform:translate(-50%,20px)}to{opacity:1;transform:translate(-50%,0)}}
+  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);padding:12px 22px;border-radius:14px;background:rgba(10,18,40,.97);border:1px solid rgba(249,115,22,.4);color:#fff;font-size:.85rem;font-weight:700;z-index:9999;white-space:nowrap;animation:slideUp .3s cubic-bezier(.22,1,.36,1);box-shadow:0 8px 32px rgba(0,0,0,.5);display:flex;align-items:center;gap:8px;min-width:200px;justify-content:center;}
+  .toast.success{border-color:rgba(74,222,128,.45);color:#86efac;background:rgba(5,20,12,.97);}
+  .toast.error{border-color:rgba(248,113,113,.45);color:#fca5a5;background:rgba(20,5,5,.97);}
+  .toast.info{border-color:rgba(34,211,238,.3);color:#67e8f9;background:rgba(5,12,20,.97);}
+  /* ── Skeleton ── */
+  @keyframes shimmer{0%{background-position:-400px 0}100%{background-position:400px 0}}
+  .skeleton{background:linear-gradient(90deg,rgba(255,255,255,.04) 0%,rgba(255,255,255,.08) 50%,rgba(255,255,255,.04) 100%);background-size:800px 100%;animation:shimmer 1.4s ease-in-out infinite;border-radius:10px;display:block;}
+  /* ── Dashboard action grid ── */
+  .dash-action-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:11px;}
+  @media(max-width:640px){.dash-action-grid{grid-template-columns:1fr 1fr !important;gap:9px !important;}}
+  /* ── Placement quiz ── */
+  .placement-grid{display:grid;grid-template-columns:1fr 290px;gap:16px;}
+  @media(max-width:640px){.placement-grid{grid-template-columns:1fr !important;}.placement-sidebar{display:none !important;}}
 `}</style>);
 
 /* ═══════════════════ NATURE SOUNDS (Web Audio API) ═══════════════════ */
@@ -432,7 +449,7 @@ function ResultCard({stats,onClose}){
                   <p style={{fontSize:".58rem",color:"#475569"}}>نتيجة الجلسة</p>
                 </div>
               </div>
-              <p style={{fontSize:"2.8rem",fontWeight:900,
+              <p style={{fontSize:"clamp(2rem,6vw,2.8rem)",fontWeight:900,
                 background:"linear-gradient(135deg,#f97316,#fdba74,#22d3ee)",
                 WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",
                 lineHeight:1}}>{acc}%</p>
@@ -568,6 +585,7 @@ function Confetti({active,onDone}){
 /* Milestone popup */
 const MILESTONES={
   first_correct:{icon:"🎯",title:"أول إجابة صح!",msg:"البداية دائماً أصعب — وأنت تجاوزتها 💪",color:"#4ade80"},
+  daily_goal:{icon:"🎯",title:"حققت هدف اليوم!",msg:"ممتاز! وصلت لهدفك اليومي — واصل الضغط 💪",color:"#4ade80"},
   streak_5:{icon:"🔥",title:"5 صح متتالية!",msg:"ما شاء الله — تركيزك ممتاز",color:"#f97316"},
   streak_10:{icon:"⚡",title:"10 صح متتالية!!",msg:"أداء احترافي — واصل",color:"#fde047"},
   solved_10:{icon:"📚",title:"10 أسئلة مكتملة",msg:"إنجاز حقيقي — استمر على هذا المستوى",color:"#22d3ee"},
@@ -884,16 +902,19 @@ async function genQuestion({topic, difficulty, avoidQuestion="", userId=null, us
       // سجّل أن المستخدم رأى هذا السؤال
       sbMarkSeen(userId,userToken,cached.id);
       // حوّل من شكل DB إلى شكل الـ app
-      return {
+      let dbOptions,dbSteps;
+      try{dbOptions=Array.isArray(cached.options)?cached.options:JSON.parse(cached.options||"[]");}catch(e){dbOptions=[];}
+      try{dbSteps=Array.isArray(cached.steps)?cached.steps:JSON.parse(cached.steps||"[]");}catch(e){dbSteps=[];}
+      if(Array.isArray(dbOptions)&&dbOptions.length===4) return {
         question         : cached.question_text,
-        options          : Array.isArray(cached.options)?cached.options:JSON.parse(cached.options||"[]"),
-        correct          : cached.correct,
+        options          : dbOptions,
+        correct          : typeof cached.correct==="number"?cached.correct:0,
         explanation_title: cached.explanation_title||"الحل",
-        steps            : Array.isArray(cached.steps)?cached.steps:JSON.parse(cached.steps||"[]"),
+        steps            : dbSteps,
         tip              : cached.tip||"",
         shape            : cached.shape||null,
         topic,
-        _fromDB          : true,   // للتتبع فقط
+        _fromDB          : true,
         _dbId            : cached.id,
       };
     }
@@ -1089,7 +1110,7 @@ function PlacementQuiz({profile,onFinish}){
     setAnswers(upd);setIdx(p=>p+1);setSel(null);setRevealed(false);
   };
   const ok=sel===q.correct;
-  return(<div style={{display:"grid",gap:16,gridTemplateColumns:"1fr 290px"}}>
+  return(<div className="placement-grid">
     <div style={{display:"flex",flexDirection:"column",gap:14}}>
       <div className="gl" style={{padding:"18px 22px"}}>
         <div style={{display:"flex",justifyContent:"space-between",marginBottom:10,fontSize:".75rem",color:"#64748b"}}><span style={{color:"#f97316",fontWeight:700}}>{pct}%</span><span>السؤال {idx+1} من {PLACEMENT_Q.length}</span></div>
@@ -1105,7 +1126,7 @@ function PlacementQuiz({profile,onFinish}){
         <div style={{marginTop:20,display:"flex",justifyContent:"flex-end"}}>{!revealed?<button className="btn btn-p" disabled={sel===null} onClick={check}>تحقق</button>:<button className="btn btn-p" onClick={advance}>{isLast?"اعرض النتيجة ←":"التالي →"}</button>}</div>
       </div>
     </div>
-    <div className="gl" style={{padding:"20px",alignSelf:"start"}}>
+    <div className="gl placement-sidebar" style={{padding:"20px",alignSelf:"start"}}>
       <p style={{fontSize:".68rem",color:"#f97316",fontWeight:700,letterSpacing:".08em",marginBottom:13}}>ملف الطالب</p>
       {[["الهدف",profile.goal],["الثقة",profile.confidence],["القسم",profile.section],["الوقت",`${profile.minutes} دقيقة`]].map(([k,v])=>(<div key={k} className="gl2" style={{padding:"9px 13px",display:"flex",justifyContent:"space-between",marginBottom:7}}><span style={{fontSize:".77rem",color:"#94a3b8"}}>{k}</span><span style={{fontSize:".77rem",fontWeight:700,color:"#f97316"}}>{v}</span></div>))}
       <div style={{marginTop:18,display:"flex",flexDirection:"column",gap:7}}>{PLACEMENT_Q.map((_,i)=>{const a=answers[i],cur=i===idx;return(<div key={i} style={{display:"flex",alignItems:"center",gap:9}}><div style={{width:25,height:25,borderRadius:7,fontSize:".68rem",fontWeight:700,display:"flex",alignItems:"center",justifyContent:"center",background:a?a.ok?"rgba(74,222,128,.12)":"rgba(248,113,113,.1)":cur?"rgba(249,115,22,.2)":"rgba(255,255,255,.04)",border:`1px solid ${a?a.ok?"rgba(74,222,128,.3)":"rgba(248,113,113,.25)":cur?"rgba(249,115,22,.4)":"rgba(255,255,255,.08)"}`,color:a?a.ok?"#86efac":"#fca5a5":cur?"#fdba74":"#475569"}}>{a?(a.ok?"✓":"✗"):i+1}</div><span style={{fontSize:".74rem",color:cur?"#fff":"#475569",fontWeight:cur?700:400}}>سؤال {i+1} ({PLACEMENT_Q[i].sec})</span></div>);})}</div>
@@ -1557,7 +1578,7 @@ function SimMode({settings,go,updateUser,addMistake,trial={}}){  useEffect(()=>{
               {timeWarning?"⚠ الوقت ينفد":"⏱ الوقت المتبقي"}
             </p>
             <p style={{
-              fontSize:"2.6rem",fontWeight:900,letterSpacing:"0.04em",
+              fontSize:"clamp(1.8rem,6vw,2.6rem)",fontWeight:900,letterSpacing:"0.04em",
               fontFamily:"monospace",lineHeight:1,
               color:timeLeft<300?"#f87171":timeWarning?"#f97316":"#fff"
             }}>{fmt(timeLeft)}</p>
@@ -1795,7 +1816,7 @@ function Pricing({go}){
                 <span style={{fontSize:"1.9rem",fontWeight:900,color:p.color}}>مجاني</span>
               ):(
                 <>
-                  <span style={{fontSize:"2.5rem",fontWeight:900,color:p.color,lineHeight:1}}>{p.price}</span>
+                  <span style={{fontSize:"clamp(1.8rem,5vw,2.5rem)",fontWeight:900,color:p.color,lineHeight:1}}>{p.price}</span>
                   <div>
                     <p style={{fontSize:".72rem",fontWeight:700,color:"#94a3b8"}}>ريال</p>
                     <p style={{fontSize:".63rem",color:"#475569"}}>/ {p.per}</p>
@@ -1943,8 +1964,47 @@ function NextCountdown({onNext,seconds=5}){
   );
 }
 
+/* ═══════════════════ QUESTION RATING ═══════════════════ */
+function QRating({qId,topic}){
+  const[rated,setRated]=useState(null);
+  const[sent,setSent]=useState(false);
+  if(sent)return(
+    <div style={{marginTop:10,padding:"8px 12px",borderRadius:11,background:"rgba(74,222,128,.07)",
+      border:"1px solid rgba(74,222,128,.15)",display:"flex",alignItems:"center",gap:7}}>
+      <span style={{fontSize:".8rem"}}>✅</span>
+      <p style={{fontSize:".72rem",color:"#86efac"}}>شكراً على تقييمك — يساعدنا نحسّن الأسئلة!</p>
+    </div>
+  );
+  return(
+    <div style={{marginTop:10,padding:"10px 14px",borderRadius:12,background:"rgba(255,255,255,.03)",
+      border:"1px solid rgba(255,255,255,.06)",display:"flex",alignItems:"center",gap:10,flexWrap:"wrap"}}>
+      <p style={{fontSize:".68rem",color:"#475569",flex:1}}>هل السؤال واضح ومفيد؟</p>
+      <div style={{display:"flex",gap:6}}>
+        {[["👍","جيد"],["👎","غير واضح"],["🔄","مكرر"]].map(([ic,label])=>(
+          <button key={label} onClick={()=>{
+            setRated(label);setSent(true);
+            // Save rating to localStorage for now
+            try{
+              const ratings=JSON.parse(localStorage.getItem("fahmni_ratings")||"[]");
+              ratings.push({qId,topic,rating:label,at:Date.now()});
+              localStorage.setItem("fahmni_ratings",JSON.stringify(ratings.slice(-100)));
+            }catch{}
+          }} style={{
+            padding:"5px 10px",borderRadius:9,cursor:"pointer",
+            fontFamily:"Cairo,sans-serif",fontSize:".72rem",fontWeight:700,
+            background:rated===label?"rgba(249,115,22,.15)":"rgba(255,255,255,.05)",
+            border:`1px solid ${rated===label?"rgba(249,115,22,.3)":"rgba(255,255,255,.09)"}`,
+            color:rated===label?"#f97316":"#64748b",display:"flex",alignItems:"center",gap:4
+          }}>{ic} {label}</button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+
 /* ═══════════════════ AI SESSION ═══════════════════ */
-function Session({settings,go,updateUser,trial,setTrial,addMistake,plan="free",session=null,user={name:"",streak:0,totalSolved:0,correct:0}}){
+function Session({settings,go,updateUser,trial,setTrial,addMistake,plan="free",session=null,user={name:"",streak:0,totalSolved:0,correct:0},showToast=()=>{}}){
   useEffect(()=>{window.scrollTo({top:0,behavior:"instant"});},[]);
   const[qData,setQData]=useState(null);
   const[loading,setLoading]=useState(false);
@@ -1993,6 +2053,7 @@ function Session({settings,go,updateUser,trial,setTrial,addMistake,plan="free",s
       const q=await genQuestion({topic:nextTopic,difficulty:settings.difficulty,avoidQuestion:lastQRef.current,userId:session?.userId||null,userToken:session?.token||null});
       lastQRef.current=q.question||"";
       setQData({...q,topic:nextTopic});setTimerKey(k=>k+1);setQStart(Date.now());
+      if(q._fromDB) showToast("⚡ من بنك الأسئلة","info",1500);
     }catch(e){if(e.limitReached){setErr(e.message);go("paywall");}else{setErr("فشل توليد السؤال. تحقق من الاتصال.");}}
     finally{setLoading(false);}
   },[settings,trial]);
@@ -2045,6 +2106,11 @@ function Session({settings,go,updateUser,trial,setTrial,addMistake,plan="free",s
       .finally(()=>{setCoachLoading(false);setAutoNext(true);});
     setTimeout(()=>explRef.current?.scrollIntoView({behavior:"smooth",block:"start"}),120);
     if(nh.length>0&&nh.length%TEACHER_TRIGGER===0)setTimeout(()=>setShowTeacher(true),2000);
+    // Check daily goal reached
+    const ds=getDailyStats();
+    if(ds.done===dailyGoal&&dailyGoal>0){
+      setTimeout(()=>setMilestone("daily_goal"),1500);
+    }
   };
 
   const handleExpire=()=>{if(!checked){setExpired(true);doCheck(null,true);}};
@@ -2188,6 +2254,11 @@ function Session({settings,go,updateUser,trial,setTrial,addMistake,plan="free",s
           </div>
         )}
 
+        {/* ── Question Rating ── */}
+        {checked&&!qData?._fromDB&&(
+          <QRating qId={qData?._dbId} topic={curTopic||settings.topic}/>
+        )}
+
         {/* Live AI Coach card */}
           {(coachLoading||coach)&&(
             <div className="au" style={{
@@ -2312,7 +2383,7 @@ function Landing({go}){
           <p style={{fontSize:".7rem",color:"#22d3ee",fontWeight:700}}>⚡ محاكاة جارية</p>
           <p style={{fontSize:".7rem",color:"#f87171",fontWeight:700}}>⏱ 1:24:38</p>
         </div>
-        <div style={{display:"grid",gridTemplateColumns:"repeat(10,1fr)",gap:3,marginBottom:10}}>
+        <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(28px,1fr))",gap:3,marginBottom:10}}>
           {Array.from({length:30}).map((_,i)=><div key={i} style={{height:14,borderRadius:3,background:i<18?i%4===3?"rgba(248,113,113,.3)":"rgba(74,222,128,.2)":"rgba(255,255,255,.06)",border:`1px solid ${i<18?i%4===3?"rgba(248,113,113,.3)":"rgba(74,222,128,.2)":"rgba(255,255,255,.04)"}`}}/>)}
         </div>
         <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:7}}>
@@ -2686,6 +2757,32 @@ async function sbResetPassword(email){
 }
 const sbH=(token)=>({"Content-Type":"application/json","apikey":SUPABASE_ANON,"Authorization":`Bearer ${token}`,"Prefer":"return=minimal"});
 
+
+/* ─── Daily Goal Helpers (localStorage) ─── */
+const getDailyKey=()=>`fahmni_daily_${new Date().toISOString().split("T")[0]}`;
+const getDailyStats=()=>{
+  try{
+    const d=localStorage.getItem(getDailyKey());
+    return d?JSON.parse(d):{done:0,goal:5};
+  }catch{return{done:0,goal:5};}
+};
+const setDailyDone=(n)=>{
+  try{
+    const k=getDailyKey();
+    const s=getDailyStats();
+    localStorage.setItem(k,JSON.stringify({...s,done:n}));
+    // Clean old keys (keep last 7 days)
+    const today=new Date();
+    for(let i=8;i<30;i++){
+      const old=new Date(today);old.setDate(today.getDate()-i);
+      localStorage.removeItem(`fahmni_daily_${old.toISOString().split("T")[0]}`);
+    }
+  }catch{}
+};
+const setDailyGoal=(g)=>{
+  try{localStorage.setItem(getDailyKey(),JSON.stringify({...getDailyStats(),goal:g}));}catch{}
+};
+
 const sbLoadProgress=async(userId,token)=>{
   if(IS_ARTIFACT) return null;
   try{
@@ -2710,6 +2807,27 @@ const sbSavePlacement=async(userId,token,level)=>{
     });
   }catch(e){}
 };
+
+/* ═══════════════════ TOAST SYSTEM ═══════════════════ */
+function useToast(){
+  const[toasts,setToasts]=React.useState([]);
+  const show=React.useCallback((msg,type="info",duration=3000)=>{
+    const id=Date.now()+Math.random();
+    setToasts(p=>[...p,{id,msg,type}]);
+    setTimeout(()=>setToasts(p=>p.filter(t=>t.id!==id)),duration);
+  },[]);
+  const ToastContainer=()=>toasts.length===0?null:(
+    <div style={{position:"fixed",bottom:24,left:"50%",transform:"translateX(-50%)",zIndex:9999,display:"flex",flexDirection:"column",gap:8,alignItems:"center",pointerEvents:"none"}}>
+      {toasts.map(t=>(
+        <div key={t.id} className={`toast ${t.type}`}>
+          <span style={{flexShrink:0}}>{t.type==="success"?"✅":t.type==="error"?"❌":"💬"}</span>
+          {t.msg}
+        </div>
+      ))}
+    </div>
+  );
+  return{show,ToastContainer};
+}
 
 /* ═══════════════════ QUESTION BANK — DB HELPERS ═══════════════════ */
 
@@ -2987,38 +3105,190 @@ function Dashboard({go,user,trial,mistakes}){
   useEffect(()=>{window.scrollTo({top:0,behavior:"instant"});},[]); 
   const acc=user.totalSolved?Math.round((user.correct/user.totalSolved)*100):0;
   const wrongCount=mistakes.length;
+  const dailyDone=user.dailyDone||0;
+  const dailyGoal=user.dailyGoal||5;
+  const dailyPct=Math.min(Math.round((dailyDone/dailyGoal)*100),100);
+  const dailyDone_=dailyDone>=dailyGoal;
+  const[showGoalPicker,setShowGoalPicker]=useState(false);
+  const[shareCopied,setShareCopied]=useState(false);
+
+  /* ── Share result ── */
+  const shareResult=()=>{
+    const text=`📊 أداؤني في فهمني اليوم:
+✅ ${dailyDone} سؤال محلول
+🎯 دقة ${acc}%
+🔥 سلسلة ${user.streak} يوم
+
+جرّب معي على fahmni-silk.vercel.app`;
+    if(navigator.share){navigator.share({title:"فهمني",text});}
+    else{navigator.clipboard?.writeText(text).then(()=>{setShareCopied(true);setTimeout(()=>setShareCopied(false),2000);});}
+  };
+
+  /* ── Weekly history from localStorage ── */
+  const weekData=Array.from({length:7}).map((_,i)=>{
+    const d=new Date();d.setDate(d.getDate()-i);
+    const key=`fahmni_daily_${d.toISOString().split("T")[0]}`;
+    try{const s=localStorage.getItem(key);return s?JSON.parse(s).done||0:0;}catch{return 0;}
+  }).reverse();
+  const maxW=Math.max(...weekData,1);
+  const dayNames=["الأحد","الإثنين","الثلاثاء","الأربعاء","الخميس","الجمعة","السبت"];
+  const todayName=dayNames[new Date().getDay()];
+
   return(<div style={{display:"grid",gap:14}}>
-    <div className="gl gl-pad-lg" style={{padding:"34px 30px"}}>
-      <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",flexWrap:"wrap",gap:16}}>
-        <div><h1 style={{fontSize:"1.8rem",fontWeight:900,color:"#fff",marginTop:12}}>أهلًا {user.name}، <span style={{color:"#f97316"}}>{acc>=80?"ممتاز 🏆":acc>=60?"جيد جدًا ⭐":acc>0?"فيه تقدم 📈":"ابدأ الآن 💪"}</span></h1></div>
-        <Ring pct={acc} size={96} color={acc>=70?"#4ade80":acc>=50?"#f97316":"#f87171"}/>
+
+    {/* ── Hero card ── */}
+    <div className="gl" style={{padding:"clamp(20px,4vw,34px)"}}>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",flexWrap:"wrap",gap:14}}>
+        <div style={{flex:1}}>
+          <h1 style={{fontSize:"clamp(1.3rem,4vw,1.8rem)",fontWeight:900,color:"#fff",marginBottom:6}}>
+            أهلًا {user.name} <span style={{color:"#f97316"}}>{acc>=80?"🏆":acc>=60?"⭐":acc>0?"📈":"💪"}</span>
+          </h1>
+          <p style={{fontSize:".82rem",color:"#64748b",lineHeight:1.7}}>
+            {dailyDone_?"✅ أكملت هدفك اليومي! رائع.":dailyDone>0?`${dailyGoal-dailyDone} سؤال متبقي لتحقق هدف اليوم`:"ابدأ جلستك اليومية الآن"}
+          </p>
+        </div>
+        <div style={{display:"flex",gap:8,flexShrink:0,alignItems:"center"}}>
+          <button onClick={shareResult} style={{
+            padding:"8px 14px",borderRadius:12,border:"1px solid rgba(34,211,238,.25)",
+            background:"rgba(34,211,238,.07)",color:"#67e8f9",fontSize:".75rem",fontWeight:700,
+            cursor:"pointer",fontFamily:"Cairo,sans-serif",display:"flex",alignItems:"center",gap:5
+          }}>{shareCopied?"✅ نُسخ":"📤 شارك"}</button>
+          <Ring pct={acc} size={72} color={acc>=70?"#4ade80":acc>=50?"#f97316":"#f87171"}/>
+        </div>
       </div>
-      <div className="rg-4" style={{gap:11,marginTop:20}}>{[["الدقة",`${acc}%`,"#f97316"],["الأسئلة",user.totalSolved,"#22d3ee"],["الصحيح",user.correct,"#4ade80"],["أطول سلسلة",`${user.streak}🔥`,"#f97316"]].map(([l,v,c],i)=>(<div key={i} className={`gl2 stat au d${i+1}`}><p style={{fontSize:".68rem",color:"#64748b"}}>{l}</p><p key={String(v)} style={{marginTop:5,fontSize:"1.35rem",fontWeight:900,color:c,animation:"numPop .4s cubic-bezier(.34,1.56,.64,1) both"}}>{v}</p></div>))}</div>
-    </div>
-    <div className="gl" style={{padding:"24px"}}>
-      <p style={{fontSize:".68rem",color:"#f97316",fontWeight:700,letterSpacing:".1em",marginBottom:13}}>ابدأ بسرعة</p>
-      <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:11}}>
+
+      {/* ── Stats row ── */}
+      <div className="rg-4" style={{gap:10,marginTop:18}}>
         {[
-          {ic:"🤖",t:"جلسة AI",d:"سؤال + شرح فوري",p:"session",c:"#f97316",paid:false},
-          {ic:"📋",t:"المراجعة",d:wrongCount+" سؤال",p:"review",c:"#f87171",paid:true},
-          {ic:"⚡",t:"المحاكاة",d:"اختبار كامل",p:"sim",c:"#a78bfa",paid:true},
-          {ic:"🗺️",t:"خريطة المسار",d:"18 باب منظم",p:"roadmap",c:"#22d3ee",paid:true}
-        ].map(function(m,i){
-          var isLocked=m.paid&&!trial.isSubscribed;
+          ["الدقة",`${acc}%`,"#f97316"],
+          ["أسئلة",""+user.totalSolved,"#22d3ee"],
+          ["صحيح",""+user.correct,"#4ade80"],
+          ["سلسلة",`${user.streak}🔥`,"#f97316"]
+        ].map(([l,v,col],i)=>(
+          <div key={i} className={`gl2 stat au d${i+1}`} style={{padding:"clamp(10px,2vw,16px)"}}>
+            <p style={{fontSize:".65rem",color:"#64748b"}}>{l}</p>
+            <p key={v} style={{marginTop:4,fontSize:"clamp(1rem,3vw,1.35rem)",fontWeight:900,color:col,animation:"numPop .4s cubic-bezier(.34,1.56,.64,1) both"}}>{v}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+
+    {/* ── Daily Goal ── */}
+    <div className="gl" style={{padding:"18px 20px"}}>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
+        <div style={{display:"flex",alignItems:"center",gap:8}}>
+          <span style={{fontSize:"1.1rem"}}>{dailyDone_?"🎯":"⚡"}</span>
+          <div>
+            <p style={{fontWeight:800,color:"#fff",fontSize:".88rem"}}>هدف اليوم</p>
+            <p style={{fontSize:".68rem",color:"#64748b"}}>{todayName}</p>
+          </div>
+        </div>
+        <div style={{display:"flex",alignItems:"center",gap:8}}>
+          <span style={{fontWeight:900,color:dailyDone_?"#4ade80":"#f97316",fontSize:"1rem"}}>{dailyDone}/{dailyGoal}</span>
+          <button onClick={()=>setShowGoalPicker(p=>!p)} style={{
+            background:"rgba(255,255,255,.06)",border:"1px solid rgba(255,255,255,.1)",
+            borderRadius:8,padding:"4px 9px",cursor:"pointer",fontSize:".68rem",
+            color:"#94a3b8",fontFamily:"Cairo,sans-serif"
+          }}>تعديل</button>
+        </div>
+      </div>
+      <div style={{height:8,borderRadius:99,background:"rgba(255,255,255,.07)",overflow:"hidden",marginBottom:10}}>
+        <div style={{height:"100%",borderRadius:99,width:`${dailyPct}%`,transition:"width .8s cubic-bezier(.22,1,.36,1)",
+          background:dailyDone_?"linear-gradient(90deg,#4ade80,#22d3ee)":"linear-gradient(90deg,#f97316,#fb923c)"
+        }}/>
+      </div>
+      {/* ── Goal picker ── */}
+      {showGoalPicker&&(
+        <div className="au" style={{display:"flex",gap:7,flexWrap:"wrap",paddingTop:8,borderTop:"1px solid rgba(255,255,255,.06)"}}>
+          <p style={{width:"100%",fontSize:".68rem",color:"#64748b",marginBottom:4}}>اختر هدفك اليومي:</p>
+          {[3,5,10,15,20].map(g=>(
+            <button key={g} onClick={()=>{
+              setDailyGoal(g);
+              setUser(u=>({...u,dailyGoal:g}));
+              setShowGoalPicker(false);
+            }} style={{
+              padding:"7px 14px",borderRadius:10,cursor:"pointer",fontFamily:"Cairo,sans-serif",
+              fontWeight:700,fontSize:".78rem",
+              background:g===dailyGoal?"rgba(249,115,22,.2)":"rgba(255,255,255,.05)",
+              border:`1px solid ${g===dailyGoal?"rgba(249,115,22,.5)":"rgba(255,255,255,.1)"}`,
+              color:g===dailyGoal?"#f97316":"#94a3b8"
+            }}>{g} أسئلة</button>
+          ))}
+        </div>
+      )}
+    </div>
+
+    {/* ── Weekly chart ── */}
+    <div className="gl" style={{padding:"18px 20px"}}>
+      <p style={{fontSize:".68rem",color:"#f97316",fontWeight:700,letterSpacing:".08em",marginBottom:14}}>📅 نشاطك هذا الأسبوع</p>
+      <div style={{display:"flex",gap:6,alignItems:"flex-end",height:64}}>
+        {weekData.map((val,i)=>{
+          const isToday=i===6;
+          const h=maxW>0?Math.round((val/maxW)*56)+8:8;
+          const names=["","","","","","","اليوم"];
+          const dIdx=(new Date().getDay()-6+i+7)%7;
+          const nm=i===6?"اليوم":dayNames[dIdx]?.slice(0,3)||"";
           return(
-            <div key={i} className={"gl2 au d"+(i+1)} style={{padding:"18px 15px",position:"relative",opacity:isLocked?0.75:1}}>
-              {isLocked&&<span style={{position:"absolute",top:8,left:8,fontSize:".6rem",padding:"2px 7px",borderRadius:99,background:"rgba(249,115,22,.15)",border:"1px solid rgba(249,115,22,.25)",color:"#f97316"}}>🔒</span>}
-              <div style={{fontSize:"1.5rem",marginBottom:8}}>{m.ic}</div>
-              <h3 style={{fontWeight:800,color:"#fff",fontSize:".88rem",marginBottom:5}}>{m.t}</h3>
-              <p style={{fontSize:".74rem",lineHeight:1.7,color:"#64748b",marginBottom:11}}>{m.d}</p>
-              <button className="btn btn-g" style={{width:"100%",justifyContent:"center",fontSize:".77rem",padding:"8px 10px"}} onClick={function(){go(m.p);}}>افتح</button>
+            <div key={i} style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",gap:4}}>
+              {val>0&&<span style={{fontSize:".55rem",color:isToday?"#f97316":"#475569",fontWeight:700}}>{val}</span>}
+              <div style={{
+                width:"100%",height:h,borderRadius:6,transition:"height .6s cubic-bezier(.22,1,.36,1)",
+                background:isToday?"linear-gradient(180deg,#f97316,#fb923c)":val>0?"rgba(249,115,22,.3)":"rgba(255,255,255,.06)",
+                border:isToday?"1px solid rgba(249,115,22,.4)":"none"
+              }}/>
+              <span style={{fontSize:".58rem",color:isToday?"#f97316":"#334155",fontWeight:isToday?700:400,whiteSpace:"nowrap"}}>{nm}</span>
             </div>
           );
         })}
       </div>
     </div>
-    {wrongCount>0&&(<div style={{padding:"18px 22px",borderRadius:18,background:"rgba(248,113,113,.08)",border:"1px solid rgba(248,113,113,.2)",display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:12}}><div><p style={{fontWeight:800,color:"#fca5a5"}}>📋 {wrongCount} سؤال في قائمة المراجعة</p><p style={{marginTop:4,fontSize:".79rem",color:"#64748b"}}>راجع أخطاءك الآن وثبّت الفهم.</p></div><button className="btn btn-p" style={{fontSize:".82rem"}} onClick={()=>go("review")}>ابدأ المراجعة ←</button></div>)}
-    {!trial.isSubscribed&&(<div style={{padding:"18px 22px",borderRadius:18,background:"linear-gradient(135deg,rgba(249,115,22,.1),rgba(34,211,238,.06))",border:"1px solid rgba(249,115,22,.18)",display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:12}}><div><p style={{fontWeight:700,color:"#fdba74"}}>التجربة المجانية — {trial.limit-trial.used} سؤال متبقي</p></div><div className="pt" style={{width:110}}><div className="pf" style={{width:`${(trial.used/trial.limit)*100}%`}}/></div></div>)}
+
+    {/* ── Quick actions ── */}
+    <div className="gl" style={{padding:"20px"}}>
+      <p style={{fontSize:".68rem",color:"#f97316",fontWeight:700,letterSpacing:".1em",marginBottom:13}}>ابدأ بسرعة</p>
+      <div className="dash-action-grid">
+        {[
+          {ic:"🤖",t:"جلسة AI",d:"سؤال + شرح فوري",p:"session",c:"#f97316",paid:false},
+          {ic:"📋",t:"المراجعة",d:wrongCount+" سؤال",p:"review",c:"#f87171",paid:true},
+          {ic:"⚡",t:"المحاكاة",d:"اختبار كامل",p:"sim",c:"#a78bfa",paid:true},
+          {ic:"🗺️",t:"خريطة المسار",d:"18 باب منظم",p:"roadmap",c:"#22d3ee",paid:true}
+        ].map((m,i)=>{
+          const isLocked=m.paid&&!trial.isSubscribed;
+          return(
+            <div key={i} className={`gl2 au d${i+1}`} style={{padding:"clamp(13px,2vw,18px)",position:"relative",opacity:isLocked?0.75:1}}>
+              {isLocked&&<span style={{position:"absolute",top:8,left:8,fontSize:".6rem",padding:"2px 7px",borderRadius:99,background:"rgba(249,115,22,.15)",border:"1px solid rgba(249,115,22,.25)",color:"#f97316"}}>🔒</span>}
+              <div style={{fontSize:"1.5rem",marginBottom:8}}>{m.ic}</div>
+              <h3 style={{fontWeight:800,color:"#fff",fontSize:".88rem",marginBottom:5}}>{m.t}</h3>
+              <p style={{fontSize:".74rem",lineHeight:1.7,color:"#64748b",marginBottom:11}}>{m.d}</p>
+              <button className="btn btn-g" style={{width:"100%",justifyContent:"center",fontSize:".77rem",padding:"8px 10px"}} onClick={()=>go(m.p)}>افتح</button>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+
+    {/* ── Review reminder ── */}
+    {wrongCount>0&&(
+      <div style={{padding:"16px 20px",borderRadius:16,background:"rgba(248,113,113,.08)",border:"1px solid rgba(248,113,113,.2)",display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:12}}>
+        <div>
+          <p style={{fontWeight:800,color:"#fca5a5"}}>📋 {wrongCount} سؤال في قائمة المراجعة</p>
+          <p style={{marginTop:4,fontSize:".79rem",color:"#64748b"}}>راجع أخطاءك وثبّت الفهم.</p>
+        </div>
+        <button className="btn btn-p" style={{fontSize:".82rem"}} onClick={()=>go("review")}>ابدأ المراجعة ←</button>
+      </div>
+    )}
+
+    {/* ── Free trial bar ── */}
+    {!trial.isSubscribed&&(
+      <div style={{padding:"16px 20px",borderRadius:16,background:"linear-gradient(135deg,rgba(249,115,22,.1),rgba(34,211,238,.06))",border:"1px solid rgba(249,115,22,.18)",display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:12}}>
+        <div>
+          <p style={{fontWeight:700,color:"#fdba74",marginBottom:6}}>التجربة المجانية — {trial.limit-trial.used} سؤال متبقي</p>
+          <div className="pt" style={{width:"min(180px,60vw)"}}><div className="pf" style={{width:`${Math.min((trial.used/trial.limit)*100,100)}%`}}/></div>
+        </div>
+        <button className="btn btn-p" style={{fontSize:".82rem"}} onClick={()=>go("pricing")}>اشترك الآن ←</button>
+      </div>
+    )}
+
   </div>);}
 
 function Bank({settings,setSettings,go,trial={}}){  useEffect(()=>{window.scrollTo({top:0,behavior:"instant"});if(!trial.isSubscribed&&trial.used>=trial.limit){go("paywall");}},[]); return(<div style={{display:"grid",gap:14}}><div className="gl" style={{padding:"30px"}}><span className="badge b-o" style={{marginBottom:11}}>بنك الأسئلة</span><h1 style={{fontSize:"1.75rem",fontWeight:900,color:"#fff",marginBottom:7}}>اختر مسارك ثم ابدأ</h1></div><div className="rg-3 bank-grid" style={{gap:14}}><div className="gl" style={{padding:"18px"}}><p style={{fontSize:".68rem",color:"#f97316",fontWeight:700,letterSpacing:".08em",marginBottom:11}}>القسم</p>{["كمي","لفظي"].map(s=>(<button key={s} className={`sc ${settings.section===s?"on":""}`} style={{marginBottom:8}} onClick={()=>setSettings(p=>({...p,section:s,topic:TOPICS[s][0]}))}><p style={{fontWeight:800,color:"#fff"}}>{s}</p></button>))}</div><div className="gl" style={{padding:"18px"}}><p style={{fontSize:".68rem",color:"#f97316",fontWeight:700,letterSpacing:".08em",marginBottom:11}}>الصعوبة</p>{[{v:"سهل",d:"بداية هادئة"},{v:"متوسط",d:"تثبيت"},{v:"صعب",d:"تحدٍّ"}].map(d=>(<button key={d.v} className={`sc ${settings.difficulty===d.v?"on":""}`} style={{marginBottom:8}} onClick={()=>setSettings(p=>({...p,difficulty:d.v}))}><p style={{fontWeight:800,color:"#fff"}}>{d.v}</p><p style={{marginTop:3,fontSize:".76rem",color:"#64748b"}}>{d.d}</p></button>))}</div><div className="gl" style={{padding:"18px"}}><p style={{fontSize:".68rem",color:"#f97316",fontWeight:700,letterSpacing:".08em",marginBottom:11}}>الباب</p><div style={{maxHeight:260,overflowY:"auto",display:"flex",flexDirection:"column",gap:6}}>{TOPICS[settings.section].map(t=>(<button key={t} className={`sc ${settings.topic===t?"on":""}`} style={{padding:"10px 13px"}} onClick={()=>setSettings(p=>({...p,topic:t}))}><div style={{display:"flex",alignItems:"center",gap:7}}>{GEO.includes(t)&&<span style={{fontSize:".6rem",padding:"1px 6px",borderRadius:99,background:"rgba(167,139,250,.12)",border:"1px solid rgba(167,139,250,.2)",color:"#c4b5fd"}}>📐</span>}<p style={{fontWeight:700,color:"#fff",fontSize:".84rem"}}>{t}</p></div></button>))}</div></div></div>
@@ -3858,6 +4128,16 @@ export default function Fahmni(){
   const[placementDone,setPlacementDone]=useState(false);
   const placementDoneRef=useRef(false);
   const[confetti,setConfetti]=useState(false);
+  const{show:showToast,ToastContainer}=useToast();
+  // Offline detection
+  const _toastRef=React.useRef(null);
+  React.useEffect(()=>{_toastRef.current=showToast;},[showToast]);
+  React.useEffect(()=>{
+    const off=()=>_toastRef.current?.("لا يوجد اتصال بالإنترنت ⚠️","error",5000);
+    const on=()=>_toastRef.current?.("عاد الاتصال بالإنترنت ✅","success",2500);
+    window.addEventListener("offline",off);window.addEventListener("online",on);
+    return()=>{window.removeEventListener("offline",off);window.removeEventListener("online",on);};
+  },[]);
   const[milestone,setMilestone]=useState(null);
   const[lessonTopic,setLessonTopic]=useState(null);
 
@@ -3912,7 +4192,8 @@ export default function Fahmni(){
     const prog=await sbLoadProgress(sess.userId,sess.token);
     const isReturning=prog&&prog.totalSolved>0;
     if(prog){
-      setUser({name:sess.name,totalSolved:prog.totalSolved,correct:prog.correct,streak:prog.streak});
+      const ds=getDailyStats();
+    setUser({name:sess.name,totalSolved:prog.totalSolved,correct:prog.correct,streak:prog.streak,dailyGoal:ds.goal||5,dailyDone:ds.done||0,lastActiveDate:new Date().toISOString().split("T")[0]});
       setMistakes(prog.mistakes||[]);
       if(!sess.isGuest) setTrial(t=>({...t,used:prog.trialUsed||0,limit:prog.trialLimit||10,plan:prog.plan||'free',isSubscribed:['month','exam'].includes(prog.plan)}));
     }else{
@@ -3944,7 +4225,7 @@ export default function Fahmni(){
     placementDoneRef.current=false;setPlacementDone(false);
     setMistakes([]);
     setTrial({isSubscribed:false,used:0,limit:10});
-    go("landing");
+    go("landing");showToast("تم تسجيل الخروج","info");
   };
 
   const PUB=["landing","login","signup","pricing","privacy","terms","contact"];
@@ -3962,7 +4243,9 @@ export default function Fahmni(){
       const newTotal=u.totalSolved+1;
       const newCorrect=u.correct+(ok?1:0);
       const newStreak=(newCorrect>0&&newCorrect%5===0)?u.streak+1:u.streak;
-      const updated={...u,totalSolved:newTotal,correct:newCorrect,streak:newStreak};
+      const newDaily=u.dailyDone+1;
+      setDailyDone(newDaily);
+      const updated={...u,totalSolved:newTotal,correct:newCorrect,streak:newStreak,dailyDone:newDaily};
       if(session&&!session.isGuest&&newTotal%5===0){
         sbSaveProgress(session.userId,session.token,updated);
       }
@@ -4041,7 +4324,7 @@ export default function Fahmni(){
       : <Roadmap go={go} setSettings={setSettings} openLesson={openLesson} trial={trial}/>;
     case"diagnostic":return <DiagnosticQ topic={settings.topic} section={settings.section} onResult={level=>{setSettings(p=>({...p,difficulty:level==="متقدم"?"صعب":"سهل"}));go("session");}} onSkip={()=>go("session")}/>;
     case"bank":return <Bank settings={settings} setSettings={setSettings} go={go} trial={trial}/>;
-    case"session":return <Session settings={settings} go={go} updateUser={updateUser} trial={trial} setTrial={setTrial} addMistake={addMistake} plan={trial.plan||"free"} session={session} user={user}/>;
+    case"session":return <Session settings={settings} go={go} updateUser={updateUser} trial={trial} setTrial={setTrial} addMistake={addMistake} plan={trial.plan||"free"} session={session} user={user} showToast={showToast}/>;
     case"sim":return <SimMode settings={settings} go={go} updateUser={updateUser} addMistake={addMistake} trial={trial}/>;
     case"review":return <ReviewMode mistakes={mistakes} go={go} onRedo={()=>go("session")}/>;
     case"pricing":return <Pricing go={go}/>;
@@ -4054,7 +4337,7 @@ export default function Fahmni(){
 
   return(
     <ErrorBoundary>
-      <div className="app">
+      <div className="app"><ToastContainer/>
         <GS/><Bg/>
         <Confetti active={confetti} onDone={()=>setConfetti(false)}/>
         {milestone&&<MilestonePopup milestone={milestone} onClose={()=>setMilestone(null)}/>}
