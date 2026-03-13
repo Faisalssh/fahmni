@@ -3582,7 +3582,7 @@ function Paywall({trial,subscribe,back,go}){
               border:"1px solid rgba(249,115,22,.25)"}}>الأساسي</span>
           </div>
           <div style={{display:"flex",alignItems:"baseline",gap:5}}>
-            <span style={{fontSize:"2rem",fontWeight:900,color:"#f97316",lineHeight:1}}>29</span>
+            <span style={{fontSize:"2rem",fontWeight:900,color:"#f97316",lineHeight:1}}>49</span>
             <span style={{fontSize:".72rem",color:"#64748b"}}>ريال / شهر</span>
           </div>
           <div style={{display:"flex",flexDirection:"column",gap:7,flex:1}}>
@@ -3618,8 +3618,8 @@ function Paywall({trial,subscribe,back,go}){
               border:"1px solid rgba(167,139,250,.25)"}}>المميز</span>
           </div>
           <div style={{display:"flex",alignItems:"baseline",gap:5}}>
-            <span style={{fontSize:"2rem",fontWeight:900,color:"#a78bfa",lineHeight:1}}>69</span>
-            <span style={{fontSize:".72rem",color:"#64748b"}}>ريال / 3 أشهر</span>
+            <span style={{fontSize:"2rem",fontWeight:900,color:"#a78bfa",lineHeight:1}}>99</span>
+            <span style={{fontSize:".72rem",color:"#64748b"}}>ريال / شهر</span>
           </div>
           <div style={{display:"flex",flexDirection:"column",gap:7,flex:1}}>
             {["كل مميزات الأساسي","AI مساعد شخصي","تحليل نقاط الضعف","خطة مذاكرة ذكية","الأفضل قيمةً 💜"].map((f,i)=>(
