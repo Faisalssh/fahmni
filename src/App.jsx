@@ -1199,7 +1199,7 @@ function TeacherSummary({topic,history,onContinue,onReview,plan="free"}){
             <span style={{fontSize:"1.1rem"}}>🔒</span>
             <div>
               <p style={{fontSize:".75rem",color:"#a78bfa",fontWeight:700}}>تحليل نقاط الضعف</p>
-              <p style={{fontSize:".68rem",color:"#475569"}}>متاح في باقة المميز 129 ريال</p>
+              <p style={{fontSize:".68rem",color:"#475569"}}>متاح في باقة المميز 99 ريال</p>
             </div>
           </div>
         )}
@@ -1733,9 +1733,9 @@ function Pricing({go}){
       btn:"اشترك الآن ←",isPaid:true,highlight:true,
     },
     {
-      id:"exam",name:"المميز",price:129,per:"3 أشهر",color:"#a78bfa",
+      id:"exam",name:"المميز",price:99,per:"شهر",color:"#a78bfa",
       badge:"⭐ الأكثر اختياراً",badgeBg:"rgba(167,139,250,.12)",
-      features:["كل مميزات الأساسي","AI مساعد شخصي متقدم","تحليل نقاط الضعف التفصيلي","خطة مذاكرة ذكية مخصصة","اختبارات غير محدودة","أولوية في الدعم 24/7","توفير 18 ريال مقارنة بالشهري 💜"],
+      features:["كل مميزات الأساسي","AI مساعد شخصي متقدم","تحليل نقاط الضعف التفصيلي","خطة مذاكرة ذكية مخصصة","اختبارات غير محدودة","أولوية في الدعم 24/7","أفضل قيمة مقارنة بالشهري 💜"],
       locked:[],
       btn:"اختر المميز ←",isPaid:true,highlight:false,isBest:true,
     },
@@ -1863,7 +1863,7 @@ function Pricing({go}){
           <table style={{width:"100%",borderCollapse:"collapse",fontSize:".8rem"}}>
             <thead>
               <tr>
-                {["الميزة","مجاني","49 ريال","129 ريال"].map((h,i)=>(
+                {["الميزة","مجاني","49 ريال","99 ريال"].map((h,i)=>(
                   <th key={i} style={{padding:"8px 12px",textAlign:i===0?"right":"center",
                     color:i===3?"#a78bfa":i===2?"#f97316":i===1?"#22d3ee":"#64748b",
                     fontWeight:700,borderBottom:"1px solid rgba(255,255,255,.06)"}}>
@@ -3600,7 +3600,7 @@ function Paywall({trial,subscribe,back,go}){
           }}>🔒 قريباً</button>
         </div>
 
-        {/* 129 ريال — مميز */}
+        {/* 99 ريال — مميز */}
         <div className="gl" style={{padding:"22px 18px",
           border:"1.5px solid rgba(167,139,250,.5)",position:"relative",
           background:"linear-gradient(160deg,rgba(167,139,250,.08),rgba(5,9,26,.95))",
@@ -3622,7 +3622,7 @@ function Paywall({trial,subscribe,back,go}){
             <span style={{fontSize:".72rem",color:"#64748b"}}>ريال / 3 أشهر</span>
           </div>
           <div style={{display:"flex",flexDirection:"column",gap:7,flex:1}}>
-            {["كل مميزات الأساسي","AI مساعد شخصي","تحليل نقاط الضعف","خطة مذاكرة ذكية","وفّر 18 ريال 💜"].map((f,i)=>(
+            {["كل مميزات الأساسي","AI مساعد شخصي","تحليل نقاط الضعف","خطة مذاكرة ذكية","الأفضل قيمةً 💜"].map((f,i)=>(
               <div key={i} style={{display:"flex",alignItems:"center",gap:7}}>
                 <span style={{color:"#a78bfa",fontSize:".75rem",flexShrink:0}}>✓</span>
                 <span style={{fontSize:".76rem",color:"#cbd5e1"}}>{f}</span>
@@ -3723,7 +3723,7 @@ function Terms({go}){
     ]},
     {title:"الاشتراكات والمدفوعات",items:[
       "الاشتراك الشهري: 49 ريال سعودي شاملاً ضريبة القيمة المضافة.",
-      "باقة الاختبار: 129 ريال سعودي لمدة 3 أشهر شاملاً ضريبة القيمة المضافة.",
+      "باقة الاختبار: 99 ريال سعودي شهرياً شاملاً ضريبة القيمة المضافة.",
       "يتجدد الاشتراك تلقائياً ما لم تلغِه قبل 24 ساعة من موعد التجديد.",
       "تُعالَج جميع المدفوعات بشكل آمن عبر بوابة Moyasar المرخصة من البنك المركزي السعودي (ساما).",
     ]},
