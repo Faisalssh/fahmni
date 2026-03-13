@@ -922,9 +922,15 @@ async function genQuestion({topic, difficulty, avoidQuestion="", userId=null, us
 
   // ══ 2. DB فارغة أو مستخدم guest → استدعِ Claude ══
   const raw = await callClaude(
-`اختبار قدرات قياس. باب: ${topic} | مستوى: ${difficulty}${verbalNote}${avoidNote}
-JSON فقط — لا نص خارجه:
-{"question":"...","options":["...","...","...","..."],"correct":0,"explanation_title":"...","steps":["خطوة 1","خطوة 2","خطوة 3","النتيجة"],"tip":"نصيحة","topic":"${topic}",${shapeHint}}`,600,userId
+`أنت مدرس قدرات محترف. اكتب سؤالاً قياسياً في باب: ${topic} | مستوى: ${difficulty}${verbalNote}${avoidNote}
+القواعد:
+- السؤال باللغة العربية الفصحى
+- الخيارات الأربعة واضحة ومختلفة
+- الشرح خطوة بخطوة بأسلوب تعليمي واضح
+- كل خطوة جملة كاملة مفيدة (لا اختصار)
+- النصيحة تكتيكية تساعد في حل مشابه
+JSON فقط بلا أي نص إضافي:
+{"question":"...","options":["...","...","...","..."],"correct":0,"explanation_title":"...","steps":["الخطوة 1: ...","الخطوة 2: ...","الخطوة 3: ...","النتيجة: ..."],"tip":"نصيحة عملية قصيرة","topic":"${topic}",${shapeHint}}`,650,userId
   );
 
   let parsed;
@@ -1736,7 +1742,7 @@ function SimMode({settings,go,updateUser,addMistake,trial={}}){  useEffect(()=>{
 }
 
 /* ═══════════════════ PRICING PAGE ═══════════════════ */
-function Pricing({go}){
+function Pricing({go,isLoggedIn=false}){
   useEffect(()=>{window.scrollTo({top:0,behavior:"instant"});},[]); 
   const PLANS=[
     {
@@ -1869,7 +1875,7 @@ function Pricing({go}){
                   border:`1.5px solid ${p.color}50`,color:p.color,
                   cursor:"pointer",fontSize:".88rem",fontWeight:800,
                   transition:"all .2s",fontFamily:"Cairo,sans-serif"}}
-                onClick={()=>go("signup")}>
+                onClick={()=>go(isLoggedIn?"paywall":"signup")}>
                 {p.btn}
               </button>
             )}
@@ -1926,8 +1932,8 @@ function Pricing({go}){
         </p>
       </div>
 
-      <button className="btn btn-g" style={{justifyContent:"center"}} onClick={()=>go("landing")}>
-        ← العودة للرئيسية
+      <button className="btn btn-g" style={{justifyContent:"center"}} onClick={()=>go(isLoggedIn?"dashboard":"landing")}>
+        {isLoggedIn?"↩ لوحة التحكم":"← الرئيسية"}
       </button>
     </div>
   );
@@ -2210,9 +2216,24 @@ function Session({settings,go,updateUser,trial,setTrial,addMistake,plan="free",s
         </div>
 
         {/* Hint while waiting */}
-        {!checked&&<p style={{marginTop:14,fontSize:".75rem",color:"#334155",textAlign:"center"}}>
-          اختر الإجابة — الشرح يظهر فوراً
-        </p>}
+        {!checked&&(
+          <div style={{marginTop:14,display:"flex",flexDirection:"column",alignItems:"center",gap:9}}>
+            <p style={{fontSize:".75rem",color:"#334155"}}>اختر الإجابة — الشرح يظهر فوراً</p>
+            {!trial?.isSubscribed&&(
+              <button onClick={()=>{
+                // كشف الإجابة الصحيحة + الشرح مباشرة (وضع التجربة)
+                doCheck(qData?.correct,false);
+              }} style={{
+                padding:"7px 16px",borderRadius:10,cursor:"pointer",
+                background:"rgba(167,139,250,.1)",border:"1px solid rgba(167,139,250,.25)",
+                color:"#c4b5fd",fontSize:".75rem",fontWeight:700,
+                fontFamily:"Cairo,sans-serif",display:"flex",alignItems:"center",gap:6
+              }}>
+                🎓 اكشف الإجابة والشرح
+              </button>
+            )}
+          </div>
+        )}
       </div>)}
 
       {/* Explanation — appears right after answering */}
@@ -2252,6 +2273,15 @@ function Session({settings,go,updateUser,trial,setTrial,addMistake,plan="free",s
             <p style={{fontSize:".67rem",color:"#f97316",fontWeight:700,marginBottom:4}}>💡 نصيحة</p>
             <p style={{fontSize:".82rem",lineHeight:1.8,color:"#fdba74"}}>{qData.tip}</p>
           </div>
+        )}
+
+        {/* ── Motivational line ── */}
+        {checked&&(
+          <p style={{marginTop:11,fontSize:".73rem",color:"#475569",textAlign:"center",lineHeight:1.7}}>
+            {isCorrect
+              ?"✨ ممتاز! استمر بالتدريب لتحسين مستواك أكثر."
+              :"💪 لا تقلق — الفهم يأتي بالتكرار. راجع الخطوات جيداً."}
+          </p>
         )}
 
         {/* ── Question Rating ── */}
@@ -3953,7 +3983,7 @@ function LegalPage({title,badge,badgeClass,sections,go}){
           </div>
         </div>
       ))}
-      <button className="btn btn-g" style={{justifyContent:"center"}} onClick={()=>go("landing")}>← العودة للرئيسية</button>
+      <button className="btn btn-g" style={{justifyContent:"center"}} onClick={()=>go(isLoggedIn?"dashboard":"landing")}>← العودة للرئيسية</button>
     </div>
   );
 }
@@ -4065,7 +4095,7 @@ function Contact({go}){
           <div style={{fontSize:"2.5rem",marginBottom:14}}>✅</div>
           <h2 style={{fontWeight:900,color:"#fff",marginBottom:8}}>وصلت رسالتك!</h2>
           <p style={{color:"#64748b",marginBottom:20}}>نرد عليك خلال 24 ساعة على بريدك.</p>
-          <button className="btn btn-p" style={{justifyContent:"center"}} onClick={()=>go("landing")}>العودة للرئيسية ←</button>
+          <button className="btn btn-p" style={{justifyContent:"center"}} onClick={()=>go(isLoggedIn?"dashboard":"landing")}>العودة للرئيسية ←</button>
         </div>
       ):(
         <div className="gl" style={{padding:"28px",display:"flex",flexDirection:"column",gap:13}}>
@@ -4090,7 +4120,7 @@ function Contact({go}){
           </button>
         </div>
       )}
-      <button className="btn btn-g" style={{justifyContent:"center"}} onClick={()=>go("landing")}>← العودة للرئيسية</button>
+      <button className="btn btn-g" style={{justifyContent:"center"}} onClick={()=>go(isLoggedIn?"dashboard":"landing")}>← العودة للرئيسية</button>
     </div>
   );
 }
@@ -4167,8 +4197,8 @@ export default function Fahmni(){
     const access_token=params.get("access_token");
     const type=params.get("type"); // signup | recovery
     if(!access_token) return;
-    // امسح الـ hash من URL
-    window.history.replaceState(null,"",window.location.pathname);
+    // امسح الـ hash من URL ولكن حافظ على الصفحة
+    window.history.replaceState({page:"dashboard"},"","#dashboard");
     if(type==="recovery"){
       // نسيت كلمة المرور — اعرض صفحة تغيير الباسورد (مستقبلاً)
       // حالياً رسالة
@@ -4327,7 +4357,7 @@ export default function Fahmni(){
     case"session":return <Session settings={settings} go={go} updateUser={updateUser} trial={trial} setTrial={setTrial} addMistake={addMistake} plan={trial.plan||"free"} session={session} user={user} showToast={showToast}/>;
     case"sim":return <SimMode settings={settings} go={go} updateUser={updateUser} addMistake={addMistake} trial={trial}/>;
     case"review":return <ReviewMode mistakes={mistakes} go={go} onRedo={()=>go("session")}/>;
-    case"pricing":return <Pricing go={go}/>;
+    case"pricing":return <Pricing go={go} isLoggedIn={!!session}/>;
     case"paywall":return <Paywall trial={trial} go={go} subscribe={()=>{/* Moyasar coming soon */}} back={()=>go("pricing")}/>;
     case"privacy":return <Privacy go={go}/>;
     case"terms":return <Terms go={go}/>;
@@ -4341,7 +4371,7 @@ export default function Fahmni(){
         <GS/><Bg/>
         <Confetti active={confetti} onDone={()=>setConfetti(false)}/>
         {milestone&&<MilestonePopup milestone={milestone} onClose={()=>setMilestone(null)}/>}
-        <Nav isPub={PUB.includes(page)} go={go} userName={session?.name||user.name} title={TITLES[page]||""} onLogout={session?handleLogout:null}/>
+        <Nav isPub={PUB.includes(page)&&!session} go={go} userName={session?.name||user.name} title={TITLES[page]||""} onLogout={session?handleLogout:null}/>
         <div className="wrap" style={{paddingTop:24}}>
           <R/>
         </div>
