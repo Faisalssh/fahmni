@@ -4271,7 +4271,11 @@ export default function Fahmni(){
     // لو ما في profile → onboarding (مستخدم جديد)
     // لو في profile ولكن ما أكمل placement → placement
     // لو أكمل placement → dashboard
-    if(!prog){
+    const ownerSkip=isOwner(sess.email);
+    if(ownerSkip){
+      placementDoneRef.current=true;setPlacementDone(true);
+      go("dashboard");
+    } else if(!prog){
       go("onboarding");
     } else if(!prog.placementDone){
       go("onboarding");
