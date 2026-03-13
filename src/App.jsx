@@ -3,6 +3,7 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 /* ═══════════════════ STYLES ═══════════════════ */
 const GS = () => (<style>{`
   @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap');
+  html,body{overflow-x:hidden;width:100%;-webkit-text-size-adjust:100%;}
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;font-family:'Cairo',sans-serif;}
   @keyframes drift{0%,100%{transform:translateY(0)scale(1)}50%{transform:translateY(-20px)scale(1.04)}}
   @keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
@@ -25,9 +26,9 @@ const GS = () => (<style>{`
   .pi{animation:popIn .4s cubic-bezier(.34,1.56,.64,1) both}
   .d1{animation-delay:.07s}.d2{animation-delay:.14s}.d3{animation-delay:.21s}
   .d4{animation-delay:.28s}.d5{animation-delay:.35s}.d6{animation-delay:.42s}
-  .app{min-height:100vh;background:#05091a;color:#fff;direction:rtl;}
-  .wrap{max-width:1080px;margin:0 auto;padding:clamp(16px,3vw,30px) clamp(12px,2.5vw,22px);position:relative;z-index:1;}
-  .bg-f{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden;}
+  .app{min-height:100vh;background:#05091a;color:#fff;direction:rtl;overflow-x:hidden;width:100%;}
+  .wrap{max-width:1080px;margin:0 auto;padding:clamp(16px,3vw,30px) clamp(12px,2.5vw,22px);position:relative;z-index:1;overflow-x:hidden;width:100%;}
+  .bg-f{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden;max-width:100vw;}
   .bg-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(249,115,22,.055)1px,transparent 1px),linear-gradient(90deg,rgba(249,115,22,.055)1px,transparent 1px);background-size:52px 52px;animation:gridAnim 5s ease-in-out infinite;}
   .orb{position:absolute;border-radius:50%;filter:blur(90px);animation:drift var(--d,10s) ease-in-out var(--dl,0s) infinite;}
   .gl{background:rgba(10,18,40,.88);border:1px solid rgba(255,255,255,.085);border-radius:22px;}
@@ -117,7 +118,7 @@ const GS = () => (<style>{`
   @media(max-width:640px){
 
     /* ── Layout ── */
-    .wrap{padding:10px 12px 100px !important;}
+    .wrap{padding:10px 12px 100px !important;width:100% !important;overflow-x:hidden !important;}
     @supports(padding-bottom:env(safe-area-inset-bottom)){
       .wrap{padding-bottom:calc(100px + env(safe-area-inset-bottom)) !important;}
     }
@@ -244,6 +245,18 @@ const GS = () => (<style>{`
     .mob-full{width:100% !important;justify-content:center !important;}
     .next-cd-btn{width:100% !important;justify-content:center !important;}
     .orb{display:none;}
+
+    /* ── Fix cards overflow on mobile ── */
+    .gl,.gl2,.gl-o,.gl-c,.gl-g,.gl-v{
+      min-width:0 !important;
+      max-width:100% !important;
+    }
+    /* ── Fix tables overflow ── */
+    table{display:block;overflow-x:auto;-webkit-overflow-scrolling:touch;}
+    /* ── Fix any flex row overflow ── */
+    .rg-2,.rg-3,.rg-4{gap:9px !important;}
+    /* ── Paywall grid → stack on small mobile ── */
+    .paywall-grid{grid-template-columns:1fr !important;}
     .mob-cta{position:sticky;bottom:14px;z-index:100;display:flex;gap:9px;justify-content:center;flex-wrap:wrap;}
 
     /* ── Large paddings → ضغط على موبايل فقط ── */
@@ -533,9 +546,9 @@ const Bg = () => (
   <div className="bg-f">
     <div className="bg-grid"/>
     <div style={{position:"absolute",inset:0,background:"radial-gradient(ellipse 80% 50% at 50% -5%,rgba(249,115,22,.11) 0%,transparent 60%)"}}/>
-    <div className="orb" style={{width:560,height:560,top:"-8%",left:"60%",background:"radial-gradient(circle,rgba(249,115,22,.08) 0%,transparent 70%)","--d":"12s"}}/>
-    <div className="orb" style={{width:400,height:400,top:"55%",left:"-6%",background:"radial-gradient(circle,rgba(34,211,238,.065) 0%,transparent 70%)","--d":"14s","--dl":"4s"}}/>
-    <div className="orb" style={{width:280,height:280,top:"78%",left:"78%",background:"radial-gradient(circle,rgba(139,92,246,.06) 0%,transparent 70%)","--d":"10s","--dl":"2s"}}/>
+    <div className="orb" style={{width:"min(560px,100vw)",height:"min(560px,100vw)",top:"-8%",left:"60%",background:"radial-gradient(circle,rgba(249,115,22,.08) 0%,transparent 70%)","--d":"12s"}}/>
+    <div className="orb" style={{width:"min(400px,90vw)",height:"min(400px,90vw)",top:"55%",left:"-6%",background:"radial-gradient(circle,rgba(34,211,238,.065) 0%,transparent 70%)","--d":"14s","--dl":"4s"}}/>
+    <div className="orb" style={{width:"min(280px,80vw)",height:"min(280px,80vw)",top:"78%",left:"78%",background:"radial-gradient(circle,rgba(139,92,246,.06) 0%,transparent 70%)","--d":"10s","--dl":"2s"}}/>
   </div>
 );
 
@@ -761,6 +774,11 @@ function getRec({goal,confidence,minutes,section,score,answers}){
 /* ═══════════════════ AI HELPERS ═══════════════════ */
 const SUPABASE_URL="https://esdralrxesslaxvpyypa.supabase.co";
 const IS_ARTIFACT=typeof window!=="undefined"&&(window.location.hostname.includes("claude.ai")||window.location.hostname==="localhost");
+
+// ── حساب المؤسس — غيّر هذا الإيميل لإيميلك ──
+const OWNER_EMAIL="sirfaisalalshehri@gmail.com"; // ← غيّره لإيميلك في Supabase
+const isOwner=(email)=>email&&email.toLowerCase()===OWNER_EMAIL.toLowerCase();
+
 
 /* ═══ PLAN HELPERS ═══════════════════════════════════════════
  *  free  → 10 سؤال مجاني فقط
@@ -2967,6 +2985,11 @@ function Auth({mode,go,onLogin}){
   const[forgotMode,setForgotMode]=useState(false);
   const IS_ARTIFACT=typeof window!=="undefined"&&(window.location.hostname.includes("claude.ai")||window.location.hostname==="localhost");
 
+// ── حساب المؤسس — غيّر هذا الإيميل لإيميلك ──
+const OWNER_EMAIL="sirfaisalalshehri@gmail.com"; // ← غيّره لإيميلك في Supabase
+const isOwner=(email)=>email&&email.toLowerCase()===OWNER_EMAIL.toLowerCase();
+
+
 /* ═══ PLAN HELPERS ═══════════════════════════════════════════
  *  free  → 10 سؤال مجاني فقط
  *  month → أسئلة غير محدودة + شرح + محاكاة + تتبع
@@ -3172,6 +3195,7 @@ function Dashboard({go,user,trial,mistakes}){
         <div style={{flex:1}}>
           <h1 style={{fontSize:"clamp(1.3rem,4vw,1.8rem)",fontWeight:900,color:"#fff",marginBottom:6}}>
             أهلًا {user.name} <span style={{color:"#f97316"}}>{acc>=80?"🏆":acc>=60?"⭐":acc>0?"📈":"💪"}</span>
+            {trial?.isOwner&&<span style={{marginRight:8,fontSize:".7rem",padding:"3px 10px",borderRadius:99,background:"linear-gradient(135deg,rgba(250,204,21,.2),rgba(249,115,22,.15))",border:"1px solid rgba(250,204,21,.4)",color:"#fde047",fontWeight:700}}>👑 مؤسس</span>}
           </h1>
           <p style={{fontSize:".82rem",color:"#64748b",lineHeight:1.7}}>
             {dailyDone_?"✅ أكملت هدفك اليومي! رائع.":dailyDone>0?`${dailyGoal-dailyDone} سؤال متبقي لتحقق هدف اليوم`:"ابدأ جلستك اليومية الآن"}
@@ -4225,9 +4249,17 @@ export default function Fahmni(){
       const ds=getDailyStats();
     setUser({name:sess.name,totalSolved:prog.totalSolved,correct:prog.correct,streak:prog.streak,dailyGoal:ds.goal||5,dailyDone:ds.done||0,lastActiveDate:new Date().toISOString().split("T")[0]});
       setMistakes(prog.mistakes||[]);
-      if(!sess.isGuest) setTrial(t=>({...t,used:prog.trialUsed||0,limit:prog.trialLimit||10,plan:prog.plan||'free',isSubscribed:['month','exam'].includes(prog.plan)}));
+      const ownerAccess=isOwner(sess.email);
+      if(!sess.isGuest) setTrial(t=>({...t,
+        used: ownerAccess?0:(prog.trialUsed||0),
+        limit: ownerAccess?9999:(prog.trialLimit||10),
+        plan: ownerAccess?'exam':(prog.plan||'free'),
+        isSubscribed: ownerAccess||['month','exam'].includes(prog.plan),
+        isOwner: ownerAccess
+      }));
     }else{
-      setTrial({isSubscribed:false,used:0,limit:sess.trialLimit||5});
+      const ownerNew=isOwner(sess.email);
+    setTrial({isSubscribed:ownerNew,used:0,limit:ownerNew?9999:5,plan:ownerNew?'exam':'free',isOwner:ownerNew});
     }
     // تحميل حالة تحديد المستوى
     if(prog?.placementDone){placementDoneRef.current=true;setPlacementDone(true);}
