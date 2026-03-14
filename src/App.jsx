@@ -2082,7 +2082,7 @@ function Session({settings,go,updateUser,trial,setTrial,addMistake,plan="free",s
               <span style={{color:"#a78bfa"}}>🎓 وضع المعلم بعد {TEACHER_TRIGGER-(history.length%TEACHER_TRIGGER)} أسئلة</span>
               <span>{`${history.length%TEACHER_TRIGGER}/${TEACHER_TRIGGER}`}</span>
             </div>
-            <div className="pt"><div style={{height:"100%",borderRadius:99,background:"linear-gradient(90deg,#a78bfa,#22d3ee)",width:`${TEACHER_TRIGGER>0?Math.round((history.length%TEACHER_TRIGGER)*100/TEACHER_TRIGGER):0}%`,transition:"width .6s ease"}}/></div>
+            <div className="pt"><div style={{height:"100%",borderRadius:99,background:"linear-gradient(90deg,#a78bfa,#22d3ee)",width:`${(history.length%TEACHER_TRIGGER)/TEACHER_TRIGGER*100}%`,transition:"width .6s ease"}}/></div>
           </div>
         )}
       </div>
@@ -2097,7 +2097,7 @@ function Session({settings,go,updateUser,trial,setTrial,addMistake,plan="free",s
           </div>
           {!trial.isSubscribed&&<div style={{textAlign:"left",minWidth:80}}>
             <p style={{fontSize:".62rem",color:"#f97316",fontWeight:700,marginBottom:3}}>{`${trial.used}/${trial.limit}`} سؤال</p>
-            <div className="pt"><div className="pf" style={{width:`${trial.used>0&&trial.limit>0?Math.min(Math.round(trial.used*100/trial.limit),100):0}%`}}/></div>
+            <div className="pt"><div className="pf" style={{width:`${trial.limit>0?Math.min(Math.round(trial.used*100/trial.limit),100):0}%`}}/></div>
           </div>}
         </div>
       </div>
@@ -2257,7 +2257,7 @@ function Session({settings,go,updateUser,trial,setTrial,addMistake,plan="free",s
       </div>}
       {!trial.isSubscribed&&<div className="gl2" style={{padding:"12px 14px",borderColor:"rgba(249,115,22,.2)",background:"rgba(249,115,22,.05)"}}>
         <p style={{fontSize:".67rem",color:"#f97316",fontWeight:700,marginBottom:6}}>التجربة المجانية</p>
-        <div className="pt"><div className="pf" style={{width:`${trial.used>0&&trial.limit>0?Math.min(Math.round(trial.used*100/trial.limit),100):0}%`}}/></div>
+        <div className="pt"><div className="pf" style={{width:`${trial.limit>0?Math.min(Math.round(trial.used*100/trial.limit),100):0}%`}}/></div>
         <p style={{fontSize:".74rem",color:"#94a3b8",marginTop:6}}>{`${trial.used}/${trial.limit}`} سؤال</p>
       </div>}
     </div></div></div></div></div>
