@@ -2234,6 +2234,7 @@ function Session({settings,go,updateUser,trial,setTrial,addMistake,plan="free",s
           </div>}
         </div>
       </div>
+      </div>
 
       {/* Loading */}
       {loading&&<div className="gl si" style={{padding:"48px",textAlign:"center"}}>
@@ -2403,9 +2404,8 @@ function Session({settings,go,updateUser,trial,setTrial,addMistake,plan="free",s
         <p style={{fontSize:".74rem",color:"#94a3b8",marginTop:6}}>{trialRatio} سؤال</p>
       </div>}
     </div>
-    </div>
-    </div>
-    </div>
+  </div>
+  </div>
   </div>
 </div>);
 }
@@ -3495,6 +3495,7 @@ function TopicLesson({topic,onClose,onStartPractice}){
         <button className="btn btn-g" style={{fontSize:".82rem"}} onClick={onClose}>
           ← خريطة المسار
         </button>
+      </div>
       </div>
 
       {/* Loading */}
