@@ -2148,7 +2148,7 @@ function Session({settings,go,updateUser,trial,setTrial,addMistake,plan="free",s
         {!checked&&CONCEPTS[curTopic||settings.topic]&&(
           <div style={{display:"flex",alignItems:"center",gap:8,padding:"8px 12px",borderRadius:10,background:"rgba(34,211,238,.07)",border:"1px solid rgba(34,211,238,.16)",marginBottom:14}}>
             <span style={{fontSize:".85rem",flexShrink:0}}>💡</span>
-            <p style={{fontSize:".72rem",color:"#67e8f9",fontWeight:700,lineHeight:1.6}}>{CONCEPTS[curTopic||settings.topic].formula!=="—"?CONCEPTS[curTopic||settings.topic].formula:CONCEPTS[curTopic||settings.topic].trap}</p>
+            <p style={{fontSize:".72rem",color:"#67e8f9",fontWeight:700,lineHeight:1.6,direction:"rtl",unicodeBidi:"embed"}}>{CONCEPTS[curTopic||settings.topic].formula!=="—"?CONCEPTS[curTopic||settings.topic].formula:CONCEPTS[curTopic||settings.topic].trap}</p>
           </div>
         )}
         <h2 style={{fontSize:"clamp(.95rem,3vw,1.12rem)",fontWeight:800,color:"#fff",lineHeight:1.85,marginBottom:6}}>{qData.question}</h2>
@@ -2243,7 +2243,7 @@ function Session({settings,go,updateUser,trial,setTrial,addMistake,plan="free",s
         <p style={{fontSize:".67rem",color:"#22d3ee",fontWeight:700,letterSpacing:".08em",marginBottom:8}}>📌 مرجع سريع — {curTopic||settings.topic}</p>
         {CONCEPTS[curTopic||settings.topic].formula!=="—"&&<div className="gl2" style={{padding:"8px",marginBottom:7,textAlign:"right"}}>
           <p style={{fontSize:".67rem",color:"#f97316",marginBottom:3}}>الصيغة</p>
-          <p style={{fontSize:".74rem",fontWeight:800,color:"#fdba74",direction:"rtl",textAlign:"right"}}>{CONCEPTS[curTopic||settings.topic].formula}</p>
+          <p style={{fontSize:".74rem",fontWeight:800,color:"#fdba74",direction:"rtl",unicodeBidi:"embed",textAlign:"right"}}>{CONCEPTS[curTopic||settings.topic].formula}</p>
         </div>}
         <p style={{fontSize:".71rem",lineHeight:1.7,color:"#f87171"}}>{CONCEPTS[curTopic||settings.topic].trap}</p>
         {YT_LINKS[curTopic||settings.topic]&&<a href={YT_LINKS[curTopic||settings.topic]} target="_blank" rel="noopener noreferrer" style={{display:"flex",alignItems:"center",gap:7,marginTop:10,padding:"7px 11px",borderRadius:9,background:"rgba(220,38,38,.08)",border:"1px solid rgba(220,38,38,.18)",color:"#f87171",fontWeight:700,fontSize:".7rem",textDecoration:"none",fontFamily:"Cairo,sans-serif"}}>▶ شرح على يوتيوب</a>}
@@ -2548,7 +2548,7 @@ function Landing({go}){
                 {activeData.concept?.formula&&activeData.concept.formula!=="—"&&(
                   <div style={{padding:"10px 14px",borderRadius:11,background:"rgba(249,115,22,.06)",border:"1px solid rgba(249,115,22,.15)"}}>
                     <p style={{fontSize:".67rem",color:"#f97316",fontWeight:700,marginBottom:4}}>📐 الصيغة</p>
-                    <p style={{fontSize:".82rem",color:"#fdba74",lineHeight:1.6}}>{activeData.concept.formula}</p>
+                    <p style={{fontSize:".82rem",color:"#fdba74",lineHeight:1.6,direction:"rtl",unicodeBidi:"embed"}}>{activeData.concept.formula}</p>
                   </div>
                 )}
                 {/* Trap */}
@@ -3309,7 +3309,7 @@ function TopicLesson({topic,onClose,onStartPractice}){
                     textAlign:"center"
                   }}>
                     <p style={{fontSize:".65rem",color:"#f97316",marginBottom:4}}>الصيغة</p>
-                    <p style={{fontSize:".82rem",fontWeight:800,color:"#fdba74",direction:"rtl"}}>
+                    <p style={{fontSize:".82rem",fontWeight:800,color:"#fdba74",direction:"rtl",unicodeBidi:"embed"}}>
                       {CONCEPTS[topic].formula}
                     </p>
                   </div>
