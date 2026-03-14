@@ -2385,9 +2385,12 @@ function Session({settings,go,updateUser,trial,setTrial,addMistake,plan="free",s
         <p style={{fontSize:".74rem",color:"#94a3b8",marginTop:6}}>{trial.used}/{trial.limit} سؤال</p>
       </div>}
     </div>
+  </div>
+  </div>
+  </div>
+  </div>
   </div>);
 }
-
 /* ═══════════════════ REMAINING PAGES (compact) ═══════════════════ */
 function AnimCounter({target,suffix="",duration=1800}){
   const[val,setVal]=useState(0);
