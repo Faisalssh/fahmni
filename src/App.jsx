@@ -2259,10 +2259,7 @@ function Session({settings,go,updateUser,trial,setTrial,addMistake,plan="free",s
         <p style={{fontSize:".67rem",color:"#f97316",fontWeight:700,marginBottom:6}}>التجربة المجانية</p>
         <div className="pt"><div className="pf" style={{width:`${trial.limit>0?Math.min(Math.round(trial.used*100/trial.limit),100):0}%`}}/></div>
         <p style={{fontSize:".74rem",color:"#94a3b8",marginTop:6}}>{`${trial.used}/${trial.limit}`} سؤال</p>
-      </div>}
-    </div>
-  </div></div></div>
-  </div>
+      </div>}</div></div></div></div></div>
 </div>);
 }
 
