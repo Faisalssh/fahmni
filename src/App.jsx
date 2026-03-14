@@ -2103,7 +2103,7 @@ function Session({settings,go,updateUser,trial,setTrial,addMistake,plan="free",s
     setLoading(true);setErr("");setQData(null);setSel(null);setChecked(false);
     setSteps([]);setShowTip(false);setExpired(false);setAutoNext(false);setCoach(null);setCoachLoading(false);
     try{
-      const q=await genQuestion({topic:nextTopic,difficulty:settings.difficulty,avoidQuestion:lastQRef.current,userId:session?.userId||null,userToken:session?.token||null});
+      const q=await genQuestion({topic:nextTopic,difficulty:"متوسط",avoidQuestion:lastQRef.current,userId:session?.userId||null,userToken:session?.token||null});
       lastQRef.current=q.question||"";
       setQData({...q,topic:nextTopic});setTimerKey(k=>k+1);setQStart(Date.now());
       if(q._fromDB) showToast("⚡ من بنك الأسئلة","info",1500);
@@ -2146,17 +2146,13 @@ function Session({settings,go,updateUser,trial,setTrial,addMistake,plan="free",s
     setSteps(qData?.steps||[]);
     setShowTip(true);
     setAutoNext(false); // يبدأ بعد الكوتش
-    /* ── Quick AI Coach ── */
-    setCoach(null);setCoachLoading(true);
-    genQuickCoach({
-      topic:curTopic||settings.topic, ok,
-      question:qData?.question||"",
-      chosen:isExpired?"(انتهى الوقت)":(qData?.options[chosenIdx]||""),
-      correctAns:qData?.options[qData?.correct]||"",
-      history:nh
-    }).then(c=>setCoach(c))
-      .catch(()=>setCoach({emoji:ok?"✓":"💡",msg:ok?"أحسنت، إجابة صحيحة!":"راجع طريقة الحل.",tip:""}))
-      .finally(()=>{setCoachLoading(false);setAutoNext(true);});
+    /* ── Static Coach (بدون AI — توفير التكلفة) ── */
+    const acc2=nh.length?Math.round(nh.filter(h=>h.ok).length/nh.length*100):0;
+    const staticMsg=ok
+      ?acc2>=80?"🎯 ممتاز! أداء رائع — استمر.":acc2>=60?"✅ صحيح! أنت في المسار الصحيح.":"✅ أحسنت! كل سؤال صحيح يبني ثقتك."
+      :acc2<40?"💪 لا تستسلم — راجع الحل وستتحسن.":"💡 راجع الخطوات أسفله لتفهم الأسلوب.";
+    setCoach({emoji:ok?"🎯":"💡",msg:staticMsg,tip:qData?.tip||""});
+    setCoachLoading(false);setAutoNext(true);
     setTimeout(()=>explRef.current?.scrollIntoView({behavior:"smooth",block:"start"}),120);
     if(nh.length>0&&nh.length%TEACHER_TRIGGER===0)setTimeout(()=>setShowTeacher(true),2000);
     // Check daily goal reached
@@ -2188,7 +2184,7 @@ function Session({settings,go,updateUser,trial,setTrial,addMistake,plan="free",s
         <div style={{display:"flex",gap:7,alignItems:"center",flexWrap:"wrap"}}>
           <span className={`badge ${deriveSec(curTopic||settings.topic)==="كمي"?"b-o":"b-c"}`}>{deriveSec(curTopic||settings.topic)}</span>
           <span className="badge b-v">{curTopic||settings.topic}</span>
-          <span className={`badge ${settings.difficulty==="سهل"?"b-g":settings.difficulty==="متوسط"?"b-o":"b-r"}`}>{settings.difficulty}</span>
+          
           {GEO.includes(settings.topic)&&<span className="badge b-ai">📐</span>}
           <div style={{marginRight:"auto",display:"flex",gap:8,alignItems:"center"}}>
             <SoundPanel sounds={sounds}/>
@@ -2265,107 +2261,87 @@ function Session({settings,go,updateUser,trial,setTrial,addMistake,plan="free",s
         {/* Hint while waiting */}
         {!checked&&(
           <div style={{marginTop:14,display:"flex",flexDirection:"column",alignItems:"center",gap:9}}>
-            <p style={{fontSize:".75rem",color:"#334155"}}>اختر الإجابة — الشرح يظهر فوراً</p>
-            {!trial?.isSubscribed&&(
-              <button onClick={()=>{
-                // كشف الإجابة الصحيحة + الشرح مباشرة (وضع التجربة)
-                doCheck(qData?.correct,false);
-              }} style={{
-                padding:"7px 16px",borderRadius:10,cursor:"pointer",
-                background:"rgba(167,139,250,.1)",border:"1px solid rgba(167,139,250,.25)",
-                color:"#c4b5fd",fontSize:".75rem",fontWeight:700,
-                fontFamily:"Cairo,sans-serif",display:"flex",alignItems:"center",gap:6
-              }}>
-                🎓 اكشف الإجابة والشرح
-              </button>
-            )}
+            <p style={{fontSize:".75rem",color:"#334155"}}>اختر إجابتك — الحل يظهر بعد اختيارك</p>
+
           </div>
         )}
       </div>)}
 
       {/* Explanation — appears right after answering */}
       {checked&&qData&&(<div ref={explRef} className="gl si" style={{padding:"23px",border:`1.5px solid ${isCorrect?"rgba(74,222,128,.25)":"rgba(248,113,113,.2)"}`}}>
-        <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",flexWrap:"wrap",gap:11,marginBottom:14}}>
-          <div>
-            <span className={`badge pi ${isCorrect?"b-g":"b-r"}`} style={{marginBottom:8}}>
-              {isCorrect?"✓ إجابة صحيحة 🎯":"✗ إجابة خاطئة"}
-            </span>
-            <h3 style={{fontSize:".97rem",fontWeight:800,color:"#fff"}}>{qData.explanation_title||"الحل"}</h3>
+
+        {/* ── 1. نتيجة الإجابة ── */}
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:10,marginBottom:16}}>
+          <span className={`badge pi ${isCorrect?"b-g":"b-r"}`} style={{fontSize:".88rem",padding:"8px 16px"}}>
+            {isCorrect?"✅ إجابة صحيحة!":"❌ إجابة خاطئة"}
+          </span>
+          <Ring pct={isCorrect?100:0} size={52} color={isCorrect?"#4ade80":"#f87171"}/>
+        </div>
+
+        {/* ── 2. الإجابة الصحيحة (تظهر دائماً) ── */}
+        <div style={{padding:"12px 15px",borderRadius:12,marginBottom:14,
+          background:isCorrect?"rgba(74,222,128,.07)":"rgba(248,113,113,.06)",
+          border:`1px solid ${isCorrect?"rgba(74,222,128,.22)":"rgba(248,113,113,.22)"}`}}>
+          <p style={{fontSize:".68rem",color:"#64748b",marginBottom:4}}>الإجابة الصحيحة</p>
+          <p style={{fontSize:".95rem",fontWeight:800,color:isCorrect?"#86efac":"#bbf7d0"}}>
+            {(qData.options||[])[qData.correct]||""}
+          </p>
+          {!isCorrect&&<p style={{fontSize:".75rem",color:"#fca5a5",marginTop:5}}>
+            إجابتك: {expired?"(انتهى الوقت)":(qData.options||[])[sel]||""}
+          </p>}
+        </div>
+
+        {/* ── 3. طريقة الحل خطوة بخطوة ── */}
+        {(steps||[]).length>0&&(<>
+          <p style={{fontSize:".68rem",color:"#f97316",fontWeight:700,letterSpacing:".08em",marginBottom:9}}>▸ طريقة الحل</p>
+          <div style={{display:"flex",flexDirection:"column",gap:7,marginBottom:14}}>
+            {(steps||[]).map((s,i)=>(
+              <div key={i} className="step" style={{animationDelay:`${i*.06}s`}}>
+                <div className="snum">{i+1}</div>
+                <p style={{fontSize:".84rem",lineHeight:1.85,color:"#cbd5e1"}}>{s}</p>
+              </div>
+            ))}
           </div>
-          <Ring pct={isCorrect?100:0} size={58} color={isCorrect?"#4ade80":"#f87171"}/>
-        </div>
+        </>)}
 
-        {!isCorrect&&<div style={{padding:"10px 14px",borderRadius:11,marginBottom:13,background:"rgba(74,222,128,.07)",border:"1px solid rgba(74,222,128,.22)"}}>
-          <p style={{fontSize:".7rem",color:"#6ee7b7",fontWeight:700,marginBottom:3}}>الإجابة الصحيحة</p>
-          <p style={{color:"#bbf7d0",fontWeight:800}}>{(qData.options||[])[qData.correct]||""}</p>
-        </div>}
-
-        <p style={{fontSize:".67rem",color:"#f97316",fontWeight:700,letterSpacing:".08em",marginBottom:9}}>▸ طريقة الحل</p>
-        <div style={{display:"flex",flexDirection:"column",gap:7}}>
-          {(steps||[]).map((s,i)=>(
-            <div key={i} className="step" style={{animationDelay:`${i*.06}s`}}>
-              <div className="snum">{i+1}</div>
-              <p style={{fontSize:".84rem",lineHeight:1.85,color:"#cbd5e1"}}>{s}</p>
-            </div>
-          ))}
-          {steps.length<(qData.steps?.length||0)&&(
-            <div style={{display:"flex",justifyContent:"center",padding:"5px"}}>
-              <div className="dots"><span/><span/><span/></div>
-            </div>
-          )}
-        </div>
-
+        {/* ── 4. النصيحة ── */}
         {showTip&&qData.tip&&(
-          <div className="gl-o au" style={{padding:"11px 15px",marginTop:13}}>
-            <p style={{fontSize:".67rem",color:"#f97316",fontWeight:700,marginBottom:4}}>💡 نصيحة</p>
+          <div className="gl-o au" style={{padding:"11px 15px",marginBottom:13}}>
+            <p style={{fontSize:".67rem",color:"#f97316",fontWeight:700,marginBottom:4}}>💡 نصيحة للمرة القادمة</p>
             <p style={{fontSize:".82rem",lineHeight:1.8,color:"#fdba74"}}>{qData.tip}</p>
           </div>
         )}
 
-        {/* ── Motivational line ── */}
-        {checked&&(
-          <p style={{marginTop:11,fontSize:".73rem",color:"#475569",textAlign:"center",lineHeight:1.7}}>
-            {isCorrect
-              ?"✨ ممتاز! استمر بالتدريب لتحسين مستواك أكثر."
-              :"💪 لا تقلق — الفهم يأتي بالتكرار. راجع الخطوات جيداً."}
-          </p>
-        )}
+        {/* ── 5. الجملة التحفيزية ── */}
+        <p style={{fontSize:".73rem",color:"#475569",textAlign:"center",lineHeight:1.7,marginBottom:13}}>
+          {isCorrect?"✨ ممتاز! استمر بالتدريب لترفع مستواك.":"💪 لا تقلق — الفهم يأتي بالتكرار. راجع الخطوات."}
+        </p>
 
-        {/* ── Question Rating ── */}
-        {checked&&!qData?._fromDB&&(
-          <QRating qId={qData?._dbId} topic={curTopic||settings.topic}/>
-        )}
-
-        {/* Live AI Coach card */}
-          {(coachLoading||coach)&&(
-            <div className="au" style={{
-              marginTop:13,padding:"13px 16px",borderRadius:14,
-              background:"linear-gradient(135deg,rgba(139,92,246,.1),rgba(249,115,22,.07))",
-              border:"1px solid rgba(139,92,246,.22)"
-            }}>
-              <div style={{display:"flex",gap:8,alignItems:"flex-start"}}>
-                <span style={{fontSize:"1.2rem",flexShrink:0,marginTop:1}}>🎓</span>
-                <div style={{flex:1}}>
-                  <p style={{fontSize:".64rem",color:"#a78bfa",fontWeight:700,marginBottom:5,letterSpacing:".06em"}}>المعلم الذكي يقول</p>
-                  {coachLoading?(
-                    <div className="dots"><span/><span/><span/></div>
-                  ):(
-                    <>
-                      <p style={{fontSize:".86rem",fontWeight:700,color:"#e2e8f0",lineHeight:1.75,marginBottom:coach?.tip?6:0}}>
-                        {coach?.emoji} {coach?.msg}
-                      </p>
-                      {coach?.tip&&(
-                        <p style={{fontSize:".75rem",color:"#c4b5fd",lineHeight:1.6}}>⚡ {coach.tip}</p>
-                      )}
-                    </>
-                  )}
-                </div>
+        {/* ── 6. كارت الكوتش ── */}
+        {(coachLoading||coach)&&(
+          <div className="au" style={{
+            padding:"13px 16px",borderRadius:14,marginBottom:13,
+            background:"linear-gradient(135deg,rgba(139,92,246,.1),rgba(249,115,22,.07))",
+            border:"1px solid rgba(139,92,246,.22)"
+          }}>
+            <div style={{display:"flex",gap:8,alignItems:"flex-start"}}>
+              <span style={{fontSize:"1.2rem",flexShrink:0,marginTop:1}}>🎓</span>
+              <div style={{flex:1}}>
+                <p style={{fontSize:".64rem",color:"#a78bfa",fontWeight:700,marginBottom:5,letterSpacing:".06em"}}>تقييم الجلسة</p>
+                {coachLoading?(
+                  <div className="dots"><span/><span/><span/></div>
+                ):(
+                  <p style={{fontSize:".86rem",fontWeight:700,color:"#e2e8f0",lineHeight:1.75}}>
+                    {coach?.emoji} {coach?.msg}
+                  </p>
+                )}
               </div>
             </div>
-          )}
+          </div>
+        )}
 
-        {/* Auto-advance or manual */}
-        <div style={{marginTop:16,display:"flex",gap:9,justifyContent:"space-between",alignItems:"center",flexWrap:"wrap"}}>
+        {/* ── 7. أزرار التنقل ── */}
+        <div style={{marginTop:14,display:"flex",gap:9,justifyContent:"space-between",alignItems:"center",flexWrap:"wrap"}}>
           <div style={{display:"flex",gap:8}}>
             <button className="btn btn-g" style={{fontSize:".77rem"}} onClick={()=>setShowCard(true)}>🎴 بطاقة</button>
             <button className="btn btn-g" style={{fontSize:".77rem"}} onClick={()=>go("review")}>📋 مراجعة</button>
