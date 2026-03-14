@@ -315,7 +315,8 @@ function SoundPanel({sounds}){
         <span>{active?"صوت الطبيعة":"صامت"}</span>
       </button>
 
-      {open&&(<div style={{
+      {open&&(
+        <div style={{
           position:"absolute",top:"calc(100% + 8px)",left:0,
           zIndex:9999,width:252,
           background:"#080f1e",
@@ -341,7 +342,8 @@ function SoundPanel({sounds}){
               </button>
             ))}
           </div>
-          {active&&(<div style={{marginBottom:13}}>
+          {active&&(
+            <div style={{marginBottom:13}}>
               <div style={{display:"flex",justifyContent:"space-between",marginBottom:6}}>
                 <p style={{fontSize:".67rem",color:"#64748b"}}>المستوى</p>
                 <p style={{fontSize:".67rem",color:"#f97316",fontWeight:700}}>{Math.round(vol*100)}%</p>
@@ -1041,7 +1043,8 @@ function Nav({isPub,go,userName,title,onLogout}){
         </div>
       </nav>
       {/* قائمة موبايل — تظهر أسفل النافبار مباشرة */}
-      {menuOpen&&(<div className="nav-mob-row" onClick={e=>e.stopPropagation()} style={{
+      {menuOpen&&(
+        <div className="nav-mob-row" onClick={e=>e.stopPropagation()} style={{
           display:"none",flexDirection:"column",gap:8,padding:"14px 16px 18px",
           background:"rgba(4,7,20,.98)",backdropFilter:"blur(20px)",
           borderBottom:"1px solid rgba(249,115,22,.12)",
@@ -1764,7 +1767,8 @@ function Pricing({go}){
             marginTop:p.isBest?0:0,
           }}>
             {/* Best badge */}
-            {p.isBest&&(<div style={{position:"absolute",top:-13,left:"50%",transform:"translateX(-50%)",
+            {p.isBest&&(
+              <div style={{position:"absolute",top:-13,left:"50%",transform:"translateX(-50%)",
                 whiteSpace:"nowrap",padding:"5px 16px",borderRadius:99,
                 background:"linear-gradient(135deg,#a78bfa,#8b5cf6)",
                 fontSize:".65rem",fontWeight:900,color:"#fff",
@@ -1796,7 +1800,8 @@ function Pricing({go}){
                     <p style={{fontSize:".72rem",fontWeight:700,color:"#94a3b8"}}>ريال</p>
                     <p style={{fontSize:".63rem",color:"#475569"}}>/ {p.per}</p>
                   </div>
-                  {p.id==="exam"&&(<span style={{fontSize:".65rem",padding:"2px 8px",borderRadius:99,
+                  {p.id==="exam"&&(
+                    <span style={{fontSize:".65rem",padding:"2px 8px",borderRadius:99,
                       background:"rgba(74,222,128,.1)",border:"1px solid rgba(74,222,128,.2)",
                       color:"#4ade80",marginRight:"auto",marginTop:4}}>وفّر 18 ريال</span>
                   )}
@@ -1939,7 +1944,6 @@ function NextCountdown({onNext,seconds=5}){
 }
 
 /* ═══════════════════ AI SESSION ═══════════════════ */
-
 function Session({settings,go,updateUser,trial,setTrial,addMistake,plan="free",session=null,user={name:"",streak:0,totalSolved:0,correct:0}}){
   useEffect(()=>{window.scrollTo({top:0,behavior:"instant"});},[]);
   const[qData,setQData]=useState(null);
@@ -1957,8 +1961,10 @@ function Session({settings,go,updateUser,trial,setTrial,addMistake,plan="free",s
   const[qTimes,setQTimes]=useState([]);
   const[qStart,setQStart]=useState(Date.now());
   const[autoNext,setAutoNext]=useState(false);
+  /* Live coach state */
   const[coach,setCoach]=useState(null);
   const[coachLoading,setCoachLoading]=useState(false);
+  /* anti-repeat + current topic */
   const[curTopic,setCurTopic]=useState(()=>{
     const all=ALL_TOPICS;
     return all[Math.floor(Math.random()*all.length)];
@@ -1971,10 +1977,10 @@ function Session({settings,go,updateUser,trial,setTrial,addMistake,plan="free",s
   const isCorrect=checked&&sel===qData?.correct;
   const TEACHER_TRIGGER=5;
   const avgT=qTimes.length?Math.round(qTimes.reduce((a,b)=>a+b,0)/qTimes.length):0;
-  const trialPct=trial.limit>0?Math.min(Math.round(trial.used*100/trial.limit),100):0;
 
   const fetchQ=useCallback(async()=>{
     if(!trial.isSubscribed&&trial.used>=trial.limit){go("paywall");return;}
+    // اختر باباً عشوائياً جديداً مختلفاً عن الحالي
     const nextTopic=(()=>{
       const pool=ALL_TOPICS.filter(t=>t!==curTopic);
       const t=pool[Math.floor(Math.random()*pool.length)];
@@ -1987,10 +1993,8 @@ function Session({settings,go,updateUser,trial,setTrial,addMistake,plan="free",s
       const q=await genQuestion({topic:nextTopic,difficulty:settings.difficulty,avoidQuestion:lastQRef.current,userId:session?.userId||null,userToken:session?.token||null});
       lastQRef.current=q.question||"";
       setQData({...q,topic:nextTopic});setTimerKey(k=>k+1);setQStart(Date.now());
-    }catch(e){
-      if(e.limitReached){setErr(e.message);go("paywall");}
-      else{setErr("فشل توليد السؤال. تحقق من الاتصال.");}
-    }finally{setLoading(false);}
+    }catch(e){if(e.limitReached){setErr(e.message);go("paywall");}else{setErr("فشل توليد السؤال. تحقق من الاتصال.");}}
+    finally{setLoading(false);}
   },[settings,trial]);
 
   useEffect(()=>{
@@ -1998,6 +2002,7 @@ function Session({settings,go,updateUser,trial,setTrial,addMistake,plan="free",s
     fetchQ();
   },[]);
 
+  /* ── تشغيل فوري عند اختيار الإجابة ── */
   const pickAnswer=(i)=>{
     if(checked)return;
     setSel(i);
@@ -2010,7 +2015,9 @@ function Session({settings,go,updateUser,trial,setTrial,addMistake,plan="free",s
     setChecked(true);
     setQTimes(p=>[...p,taken]);
     const realSec=deriveSec(curTopic||settings.topic);
-    const entry={ok,q:qData?.question,topic:curTopic||settings.topic,section:realSec,chosen:isExpired?"(انتهى الوقت)":qData?.options[chosenIdx],correctAns:qData?.options[qData?.correct],steps:qData?.steps,tip:qData?.tip};
+    const entry={ok,q:qData?.question,topic:curTopic||settings.topic,section:realSec,
+      chosen:isExpired?"(انتهى الوقت)":qData?.options[chosenIdx],
+      correctAns:qData?.options[qData?.correct],steps:qData?.steps,tip:qData?.tip};
     const nh=[...history,entry];
     setHistory(nh);
     setTrial(p=>{
@@ -2021,13 +2028,20 @@ function Session({settings,go,updateUser,trial,setTrial,addMistake,plan="free",s
     });
     updateUser(ok);
     if(!ok)addMistake(entry);
+    /* ── كل الشرح يظهر فوراً دفعة واحدة ── */
     setSteps(qData?.steps||[]);
     setShowTip(true);
-    setAutoNext(false);
+    setAutoNext(false); // يبدأ بعد الكوتش
+    /* ── Quick AI Coach ── */
     setCoach(null);setCoachLoading(true);
-    genQuickCoach({topic:curTopic||settings.topic,ok,question:qData?.question||"",chosen:isExpired?"(انتهى الوقت)":(qData?.options[chosenIdx]||""),correctAns:qData?.options[qData?.correct]||"",history:nh})
-      .then(r=>setCoach(r))
-      .catch(()=>setCoach({emoji:ok?"✓":"💡",msg:ok?"أحسنت!":"راجع الحل.",tip:""}))
+    genQuickCoach({
+      topic:curTopic||settings.topic, ok,
+      question:qData?.question||"",
+      chosen:isExpired?"(انتهى الوقت)":(qData?.options[chosenIdx]||""),
+      correctAns:qData?.options[qData?.correct]||"",
+      history:nh
+    }).then(c=>setCoach(c))
+      .catch(()=>setCoach({emoji:ok?"✓":"💡",msg:ok?"أحسنت، إجابة صحيحة!":"راجع طريقة الحل.",tip:""}))
       .finally(()=>{setCoachLoading(false);setAutoNext(true);});
     setTimeout(()=>explRef.current?.scrollIntoView({behavior:"smooth",block:"start"}),120);
     if(nh.length>0&&nh.length%TEACHER_TRIGGER===0)setTimeout(()=>setShowTeacher(true),2000);
@@ -2035,176 +2049,218 @@ function Session({settings,go,updateUser,trial,setTrial,addMistake,plan="free",s
 
   const handleExpire=()=>{if(!checked){setExpired(true);doCheck(null,true);}};
 
-  if(showTeacher){
-    return(
-      <TeacherSummary
-        topic={settings.topic}
-        history={history.slice(-TEACHER_TRIGGER)}
-        onContinue={()=>{setShowTeacher(false);fetchQ();}}
-        onReview={()=>go("review")}
-        plan={plan}
-      />
-    );
-  }
+  if(showTeacher)return(
+    <TeacherSummary topic={settings.topic} history={history.slice(-TEACHER_TRIGGER)}
+      onContinue={()=>{setShowTeacher(false);fetchQ();}}
+      onReview={()=>go("review")}
+      plan={plan}/>
+  );
 
   const realSec=deriveSec(settings.topic);
-  const concept=CONCEPTS[curTopic||settings.topic]||null;
 
-  return(
-    <div className="rg-sidebar" style={{gap:14}}>
-      <div style={{display:showCard?"block":"none"}}>
-        <ResultCard stats={{topic:settings.topic,section:realSec,correct,total:history.length,avgTime:avgT}} onClose={()=>setShowCard(false)}/>
-      </div>
+  return(<div className="rg-sidebar" style={{gap:14}}>
+    {showCard&&<ResultCard stats={{topic:settings.topic,section:realSec,correct,total:history.length,avgTime:avgT}} onClose={()=>setShowCard(false)}/>}
 
-      <div style={{display:"flex",flexDirection:"column",gap:14}}>
+    {/* ── Main column ── */}
+    <div style={{display:"flex",flexDirection:"column",gap:14}}>
 
-        <div className="gl" style={{padding:"13px 18px"}}>
-          <div style={{display:"flex",gap:7,alignItems:"center",flexWrap:"wrap"}}>
-            <span className={`badge ${deriveSec(curTopic||settings.topic)==="كمي"?"b-o":"b-c"}`}>{deriveSec(curTopic||settings.topic)}</span>
-            <span className="badge b-v">{curTopic||settings.topic}</span>
-            <span className={`badge ${settings.difficulty==="سهل"?"b-g":settings.difficulty==="متوسط"?"b-o":"b-r"}`}>{settings.difficulty}</span>
-            <div style={{display:GEO.includes(settings.topic)?"inline-flex":"none"}} className="badge b-ai">📐</div>
-            <div style={{marginRight:"auto",display:"flex",gap:8,alignItems:"center"}}>
-              <SoundPanel sounds={sounds}/>
-              <span className="badge b-ai"><div className="dots"><span/><span/><span/></div>{" AI"}</span>
-            </div>
+      {/* Header bar */}
+      <div className="gl" style={{padding:"13px 18px"}}>
+        <div style={{display:"flex",gap:7,alignItems:"center",flexWrap:"wrap"}}>
+          <span className={`badge ${deriveSec(curTopic||settings.topic)==="كمي"?"b-o":"b-c"}`}>{deriveSec(curTopic||settings.topic)}</span>
+          <span className="badge b-v">{curTopic||settings.topic}</span>
+          <span className={`badge ${settings.difficulty==="سهل"?"b-g":settings.difficulty==="متوسط"?"b-o":"b-r"}`}>{settings.difficulty}</span>
+          {GEO.includes(settings.topic)&&<span className="badge b-ai">📐</span>}
+          <div style={{marginRight:"auto",display:"flex",gap:8,alignItems:"center"}}>
+            <SoundPanel sounds={sounds}/>
+            <span className="badge b-ai"><div className="dots"><span/><span/><span/></div> AI</span>
           </div>
-          <div style={{display:history.length>0&&history.length%TEACHER_TRIGGER!==0?"block":"none",marginTop:9}}>
+        </div>
+        {history.length>0&&history.length%TEACHER_TRIGGER!==0&&(
+          <div style={{marginTop:9}}>
             <div style={{display:"flex",justifyContent:"space-between",fontSize:".67rem",color:"#64748b",marginBottom:4}}>
-              <span style={{color:"#a78bfa"}}>{"🎓 وضع المعلم بعد "}{TEACHER_TRIGGER-(history.length%TEACHER_TRIGGER)}{" أسئلة"}</span>
+              <span style={{color:"#a78bfa"}}>🎓 وضع المعلم بعد {TEACHER_TRIGGER-(history.length%TEACHER_TRIGGER)} أسئلة</span>
               <span>{history.length%TEACHER_TRIGGER}/{TEACHER_TRIGGER}</span>
             </div>
-            <div className="pt">
-              <div style={{height:"100%",borderRadius:99,background:"linear-gradient(90deg,#a78bfa,#22d3ee)",width:`${TEACHER_TRIGGER>0?Math.round((history.length%TEACHER_TRIGGER)*100/TEACHER_TRIGGER):0}%`,transition:"width .6s ease"}}/>
+            <div className="pt"><div style={{height:"100%",borderRadius:99,background:"linear-gradient(90deg,#a78bfa,#22d3ee)",width:`${(history.length%TEACHER_TRIGGER)/TEACHER_TRIGGER*100}%`,transition:"width .6s ease"}}/></div>
+          </div>
+        )}
+      </div>
+
+      {/* Mobile stats bar (replaces sidebar) */}
+      <div className="mob-show" style={{display:"none"}}>
+        <div className="mob-stats-bar">
+          <Ring pct={acc} size={44} color={acc>=70?"#4ade80":acc>=50?"#f97316":"#f87171"} label=""/>
+          <div style={{flex:1}}>
+            <p style={{fontSize:".7rem",color:"#64748b"}}>الصحيح / الكلي</p>
+            <p style={{fontSize:".9rem",fontWeight:900,color:"#fff"}}>{correct} / {history.length}</p>
+          </div>
+          {!trial.isSubscribed&&<div style={{textAlign:"left",minWidth:80}}>
+            <p style={{fontSize:".62rem",color:"#f97316",fontWeight:700,marginBottom:3}}>{trial.used}/{trial.limit} سؤال</p>
+            <div className="pt"><div className="pf" style={{width:`${Math.min((trial.used/trial.limit)*100,100)}%`}}/></div>
+          </div>}
+        </div>
+      </div>
+
+      {/* Loading */}
+      {loading&&<div className="gl si" style={{padding:"48px",textAlign:"center"}}>
+        <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:13}}>
+          <div className="spin spin-lg"/>
+          <p style={{color:"#64748b",fontSize:".88rem"}}>يصيغ سؤالاً من <strong style={{color:"#f97316"}}>{curTopic||settings.topic}</strong>...</p>
+        </div>
+      </div>}
+
+      {/* Error */}
+      {err&&!loading&&<div className="gl" style={{padding:"18px",borderColor:"rgba(248,113,113,.2)",background:"rgba(248,113,113,.06)"}}>
+        <p style={{color:"#fca5a5",marginBottom:11}}>⚠ {err}</p>
+        <button className="btn btn-p" onClick={fetchQ}>أعد المحاولة</button>
+      </div>}
+
+      {/* Question card */}
+      {qData&&!loading&&(<div className="gl si" style={{padding:"26px"}}>
+        {expired&&<div className="pi" style={{padding:"10px 14px",borderRadius:12,background:"rgba(248,113,113,.1)",border:"1px solid rgba(248,113,113,.3)",marginBottom:14}}>
+          <p style={{color:"#fca5a5",fontWeight:700,fontSize:".84rem"}}>⏱ انتهى الوقت! الإجابة الصحيحة أسفله</p>
+        </div>}
+        {qData.shape&&<ShapeRender shape={qData.shape}/>}
+        <h2 style={{fontSize:"clamp(.95rem,3vw,1.12rem)",fontWeight:800,color:"#fff",lineHeight:1.85,marginBottom:18}}>{qData.question}</h2>
+
+        {/* Options — click = answer immediately */}
+        <div style={{display:"flex",flexDirection:"column",gap:9}}>
+          {(qData.options||[]).map((opt,i)=>(
+            <button key={i}
+              className={`ans ${(checked&&i===qData.correct)?"ok":(checked&&sel===i&&i!==qData.correct)?"bad":sel===i&&!checked?"sel":""} ${checked?"lk":""}`}
+              onClick={()=>pickAnswer(i)}
+              style={{position:"relative"}}>
+              <span>{opt}</span>
+              <div className="opt-l">{String.fromCharCode(0x0627+i)}</div>
+              {(checked&&i===qData.correct)&&<span style={{position:"absolute",left:14,top:"50%",transform:"translateY(-50%)",fontSize:"1rem"}}>✓</span>}
+              {(checked&&sel===i&&i!==qData.correct)&&<span style={{position:"absolute",left:14,top:"50%",transform:"translateY(-50%)",fontSize:"1rem"}}>✗</span>}
+            </button>
+          ))}
+        </div>
+
+        {/* Hint while waiting */}
+        {!checked&&<p style={{marginTop:14,fontSize:".75rem",color:"#334155",textAlign:"center"}}>
+          اختر الإجابة — الشرح يظهر فوراً
+        </p>}
+      </div>)}
+
+      {/* Explanation — appears right after answering */}
+      {checked&&qData&&(<div ref={explRef} className="gl si" style={{padding:"23px",border:`1.5px solid ${isCorrect?"rgba(74,222,128,.25)":"rgba(248,113,113,.2)"}`}}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",flexWrap:"wrap",gap:11,marginBottom:14}}>
+          <div>
+            <span className={`badge pi ${isCorrect?"b-g":"b-r"}`} style={{marginBottom:8}}>
+              {isCorrect?"✓ إجابة صحيحة 🎯":"✗ إجابة خاطئة"}
+            </span>
+            <h3 style={{fontSize:".97rem",fontWeight:800,color:"#fff"}}>{qData.explanation_title||"الحل"}</h3>
+          </div>
+          <Ring pct={isCorrect?100:0} size={58} color={isCorrect?"#4ade80":"#f87171"}/>
+        </div>
+
+        {!isCorrect&&<div style={{padding:"10px 14px",borderRadius:11,marginBottom:13,background:"rgba(74,222,128,.07)",border:"1px solid rgba(74,222,128,.22)"}}>
+          <p style={{fontSize:".7rem",color:"#6ee7b7",fontWeight:700,marginBottom:3}}>الإجابة الصحيحة</p>
+          <p style={{color:"#bbf7d0",fontWeight:800}}>{(qData.options||[])[qData.correct]||""}</p>
+        </div>}
+
+        <p style={{fontSize:".67rem",color:"#f97316",fontWeight:700,letterSpacing:".08em",marginBottom:9}}>▸ طريقة الحل</p>
+        <div style={{display:"flex",flexDirection:"column",gap:7}}>
+          {(steps||[]).map((s,i)=>(
+            <div key={i} className="step" style={{animationDelay:`${i*.06}s`}}>
+              <div className="snum">{i+1}</div>
+              <p style={{fontSize:".84rem",lineHeight:1.85,color:"#cbd5e1"}}>{s}</p>
             </div>
-          </div>
-        </div>
-
-        <div className="mob-show" style={{display:"none"}}>
-          <div className="mob-stats-bar">
-            <Ring pct={acc} size={44} color={acc>=70?"#4ade80":acc>=50?"#f97316":"#f87171"} label=""/>
-            <div style={{flex:1}}>
-              <p style={{fontSize:".7rem",color:"#64748b"}}>{"الصحيح ÷ الكلي"}</p>
-              <p style={{fontSize:".9rem",fontWeight:900,color:"#fff"}}>{correct}{" / "}{history.length}</p>
+          ))}
+          {steps.length<(qData.steps?.length||0)&&(
+            <div style={{display:"flex",justifyContent:"center",padding:"5px"}}>
+              <div className="dots"><span/><span/><span/></div>
             </div>
-            <div style={{textAlign:"left",minWidth:80,display:trial.isSubscribed?"none":"block"}}>
-              <p style={{fontSize:".62rem",color:"#f97316",fontWeight:700,marginBottom:3}}>{trial.used}{"/"}{trial.limit}{" سؤال"}</p>
-              <div className="pt"><div className="pf" style={{width:`${trialPct}%`}}/></div>
-            </div>
-          </div>
+          )}
         </div>
 
-        <div style={{display:loading?"block":"none"}} className="gl si" style={{padding:"48px",textAlign:"center"}}>
-          <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:13}}>
-            <div className="spin spin-lg"/>
-            <p style={{color:"#64748b",fontSize:".88rem"}}>{"يصيغ سؤالاً من "}<strong style={{color:"#f97316"}}>{curTopic||settings.topic}</strong></p>
+        {showTip&&qData.tip&&(
+          <div className="gl-o au" style={{padding:"11px 15px",marginTop:13}}>
+            <p style={{fontSize:".67rem",color:"#f97316",fontWeight:700,marginBottom:4}}>💡 نصيحة</p>
+            <p style={{fontSize:".82rem",lineHeight:1.8,color:"#fdba74"}}>{qData.tip}</p>
           </div>
-        </div>
+        )}
 
-        <div style={{display:err&&!loading?"block":"none"}} className="gl" style={{padding:"18px",borderColor:"rgba(248,113,113,.2)",background:"rgba(248,113,113,.06)"}}>
-          <p style={{color:"#fca5a5",marginBottom:11}}>{"⚠ "}{err}</p>
-          <button className="btn btn-p" onClick={fetchQ}>{"أعد المحاولة"}</button>
-        </div>
-
-        <div style={{display:qData&&!loading?"block":"none"}} className="gl si" style={{padding:"26px"}}>
-          <div style={{display:expired?"block":"none"}} className="pi" style={{padding:"10px 14px",borderRadius:12,background:"rgba(248,113,113,.1)",border:"1px solid rgba(248,113,113,.3)",marginBottom:14}}>
-            <p style={{color:"#fca5a5",fontWeight:700,fontSize:".84rem"}}>{"⏱ انتهى الوقت! الإجابة الصحيحة أسفله"}</p>
-          </div>
-          <div style={{display:qData?.shape?"block":"none"}}><ShapeRender shape={qData?.shape||null}/></div>
-          <h2 style={{fontSize:"clamp(.95rem,3vw,1.12rem)",fontWeight:800,color:"#fff",lineHeight:1.85,marginBottom:18}}>{qData?.question}</h2>
-          <div style={{display:"flex",flexDirection:"column",gap:9}}>
-            {(qData?.options||[]).map((opt,i)=><button key={i} className={`ans ${checked&&i===qData.correct?"ok":checked&&sel===i&&i!==qData.correct?"bad":sel===i&&!checked?"sel":""} ${checked?"lk":""}`} onClick={()=>pickAnswer(i)} style={{position:"relative"}}><span>{opt}</span><div className="opt-l">{String.fromCharCode(0x0627+i)}</div></button>)}</div>
-          <p style={{display:!checked?"block":"none",marginTop:14,fontSize:".75rem",color:"#334155",textAlign:"center"}}>{"اختر الإجابة — الشرح يظهر فوراً"}</p>
-        </div>
-
-        <div style={{display:checked&&qData?"block":"none"}} ref={explRef} className="gl si" style={{padding:"23px",border:`1.5px solid ${isCorrect?"rgba(74,222,128,.25)":"rgba(248,113,113,.2)"}`}}>
-          <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",flexWrap:"wrap",gap:11,marginBottom:14}}>
-            <div>
-              <span className={`badge pi ${isCorrect?"b-g":"b-r"}`} style={{marginBottom:8}}>{isCorrect?"✓ إجابة صحيحة 🎯":"✗ إجابة خاطئة"}</span>
-              <h3 style={{fontSize:".97rem",fontWeight:800,color:"#fff"}}>{qData?.explanation_title||"الحل"}</h3>
-            </div>
-            <Ring pct={isCorrect?100:0} size={58} color={isCorrect?"#4ade80":"#f87171"}/>
-          </div>
-          <div style={{display:!isCorrect?"block":"none",padding:"10px 14px",borderRadius:11,marginBottom:13,background:"rgba(74,222,128,.07)",border:"1px solid rgba(74,222,128,.22)"}}>
-            <p style={{fontSize:".7rem",color:"#6ee7b7",fontWeight:700,marginBottom:3}}>{"الإجابة الصحيحة"}</p>
-            <p style={{color:"#bbf7d0",fontWeight:800}}>{(qData?.options||[])[qData?.correct]||""}</p>
-          </div>
-          <p style={{fontSize:".67rem",color:"#f97316",fontWeight:700,letterSpacing:".08em",marginBottom:9}}>{"▸ طريقة الحل"}</p>
-          <div style={{display:"flex",flexDirection:"column",gap:7}}>
-            {(steps||[]).map((s,i)=><div key={i} className="step" style={{animationDelay:`${i*.06}s`}}><div className="snum">{i+1}</div><p style={{fontSize:".84rem",lineHeight:1.85,color:"#cbd5e1"}}>{s}</p></div>)}</div>
-          <div style={{display:showTip&&qData?.tip?"block":"none"}} className="gl-o au" style={{padding:"11px 15px",marginTop:13}}>
-            <p style={{fontSize:".67rem",color:"#f97316",fontWeight:700,marginBottom:4}}>{"💡 نصيحة"}</p>
-            <p style={{fontSize:".82rem",lineHeight:1.8,color:"#fdba74"}}>{qData?.tip}</p>
-          </div>
-          <div style={{display:coachLoading||coach?"block":"none"}} className="au" style={{marginTop:13,padding:"13px 16px",borderRadius:14,background:"linear-gradient(135deg,rgba(139,92,246,.1),rgba(249,115,22,.07))",border:"1px solid rgba(139,92,246,.22)"}}>
-            <div style={{display:"flex",gap:8,alignItems:"flex-start"}}>
-              <span style={{fontSize:"1.2rem",flexShrink:0,marginTop:1}}>{"🎓"}</span>
-              <div style={{flex:1}}>
-                <p style={{fontSize:".64rem",color:"#a78bfa",fontWeight:700,marginBottom:5,letterSpacing:".06em"}}>{"المعلم الذكي يقول"}</p>
-                <div style={{display:coachLoading?"flex":"none"}} className="dots"><span/><span/><span/></div>
-                <div style={{display:!coachLoading&&coach?"block":"none"}}>
-                  <p style={{fontSize:".86rem",fontWeight:700,color:"#e2e8f0",lineHeight:1.75,marginBottom:coach&&coach.tip?6:0}}>{coach&&coach.emoji}{" "}{coach&&coach.msg}</p>
-                  <p style={{display:coach&&coach.tip?"block":"none",fontSize:".75rem",color:"#c4b5fd",lineHeight:1.6}}>{"⚡ "}{coach&&coach.tip}</p>
+        {/* Live AI Coach card */}
+          {(coachLoading||coach)&&(
+            <div className="au" style={{
+              marginTop:13,padding:"13px 16px",borderRadius:14,
+              background:"linear-gradient(135deg,rgba(139,92,246,.1),rgba(249,115,22,.07))",
+              border:"1px solid rgba(139,92,246,.22)"
+            }}>
+              <div style={{display:"flex",gap:8,alignItems:"flex-start"}}>
+                <span style={{fontSize:"1.2rem",flexShrink:0,marginTop:1}}>🎓</span>
+                <div style={{flex:1}}>
+                  <p style={{fontSize:".64rem",color:"#a78bfa",fontWeight:700,marginBottom:5,letterSpacing:".06em"}}>المعلم الذكي يقول</p>
+                  {coachLoading?(
+                    <div className="dots"><span/><span/><span/></div>
+                  ):(
+                    <>
+                      <p style={{fontSize:".86rem",fontWeight:700,color:"#e2e8f0",lineHeight:1.75,marginBottom:coach?.tip?6:0}}>
+                        {coach?.emoji} {coach?.msg}
+                      </p>
+                      {coach?.tip&&(
+                        <p style={{fontSize:".75rem",color:"#c4b5fd",lineHeight:1.6}}>⚡ {coach.tip}</p>
+                      )}
+                    </>
+                  )}
                 </div>
               </div>
             </div>
-          </div>
-          <div style={{marginTop:16,display:"flex",gap:9,justifyContent:"space-between",alignItems:"center",flexWrap:"wrap"}}>
-            <div style={{display:"flex",gap:8}}>
-              <button className="btn btn-g" style={{fontSize:".77rem"}} onClick={()=>setShowCard(true)}>{"🎴 بطاقة"}</button>
-              <button className="btn btn-g" style={{fontSize:".77rem"}} onClick={()=>go("review")}>{"📋 مراجعة"}</button>
-            </div>
-            <div style={{display:autoNext&&!showTeacher?"block":"none"}}><NextCountdown onNext={fetchQ} seconds={5}/></div>
-            <div style={{display:!autoNext&&checked?"block":"none"}}><button className="btn btn-p" onClick={fetchQ}>{"السؤال التالي ←"}</button></div>
-          </div>
-        </div>
+          )}
 
-      </div>
-
-      <div className="mob-hide" style={{display:"flex",flexDirection:"column",gap:11,alignSelf:"start",position:"sticky",top:20}}>
-        <div style={{display:qData&&!loading&&!checked?"block":"none"}}>
-          <QuestionTimer key={timerKey} seconds={90} onExpire={handleExpire} paused={checked}/>
-        </div>
-        <div className="gl" style={{padding:"17px"}}>
-          <p style={{fontSize:".67rem",color:"#f97316",fontWeight:700,letterSpacing:".08em",marginBottom:11}}>{"جلستك"}</p>
-          <div style={{display:"flex",justifyContent:"center",marginBottom:13}}>
-            <Ring pct={acc} size={84} color={acc>=70?"#4ade80":acc>=50?"#f97316":"#f87171"} label="الدقة"/>
+        {/* Auto-advance or manual */}
+        <div style={{marginTop:16,display:"flex",gap:9,justifyContent:"space-between",alignItems:"center",flexWrap:"wrap"}}>
+          <div style={{display:"flex",gap:8}}>
+            <button className="btn btn-g" style={{fontSize:".77rem"}} onClick={()=>setShowCard(true)}>🎴 بطاقة</button>
+            <button className="btn btn-g" style={{fontSize:".77rem"}} onClick={()=>go("review")}>📋 مراجعة</button>
           </div>
-          <div className="gl2" style={{padding:"10px 13px"}}>
-            <p style={{fontSize:".68rem",color:"#64748b"}}>{"الصحيح ÷ الكلي"}</p>
-            <p style={{fontSize:"1.25rem",fontWeight:900,color:"#fff",marginTop:3}}>{correct}{" / "}{history.length}</p>
-          </div>
+          {autoNext&&!showTeacher&&<NextCountdown onNext={fetchQ} seconds={5}/>}
+          {!autoNext&&checked&&<button className="btn btn-p" onClick={fetchQ}>السؤال التالي ←</button>}
         </div>
-        <div style={{display:concept?"block":"none"}}>
-          <div className="gl au" style={{padding:"14px"}}>
-            <p style={{fontSize:".67rem",color:"#22d3ee",fontWeight:700,letterSpacing:".08em",marginBottom:8}}>{"📌 مرجع سريع — "}{curTopic||settings.topic}</p>
-            <div style={{display:concept&&concept.formula!=="—"?"block":"none"}}>
-              <div className="gl2" style={{padding:"8px",marginBottom:7,textAlign:"right"}}>
-                <p style={{fontSize:".67rem",color:"#f97316",marginBottom:3}}>{"الصيغة"}</p>
-                <p style={{fontSize:".74rem",fontWeight:800,color:"#fdba74",direction:"rtl",textAlign:"right"}}>{concept&&concept.formula}</p>
-              </div>
-            </div>
-            <p style={{fontSize:".71rem",lineHeight:1.7,color:"#f87171"}}>{concept&&concept.trap}</p>
-          </div>
-        </div>
-        <div style={{display:history.length>0?"block":"none"}}>
-          <div className="gl" style={{padding:"14px"}}>
-            <p style={{fontSize:".67rem",color:"#f97316",fontWeight:700,letterSpacing:".08em",marginBottom:9}}>{"السجل"}</p>
-            <div style={{display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:5}}>
-              {history.map((h,i)=><div key={i} style={{height:26,borderRadius:7,display:"flex",alignItems:"center",justifyContent:"center",fontSize:".68rem",fontWeight:700,background:h.ok?"rgba(74,222,128,.12)":"rgba(248,113,113,.1)",border:`1px solid ${h.ok?"rgba(74,222,128,.3)":"rgba(248,113,113,.25)"}`,color:h.ok?"#86efac":"#fca5a5"}}>{h.ok?"✓":"✗"}</div>)}</div>
-          </div>
-        </div>
-        <div className="gl2" style={{padding:"12px 14px",borderColor:"rgba(249,115,22,.2)",background:"rgba(249,115,22,.05)",display:trial.isSubscribed?"none":"block"}}>
-          <p style={{fontSize:".67rem",color:"#f97316",fontWeight:700,marginBottom:6}}>{"التجربة المجانية"}</p>
-          <div className="pt"><div className="pf" style={{width:`${trialPct}%`}}/></div>
-          <p style={{fontSize:".74rem",color:"#94a3b8",marginTop:6}}>{trial.used}{"/"}{trial.limit}{" سؤال"}</p>
-        </div>
-      </div>
+      </div>)}
     </div>
-  </div>
-  );
+
+    {/* ── Sidebar ── */}
+    <div className="mob-hide" style={{display:"flex",flexDirection:"column",gap:11,alignSelf:"start",position:"sticky",top:20}}>
+      {qData&&!loading&&!checked&&<QuestionTimer key={timerKey} seconds={90} onExpire={handleExpire} paused={checked}/>}
+      <div className="gl" style={{padding:"17px"}}>
+        <p style={{fontSize:".67rem",color:"#f97316",fontWeight:700,letterSpacing:".08em",marginBottom:11}}>جلستك</p>
+        <div style={{display:"flex",justifyContent:"center",marginBottom:13}}>
+          <Ring pct={acc} size={84} color={acc>=70?"#4ade80":acc>=50?"#f97316":"#f87171"} label="الدقة"/>
+        </div>
+        <div className="gl2" style={{padding:"10px 13px"}}>
+          <p style={{fontSize:".68rem",color:"#64748b"}}>الصحيح / الكلي</p>
+          <p style={{fontSize:"1.25rem",fontWeight:900,color:"#fff",marginTop:3}}>{correct} / {history.length}</p>
+        </div>
+      </div>
+      {CONCEPTS[curTopic||settings.topic]&&<div key={curTopic||settings.topic} className="gl au" style={{padding:"14px"}}>
+        <p style={{fontSize:".67rem",color:"#22d3ee",fontWeight:700,letterSpacing:".08em",marginBottom:8}}>📌 مرجع سريع — {curTopic||settings.topic}</p>
+        {CONCEPTS[curTopic||settings.topic].formula!=="—"&&<div className="gl2" style={{padding:"8px",marginBottom:7,textAlign:"right"}}>
+          <p style={{fontSize:".67rem",color:"#f97316",marginBottom:3}}>الصيغة</p>
+          <p style={{fontSize:".74rem",fontWeight:800,color:"#fdba74",direction:"rtl",textAlign:"right"}}>{CONCEPTS[curTopic||settings.topic].formula}</p>
+        </div>}
+        <p style={{fontSize:".71rem",lineHeight:1.7,color:"#f87171"}}>{CONCEPTS[curTopic||settings.topic].trap}</p>
+      </div>}
+      {history.length>0&&<div className="gl" style={{padding:"14px"}}>
+        <p style={{fontSize:".67rem",color:"#f97316",fontWeight:700,letterSpacing:".08em",marginBottom:9}}>السجل</p>
+        <div style={{display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:5}}>
+          {history.map((h,i)=><div key={i} style={{height:26,borderRadius:7,display:"flex",alignItems:"center",justifyContent:"center",fontSize:".68rem",fontWeight:700,background:h.ok?"rgba(74,222,128,.12)":"rgba(248,113,113,.1)",border:`1px solid ${h.ok?"rgba(74,222,128,.3)":"rgba(248,113,113,.25)"}`,color:h.ok?"#86efac":"#fca5a5"}}>{h.ok?"✓":"✗"}</div>)}
+        </div>
+      </div>}
+      {!trial.isSubscribed&&<div className="gl2" style={{padding:"12px 14px",borderColor:"rgba(249,115,22,.2)",background:"rgba(249,115,22,.05)"}}>
+        <p style={{fontSize:".67rem",color:"#f97316",fontWeight:700,marginBottom:6}}>التجربة المجانية</p>
+        <div className="pt"><div className="pf" style={{width:`${Math.min((trial.used/trial.limit)*100,100)}%`}}/></div>
+        <p style={{fontSize:".74rem",color:"#94a3b8",marginTop:6}}>{trial.used}/{trial.limit} سؤال</p>
+      </div>}
+    </div>
+  </div>);
 }
 
+/* ═══════════════════ REMAINING PAGES (compact) ═══════════════════ */
 function AnimCounter({target,suffix="",duration=1800}){
   const[val,setVal]=useState(0);
   const ref=useRef(null);
@@ -2287,16 +2343,21 @@ function Landing({go}){
     <div style={{display:"grid",gap:0}}>
 
       {/* ── بانر الإعلان ── */}
-      <div style={{display:!bannerClosed?"flex":"none",position:"relative",overflow:"hidden",padding:"11px 20px",background:"linear-gradient(90deg,rgba(249,115,22,.2),rgba(251,146,60,.14),rgba(34,211,238,.08))",border:"none",borderBottom:"1px solid rgba(249,115,22,.3)",alignItems:"center",justifyContent:"center",gap:16,flexWrap:"wrap",marginBottom:0}}>
-        <div style={{position:"absolute",inset:0,background:"linear-gradient(90deg,transparent,rgba(249,115,22,.05),transparent)",animation:"gridAnim 3s ease-in-out infinite",pointerEvents:"none"}}/>
-        <p style={{fontSize:".83rem",fontWeight:700,color:"#fff",position:"relative"}}>
-          🔥 عرض محدود — اشترك بـ <span style={{color:"#fde047",fontWeight:900}}>49 ريال/شهر</span> وافتح كل المميزات
-        </p>
-        <div style={{display:"flex",gap:8,position:"relative"}}>
-          <button className="btn btn-p" style={{fontSize:".75rem",padding:"7px 16px"}} onClick={()=>go("pricing")}>اشترك الآن ←</button>
-          <button onClick={()=>setBannerClosed(true)} style={{background:"none",border:"none",cursor:"pointer",color:"#475569",fontSize:"1rem",fontFamily:"Cairo,sans-serif",padding:"4px 6px"}}>✕</button>
+      {!bannerClosed&&(
+        <div style={{position:"relative",overflow:"hidden",padding:"11px 20px",
+          background:"linear-gradient(90deg,rgba(249,115,22,.2),rgba(251,146,60,.14),rgba(34,211,238,.08))",
+          border:"none",borderBottom:"1px solid rgba(249,115,22,.3)",
+          display:"flex",alignItems:"center",justifyContent:"center",gap:16,flexWrap:"wrap",marginBottom:0}}>
+          <div style={{position:"absolute",inset:0,background:"linear-gradient(90deg,transparent,rgba(249,115,22,.05),transparent)",animation:"gridAnim 3s ease-in-out infinite",pointerEvents:"none"}}/>
+          <p style={{fontSize:".83rem",fontWeight:700,color:"#fff",position:"relative"}}>
+            🔥 عرض محدود — اشترك بـ <span style={{color:"#fde047",fontWeight:900}}>49 ريال/شهر</span> وافتح كل المميزات
+          </p>
+          <div style={{display:"flex",gap:8,position:"relative"}}>
+            <button className="btn btn-p" style={{fontSize:".75rem",padding:"7px 16px"}} onClick={()=>go("pricing")}>اشترك الآن ←</button>
+            <button onClick={()=>setBannerClosed(true)} style={{background:"none",border:"none",cursor:"pointer",color:"#475569",fontSize:"1rem",fontFamily:"Cairo,sans-serif",padding:"4px 6px"}}>✕</button>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* ── Hero ── */}
       <div style={{padding:"clamp(28px,7vw,64px) 0 clamp(24px,5vw,48px)",textAlign:"center",position:"relative",overflow:"hidden"}}>
@@ -2446,7 +2507,8 @@ function Landing({go}){
           </div>
 
           {/* Expandable info card — shows in-place without navigation */}
-          {active&&activeData&&(<div className="au" style={{
+          {active&&activeData&&(
+            <div className="au" style={{
               borderRadius:16,overflow:"hidden",
               border:`1.5px solid ${activeData.verbal?"rgba(34,211,238,.25)":"rgba(249,115,22,.25)"}`,
               background:activeData.verbal?"rgba(34,211,238,.04)":"rgba(249,115,22,.04)",
@@ -2480,13 +2542,15 @@ function Landing({go}){
                   <p style={{fontSize:".85rem",color:"#e2e8f0",lineHeight:1.75,fontWeight:600}}>{activeData.tip}</p>
                 </div>
                 {/* Formula if exists */}
-                {activeData.concept?.formula&&activeData.concept.formula!=="—"&&(<div style={{padding:"10px 14px",borderRadius:11,background:"rgba(249,115,22,.06)",border:"1px solid rgba(249,115,22,.15)"}}>
+                {activeData.concept?.formula&&activeData.concept.formula!=="—"&&(
+                  <div style={{padding:"10px 14px",borderRadius:11,background:"rgba(249,115,22,.06)",border:"1px solid rgba(249,115,22,.15)"}}>
                     <p style={{fontSize:".67rem",color:"#f97316",fontWeight:700,marginBottom:4}}>📐 الصيغة</p>
                     <p style={{fontSize:".82rem",color:"#fdba74",lineHeight:1.6}}>{activeData.concept.formula}</p>
                   </div>
                 )}
                 {/* Trap */}
-                {activeData.concept?.trap&&(<div style={{padding:"10px 14px",borderRadius:11,background:"rgba(248,113,113,.05)",border:"1px solid rgba(248,113,113,.15)"}}>
+                {activeData.concept?.trap&&(
+                  <div style={{padding:"10px 14px",borderRadius:11,background:"rgba(248,113,113,.05)",border:"1px solid rgba(248,113,113,.15)"}}>
                     <p style={{fontSize:".82rem",color:"#fca5a5",lineHeight:1.6}}>{activeData.concept.trap}</p>
                   </div>
                 )}
@@ -2885,7 +2949,8 @@ const canAccess=(trial,feature)=>{
               <button className="btn btn-p" style={{width:"100%",justifyContent:"center",padding:"13px",marginTop:4}} disabled={loading} onClick={submit}>
                 {loading?<><div className="spin"/> جاري...</>:isLogin?"تسجيل الدخول ←":"إنشاء الحساب ←"}
               </button>
-              {isLogin&&(<button className="btn btn-g" style={{width:"100%",justifyContent:"center",fontSize:".8rem",color:"#64748b"}}
+              {isLogin&&(
+                <button className="btn btn-g" style={{width:"100%",justifyContent:"center",fontSize:".8rem",color:"#64748b"}}
                   onClick={()=>{setForgotMode(true);setErr("");setInfo("");}}>
                   🔑 نسيت كلمة المرور؟
                 </button>
@@ -3058,14 +3123,16 @@ function TopicLesson({topic,onClose,onStartPractice}){
       </div>
 
       {/* Loading */}
-      {loading&&(<div className="gl" style={{padding:"60px",textAlign:"center"}}>
+      {loading&&(
+        <div className="gl" style={{padding:"60px",textAlign:"center"}}>
           <div className="spin spin-lg" style={{margin:"0 auto 16px"}}/>
           <p style={{color:"#64748b"}}>يولّد الشرح من <strong style={{color:secColor}}>{topic}</strong>...</p>
         </div>
       )}
 
       {/* Error */}
-      {err&&!loading&&(<div className="gl" style={{
+      {err&&!loading&&(
+        <div className="gl" style={{
           padding:"26px",textAlign:"center",
           borderColor:"rgba(248,113,113,.2)",background:"rgba(248,113,113,.06)"
         }}>
@@ -3075,7 +3142,8 @@ function TopicLesson({topic,onClose,onStartPractice}){
       )}
 
       {/* Content */}
-      {data&&!loading&&(<div className="rg-lesson lesson-cols" style={{gap:13}}>
+      {data&&!loading&&(
+        <div className="rg-lesson lesson-cols" style={{gap:13}}>
 
           {/* Right column */}
           <div style={{display:"flex",flexDirection:"column",gap:13}}>
@@ -3115,7 +3183,8 @@ function TopicLesson({topic,onClose,onStartPractice}){
             </div>
 
             {/* Speed tip */}
-            {data.speed_tip&&(<div className="gl" style={{
+            {data.speed_tip&&(
+              <div className="gl" style={{
                 padding:"16px 18px",
                 borderColor:"rgba(34,211,238,.18)",background:"rgba(34,211,238,.05)"
               }}>
@@ -3127,7 +3196,8 @@ function TopicLesson({topic,onClose,onStartPractice}){
             )}
 
             {/* Common Mistakes */}
-            {data.common_mistakes?.length>0&&(<div className="gl" style={{padding:"18px 20px"}}>
+            {data.common_mistakes?.length>0&&(
+              <div className="gl" style={{padding:"18px 20px"}}>
                 <p style={{fontSize:".68rem",color:"#f87171",fontWeight:700,letterSpacing:".08em",marginBottom:11}}>
                   ⚠ أخطاء شائعة
                 </p>
@@ -3150,7 +3220,8 @@ function TopicLesson({topic,onClose,onStartPractice}){
           <div style={{display:"flex",flexDirection:"column",gap:13}}>
 
             {/* Solved Example */}
-            {data.solved_example&&(<div className="gl" style={{
+            {data.solved_example&&(
+              <div className="gl" style={{
                 padding:0,overflow:"hidden",
                 borderColor:"rgba(167,139,250,.22)"
               }}>
@@ -3191,7 +3262,8 @@ function TopicLesson({topic,onClose,onStartPractice}){
                       {data.solved_example.answer}
                     </p>
                   </div>
-                  {data.solved_example.trick&&(<div style={{
+                  {data.solved_example.trick&&(
+                    <div style={{
                       padding:"10px 14px",borderRadius:10,
                       background:"rgba(249,115,22,.07)",border:"1px solid rgba(249,115,22,.2)"
                     }}>
@@ -3205,11 +3277,13 @@ function TopicLesson({topic,onClose,onStartPractice}){
             )}
 
             {/* Quick ref from CONCEPTS */}
-            {CONCEPTS[topic]&&(<div className="gl" style={{padding:"18px 20px"}}>
+            {CONCEPTS[topic]&&(
+              <div className="gl" style={{padding:"18px 20px"}}>
                 <p style={{fontSize:".67rem",color:"#22d3ee",fontWeight:700,letterSpacing:".08em",marginBottom:10}}>
                   📌 مرجع سريع
                 </p>
-                {CONCEPTS[topic].formula!=="—"&&(<div style={{
+                {CONCEPTS[topic].formula!=="—"&&(
+                  <div style={{
                     padding:"10px",borderRadius:10,marginBottom:10,
                     background:"rgba(249,115,22,.07)",border:"1px solid rgba(249,115,22,.18)",
                     textAlign:"center"
