@@ -2370,6 +2370,7 @@ function Session({settings,go,updateUser,trial,setTrial,addMistake,plan="free",s
         </div>
       </div>)}
     </div>
+  </div>
 
     {/* ── Sidebar ── */}
     <div className="mob-hide" style={{display:"flex",flexDirection:"column",gap:11,alignSelf:"start",position:"sticky",top:20}}>
@@ -2403,10 +2404,7 @@ function Session({settings,go,updateUser,trial,setTrial,addMistake,plan="free",s
         <div className="pt"><div className="pf" style={{width:`${trialPct}%`}}/></div>
         <p style={{fontSize:".74rem",color:"#94a3b8",marginTop:6}}>{trialRatio} سؤال</p>
       </div>}
-    </div>
-  </div>
-  </div>
-  </div>
+    </div></div></div>
 </div>);
 }
 /* ═══════════════════ REMAINING PAGES (compact) ═══════════════════ */
