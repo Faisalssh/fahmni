@@ -2066,6 +2066,7 @@ function Session({settings,go,updateUser,trial,setTrial,addMistake,plan="free",s
   useEffect(()=>{window.scrollTo({top:0,behavior:"instant"});},[]);
   const[qData,setQData]=useState(null);
   const[loading,setLoading]=useState(false);
+  const loadingRef=useRef(false);
   const[err,setErr]=useState("");
   const[sel,setSel]=useState(null);
   const[checked,setChecked]=useState(false);
@@ -2098,6 +2099,7 @@ function Session({settings,go,updateUser,trial,setTrial,addMistake,plan="free",s
 
   const fetchQ=useCallback(async()=>{
     if(!trial.isSubscribed&&trial.used>=trial.limit){go("paywall");return;}
+    if(loadingRef.current) return; // منع التكرار
     // اختر باباً عشوائياً جديداً مختلفاً عن الحالي
     const nextTopic=(()=>{
       const pool=ALL_TOPICS.filter(t=>t!==curTopic);
@@ -2105,7 +2107,7 @@ function Session({settings,go,updateUser,trial,setTrial,addMistake,plan="free",s
       setCurTopic(t);
       return t;
     })();
-    setLoading(true);setErr("");setQData(null);setSel(null);setChecked(false);
+    setLoading(true);loadingRef.current=true;setErr("");setQData(null);setSel(null);setChecked(false);
     setSteps([]);setShowTip(false);setExpired(false);setAutoNext(false);setCoach(null);setCoachLoading(false);
     try{
       const q=await genQuestion({topic:nextTopic,difficulty:"متوسط",avoidQuestion:lastQRef.current,userId:session?.userId||null,userToken:session?.token||null});
@@ -2113,10 +2115,13 @@ function Session({settings,go,updateUser,trial,setTrial,addMistake,plan="free",s
       setQData({...q,topic:nextTopic});setTimerKey(k=>k+1);setQStart(Date.now());
       if(q._fromDB) showToast("⚡ من بنك الأسئلة","info",1500);
     }catch(e){if(e.limitReached){setErr(e.message);go("paywall");}else{setErr("فشل توليد السؤال. تحقق من الاتصال.");}}
-    finally{setLoading(false);}
+    finally{setLoading(false);loadingRef.current=false;}
   },[settings,trial]);
 
+  const didFetch=useRef(false);
   useEffect(()=>{
+    if(didFetch.current) return;
+    didFetch.current=true;
     if(!trial.isSubscribed&&trial.used>=trial.limit){go("paywall");return;}
     fetchQ();
   },[]);
@@ -3009,6 +3014,7 @@ function Auth({mode,go,onLogin}){
   const[pass,setPass]=useState("");
   const[pass2,setPass2]=useState("");
   const[loading,setLoading]=useState(false);
+  const loadingRef=useRef(false);
   const[err,setErr]=useState("");
   const[info,setInfo]=useState("");
   const[forgotMode,setForgotMode]=useState(false);
@@ -3051,7 +3057,7 @@ const canAccess=(trial,feature)=>{
       await sbResetPassword(email);
       setInfo("✉️ تم إرسال رابط إعادة التعيين! تحقق من بريدك.");
     }catch(e){setErr(e.message||"حدث خطأ، حاول مرة أخرى");}
-    finally{setLoading(false);}
+    finally{setLoading(false);loadingRef.current=false;}
   };
 
   const submit=async()=>{
@@ -3084,7 +3090,7 @@ const canAccess=(trial,feature)=>{
         }
       }
     }catch(e){setErr(e.message||"حدث خطأ، حاول مرة أخرى");}
-    finally{setLoading(false);}
+    finally{setLoading(false);loadingRef.current=false;}
   };
 
   /* ── وضع نسيت كلمة المرور ── */
@@ -4143,6 +4149,7 @@ function Contact({go}){
   const[msg,setMsg]=useState("");
   const[sent,setSent]=useState(false);
   const[loading,setLoading]=useState(false);
+  const loadingRef=useRef(false);
 
   const send=async()=>{
     if(!name||!email||!msg) return;
@@ -4155,7 +4162,7 @@ function Contact({go}){
       });
       setSent(true);
     }catch(e){setSent(true);}
-    finally{setLoading(false);}
+    finally{setLoading(false);loadingRef.current=false;}
   };
 
   return(
