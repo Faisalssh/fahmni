@@ -2092,7 +2092,7 @@ function Session({settings,go,updateUser,trial,setTrial,addMistake,plan="free",s
         <div className="mob-stats-bar">
           <Ring pct={acc} size={44} color={acc>=70?"#4ade80":acc>=50?"#f97316":"#f87171"} label=""/>
           <div style={{flex:1}}>
-            <p style={{fontSize:".7rem",color:"#64748b"}}>الصحيح / الكلي</p>
+            <p style={{fontSize:".7rem",color:"#64748b"}}>الصحيح ÷ الكلي</p>
             <p style={{fontSize:".9rem",fontWeight:900,color:"#fff"}}>{`${correct} / ${history.length}`}</p>
           </div>
           {!trial.isSubscribed&&<div style={{textAlign:"left",minWidth:80}}>
@@ -2237,7 +2237,7 @@ function Session({settings,go,updateUser,trial,setTrial,addMistake,plan="free",s
           <Ring pct={acc} size={84} color={acc>=70?"#4ade80":acc>=50?"#f97316":"#f87171"} label="الدقة"/>
         </div>
         <div className="gl2" style={{padding:"10px 13px"}}>
-          <p style={{fontSize:".68rem",color:"#64748b"}}>الصحيح / الكلي</p>
+          <p style={{fontSize:".68rem",color:"#64748b"}}>الصحيح ÷ الكلي</p>
           <p style={{fontSize:"1.25rem",fontWeight:900,color:"#fff",marginTop:3}}>{`${correct} / ${history.length}`}</p>
         </div>
       </div>
@@ -2260,11 +2260,7 @@ function Session({settings,go,updateUser,trial,setTrial,addMistake,plan="free",s
         <div className="pt"><div className="pf" style={{width:`${trial.used>0&&trial.limit>0?Math.min(Math.round(trial.used*100/trial.limit),100):0}%`}}/></div>
         <p style={{fontSize:".74rem",color:"#94a3b8",marginTop:6}}>{`${trial.used}/${trial.limit}`} سؤال</p>
       </div>}
-    </div>
-  </div>
-  </div>
-  </div>
-  </div>
+    </div></div></div></div></div>
 </div>);
 }
 
