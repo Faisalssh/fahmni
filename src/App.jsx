@@ -916,7 +916,12 @@ JSON فقط — لا نص خارجه:
   if(typeof parsed.correct!=="number"||parsed.correct<0||parsed.correct>3) parsed.correct=0;
   if(!Array.isArray(parsed.options)||parsed.options.length!==4) throw new Error("invalid options");
   if(!parsed.question||parsed.question.length<5) throw new Error("empty question");
-  parsed.steps=Array.isArray(parsed.steps)?parsed.steps:[];
+  // Strip accidental leading lone-alef (ا) prefix that sometimes appears in AI output
+  // Only strips ا when immediately followed by hamza variants (أ إ ئ ؤ) — never valid word start
+  const stripLeadingAlef=s=>typeof s==="string"?s.replace(/^ا(?=[أإئؤ])/,"").trim():s;
+  parsed.question=stripLeadingAlef(parsed.question);
+  parsed.options=parsed.options.map(stripLeadingAlef);
+  parsed.steps=Array.isArray(parsed.steps)?parsed.steps.map(stripLeadingAlef):[];
   parsed.tip=parsed.tip||"";
   parsed.explanation_title=parsed.explanation_title||"الحل";
   parsed.topic=parsed.topic||topic;
@@ -1962,7 +1967,7 @@ function Session({settings,go,updateUser,trial,setTrial,addMistake,plan="free",s
   const[qStart,setQStart]=useState(Date.now());
   const[autoNext,setAutoNext]=useState(false);
   /* Live coach state */
-  const[coach,setCoach]=useState(null);
+  const[coach,setCoach]=useState(null); // kept for future use
   const[coachLoading,setCoachLoading]=useState(false);
   /* anti-repeat + current topic */
   const[curTopic,setCurTopic]=useState(()=>{
@@ -2031,30 +2036,26 @@ function Session({settings,go,updateUser,trial,setTrial,addMistake,plan="free",s
     /* ── كل الشرح يظهر فوراً دفعة واحدة ── */
     setSteps(qData?.steps||[]);
     setShowTip(true);
-    setAutoNext(false); // يبدأ بعد الكوتش
-    /* ── Quick AI Coach ── */
-    setCoach(null);setCoachLoading(true);
-    genQuickCoach({
-      topic:curTopic||settings.topic, ok,
-      question:qData?.question||"",
-      chosen:isExpired?"(انتهى الوقت)":(qData?.options[chosenIdx]||""),
-      correctAns:qData?.options[qData?.correct]||"",
-      history:nh
-    }).then(c=>setCoach(c))
-      .catch(()=>setCoach({emoji:ok?"✓":"💡",msg:ok?"أحسنت، إجابة صحيحة!":"راجع طريقة الحل.",tip:""}))
-      .finally(()=>{setCoachLoading(false);setAutoNext(true);});
+    setAutoNext(true);
     setTimeout(()=>explRef.current?.scrollIntoView({behavior:"smooth",block:"start"}),120);
     if(nh.length>0&&nh.length%TEACHER_TRIGGER===0)setTimeout(()=>setShowTeacher(true),2000);
   };
 
   const handleExpire=()=>{if(!checked){setExpired(true);doCheck(null,true);}};
 
-  if(showTeacher)return(
-    <TeacherSummary topic={settings.topic} history={history.slice(-TEACHER_TRIGGER)}
-      onContinue={()=>{setShowTeacher(false);fetchQ();}}
-      onReview={()=>go("review")}
-      plan={plan}/>
-  );
+  if(showTeacher){
+    const recentHistory=history.slice(-TEACHER_TRIGGER);
+    const topicCounts={};
+    recentHistory.forEach(h=>{if(h.topic)topicCounts[h.topic]=(topicCounts[h.topic]||0)+1;});
+    const uniqueTopics=Object.keys(topicCounts);
+    const dominantTopic=uniqueTopics.length===1?uniqueTopics[0]:null;
+    return(
+      <TeacherSummary topic={dominantTopic||"مختلطة"} history={recentHistory}
+        onContinue={()=>{setShowTeacher(false);fetchQ();}}
+        onReview={()=>go("review")}
+        plan={plan}/>
+    );
+  }
 
   const realSec=deriveSec(settings.topic);
 
@@ -2184,34 +2185,6 @@ function Session({settings,go,updateUser,trial,setTrial,addMistake,plan="free",s
             <p style={{fontSize:".82rem",lineHeight:1.8,color:"#fdba74"}}>{qData.tip}</p>
           </div>
         )}
-
-        {/* Live AI Coach card */}
-          {(coachLoading||coach)&&(
-            <div className="au" style={{
-              marginTop:13,padding:"13px 16px",borderRadius:14,
-              background:"linear-gradient(135deg,rgba(139,92,246,.1),rgba(249,115,22,.07))",
-              border:"1px solid rgba(139,92,246,.22)"
-            }}>
-              <div style={{display:"flex",gap:8,alignItems:"flex-start"}}>
-                <span style={{fontSize:"1.2rem",flexShrink:0,marginTop:1}}>🎓</span>
-                <div style={{flex:1}}>
-                  <p style={{fontSize:".64rem",color:"#a78bfa",fontWeight:700,marginBottom:5,letterSpacing:".06em"}}>المعلم الذكي يقول</p>
-                  {coachLoading?(
-                    <div className="dots"><span/><span/><span/></div>
-                  ):(
-                    <>
-                      <p style={{fontSize:".86rem",fontWeight:700,color:"#e2e8f0",lineHeight:1.75,marginBottom:coach?.tip?6:0}}>
-                        {coach?.emoji} {coach?.msg}
-                      </p>
-                      {coach?.tip&&(
-                        <p style={{fontSize:".75rem",color:"#c4b5fd",lineHeight:1.6}}>⚡ {coach.tip}</p>
-                      )}
-                    </>
-                  )}
-                </div>
-              </div>
-            </div>
-          )}
 
         {/* Auto-advance or manual */}
         <div style={{marginTop:16,display:"flex",gap:9,justifyContent:"space-between",alignItems:"center",flexWrap:"wrap"}}>
