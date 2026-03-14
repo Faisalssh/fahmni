@@ -951,18 +951,23 @@ async function genQuestion({topic, difficulty, avoidQuestion="", userId=null, us
       let dbOptions,dbSteps;
       try{dbOptions=Array.isArray(cached.options)?cached.options:JSON.parse(cached.options||"[]");}catch(e){dbOptions=[];}
       try{dbSteps=Array.isArray(cached.steps)?cached.steps:JSON.parse(cached.steps||"[]");}catch(e){dbSteps=[];}
-      if(Array.isArray(dbOptions)&&dbOptions.length===4) return {
-        question         : cached.question_text,
-        options          : dbOptions,
-        correct          : typeof cached.correct==="number"?cached.correct:0,
-        explanation_title: cached.explanation_title||"الحل",
-        steps            : dbSteps,
-        tip              : cached.tip||"",
-        shape            : cached.shape||null,
-        topic,
-        _fromDB          : true,
-        _dbId            : cached.id,
-      };
+      // تأكد من أن السؤال صالح
+      if(cached.question_text && Array.isArray(dbOptions) && dbOptions.length>=2){
+        // أكمل الخيارات لو ناقصة
+        while(dbOptions.length < 4) dbOptions.push("—");
+        return {
+          question         : cached.question_text,
+          options          : dbOptions,
+          correct          : typeof cached.correct==="number"?Math.min(Math.max(cached.correct,0),dbOptions.length-1):0,
+          explanation_title: cached.explanation_title||"الحل",
+          steps            : dbSteps.length>0 ? dbSteps : ["راجع الحل أدناه"],
+          tip              : cached.tip||"",
+          shape            : cached.shape||null,
+          topic,
+          _fromDB          : true,
+          _dbId            : cached.id,
+        };
+      }
     }
   }
 
@@ -2237,7 +2242,7 @@ function Session({settings,go,updateUser,trial,setTrial,addMistake,plan="free",s
           <p style={{color:"#fca5a5",fontWeight:700,fontSize:".84rem"}}>⏱ انتهى الوقت! الإجابة الصحيحة أسفله</p>
         </div>}
         {qData.shape&&<ShapeRender shape={qData.shape}/>}
-        <h2 style={{fontSize:"clamp(.95rem,3vw,1.12rem)",fontWeight:800,color:"#fff",lineHeight:1.85,marginBottom:18}}>{qData.question}</h2>
+        <h2 style={{fontSize:"clamp(.95rem,3vw,1.12rem)",fontWeight:800,color:"#fff",lineHeight:1.85,marginBottom:18}}>{qData.question||qData.question_text||"جاري التحميل..."}</h2>
 
         {/* Options — click = answer immediately */}
         <div style={{display:"flex",flexDirection:"column",gap:9}}>
