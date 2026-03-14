@@ -943,7 +943,7 @@ async function genQuestion({topic, difficulty, avoidQuestion="", userId=null, us
 
   // ══ 1. ابحث في قاعدة البيانات أولاً — دائماً ══
   {
-    const cached=await sbGetQuestion(userId,userToken,{topic,section,difficulty:"متوسط"});
+    const cached=await sbGetQuestion(userId,userToken,{topic,section,difficulty:"متوسط",recentQ:lastQRef.current});
     if(cached){
       // سجّل أن المستخدم رأى هذا السؤال
       sbMarkSeen(userId,userToken,cached.id);
@@ -2088,7 +2088,7 @@ function Session({settings,go,updateUser,trial,setTrial,addMistake,plan="free",s
     const all=ALL_TOPICS;
     return all[Math.floor(Math.random()*all.length)];
   });
-  const lastQRef=useRef("");
+  const lastQRef=useRef([]); // array of last 10 question texts
   const explRef=useRef(null);
   const sounds=useNatureSounds();
   const correct=history.filter(h=>h.ok).length;
@@ -2111,7 +2111,10 @@ function Session({settings,go,updateUser,trial,setTrial,addMistake,plan="free",s
     setSteps([]);setShowTip(false);setExpired(false);setAutoNext(false);setCoach(null);setCoachLoading(false);
     try{
       const q=await genQuestion({topic:nextTopic,difficulty:"متوسط",avoidQuestion:lastQRef.current,userId:session?.userId||null,userToken:session?.token||null});
-      lastQRef.current=q.question||"";
+      const qt=q.question||"";
+      if(!lastQRef.current.includes(qt)){
+        lastQRef.current=[qt,...lastQRef.current].slice(0,10);
+      }
       setQData({...q,topic:nextTopic});setTimerKey(k=>k+1);setQStart(Date.now());
       if(q._fromDB) showToast("⚡ من بنك الأسئلة","info",1500);
     }catch(e){if(e.limitReached){setErr(e.message);go("paywall");}else{setErr("فشل توليد السؤال. تحقق من الاتصال.");}}
@@ -2904,7 +2907,7 @@ async function hashQuestion(text){
 }
 
 // اسحب سؤال من DB للمستخدم (لم يرَه من قبل)
-const sbGetQuestion=async(userId,token,{topic,section,difficulty})=>{
+const sbGetQuestion=async(userId,token,{topic,section,difficulty,recentQ=[]})=>{
   if(IS_ARTIFACT) return null;
   // استخدم دائماً متوسط — كل الأسئلة محفوظة بمستوى متوسط
   const dbDiff = "متوسط";
@@ -2924,12 +2927,17 @@ const sbGetQuestion=async(userId,token,{topic,section,difficulty})=>{
     }
     // guest أو انتهت الأسئلة الجديدة: اسحب سؤالاً عشوائياً من البنك
     const r2=await fetch(
-      `${SUPABASE_URL}/rest/v1/questions?section=eq.${encodeURIComponent(section)}&topic=eq.${encodeURIComponent(topic)}&difficulty=eq.${encodeURIComponent(dbDiff)}&limit=1&order=times_served.asc`,
+      `${SUPABASE_URL}/rest/v1/questions?section=eq.${encodeURIComponent(section)}&topic=eq.${encodeURIComponent(topic)}&difficulty=eq.${encodeURIComponent(dbDiff)}&limit=5&order=times_served.asc`,
       {headers:{"Content-Type":"application/json","apikey":SUPABASE_ANON,"Authorization":`Bearer ${SUPABASE_ANON}`}}
     );
     if(r2.ok){
       const rows2=await r2.json();
-      if(Array.isArray(rows2)&&rows2.length>0) return rows2[0];
+      if(Array.isArray(rows2)&&rows2.length>0){
+        // اختر سؤالاً لم يُرَ مؤخراً
+        const recent=Array.isArray(recentQ)?recentQ:[];
+        const fresh=rows2.find(r=>!recent.includes(r.question_text));
+        return fresh||rows2[0];
+      }
     }
     return null;
   }catch(e){ return null; }
