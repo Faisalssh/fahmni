@@ -2368,9 +2368,7 @@ function Session({settings,go,updateUser,trial,setTrial,addMistake,plan="free",s
           {autoNext&&!showTeacher&&<NextCountdown onNext={fetchQ} seconds={5}/>}
           {!autoNext&&checked&&<button className="btn btn-p" onClick={fetchQ}>السؤال التالي ←</button>}
         </div>
-      </div>)}
-    </div>
-  </div>
+      </div>)}</div></div>
 
     {/* ── Sidebar ── */}
     <div className="mob-hide" style={{display:"flex",flexDirection:"column",gap:11,alignSelf:"start",position:"sticky",top:20}}>
