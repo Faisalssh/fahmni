@@ -3266,7 +3266,6 @@ function Dashboard({go,user,trial,mistakes}){
           {[3,5,10,15,20].map(g=>(
             <button key={g} onClick={()=>{
               setDailyGoal(g);
-              setUser(u=>({...u,dailyGoal:g}));
               setShowGoalPicker(false);
             }} style={{
               padding:"7px 14px",borderRadius:10,cursor:"pointer",fontFamily:"Cairo,sans-serif",
