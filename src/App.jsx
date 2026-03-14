@@ -2122,7 +2122,8 @@ function Session({settings,go,updateUser,trial,setTrial,addMistake,plan="free",s
           <p style={{color:"#fca5a5",fontWeight:700,fontSize:".84rem"}}>⏱ انتهى الوقت! الإجابة الصحيحة أسفله</p>
         </div>}
         {qData.shape&&<ShapeRender shape={qData.shape}/>}
-        <h2 style={{fontSize:"clamp(.95rem,3vw,1.12rem)",fontWeight:800,color:"#fff",lineHeight:1.85,marginBottom:18}}>{qData.question}</h2>
+        <h2 style={{fontSize:"clamp(.95rem,3vw,1.12rem)",fontWeight:800,color:"#fff",lineHeight:1.85,marginBottom:6}}>{qData.question}</h2>
+        <p style={{fontSize:".6rem",color:"#334155",fontWeight:600,marginBottom:14}}>{qData._fromDB?"بنك الأسئلة":"مثال AI"}</p>
 
         {/* Options — click = answer immediately */}
         <div style={{display:"flex",flexDirection:"column",gap:9}}>
@@ -4056,7 +4057,7 @@ export default function Fahmni(){
         <GS/><Bg/>
         <Confetti active={confetti} onDone={()=>setConfetti(false)}/>
         {milestone&&<MilestonePopup milestone={milestone} onClose={()=>setMilestone(null)}/>}
-        <Nav isPub={PUB.includes(page)} go={go} userName={session?.name||user.name} title={TITLES[page]||""} onLogout={session?handleLogout:null}/>
+        <Nav isPub={PUB.includes(page) && !session} go={go} userName={session?.name||user.name} title={TITLES[page]||""} onLogout={session?handleLogout:null}/>
         <div className="wrap" style={{paddingTop:24}}>
           {R()}
         </div>
