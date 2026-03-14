@@ -721,6 +721,28 @@ const CONCEPTS={
   "الخطأ السياقي":{icon:"🔍",formula:"جملة صحيحة إملائياً لكن فيها كلمة واحدة تكسر المعنى",rules:["اقرأ الجملة وتصوّر معناها الكامل","ابحث عن الكلمة التي لا تنتمي للسياق","الخطأ واحد فقط — لا أكثر"],trap:"⚠ الفخ: الكلمة مكتوبة صح إملائياً لكنها خطأ في المعنى"},
 };
 
+
+/* ═══════════════════ YOUTUBE LINKS ═══════════════════ */
+const YT_LINKS={
+  "النسبة والتناسب":"https://www.youtube.com/results?search_query=%D8%B4%D8%B1%D8%AD+%D8%A7%D9%84%D9%86%D8%B3%D8%A8%D8%A9+%D9%88%D8%A7%D9%84%D8%AA%D9%86%D8%A7%D8%B3%D8%A8+%D9%82%D9%8A%D8%A7%D8%B3",
+  "الأعمار":"https://www.youtube.com/results?search_query=%D8%B4%D8%B1%D8%AD+%D9%85%D8%B3%D8%A7%D8%A6%D9%84+%D8%A7%D9%84%D8%A3%D8%B9%D9%85%D8%A7%D8%B1+%D9%82%D9%8A%D8%A7%D8%B3",
+  "المتوسط الحسابي":"https://www.youtube.com/results?search_query=%D8%B4%D8%B1%D8%AD+%D8%A7%D9%84%D9%85%D8%AA%D9%88%D8%B3%D8%B7+%D8%A7%D9%84%D8%AD%D8%B3%D8%A7%D8%A8%D9%8A+%D9%82%D9%8A%D8%A7%D8%B3",
+  "السرعة والمسافة والزمن":"https://www.youtube.com/results?search_query=%D8%B4%D8%B1%D8%AD+%D8%A7%D9%84%D8%B3%D8%B1%D8%B9%D8%A9+%D9%88%D8%A7%D9%84%D9%85%D8%B3%D8%A7%D9%81%D8%A9+%D9%82%D9%8A%D8%A7%D8%B3",
+  "الأرباح والنسب المئوية":"https://www.youtube.com/results?search_query=%D8%B4%D8%B1%D8%AD+%D8%A7%D9%84%D9%86%D8%B3%D8%A8+%D8%A7%D9%84%D9%85%D8%A6%D9%88%D9%8A%D8%A9+%D9%82%D9%8A%D8%A7%D8%B3",
+  "الجبر والمعادلات":"https://www.youtube.com/results?search_query=%D8%B4%D8%B1%D8%AD+%D8%A7%D9%84%D8%AC%D8%A8%D8%B1+%D9%88%D8%A7%D9%84%D9%85%D8%B9%D8%A7%D8%AF%D9%84%D8%A7%D8%AA+%D9%82%D9%8A%D8%A7%D8%B3",
+  "المتتاليات والأنماط":"https://www.youtube.com/results?search_query=%D8%B4%D8%B1%D8%AD+%D8%A7%D9%84%D9%85%D8%AA%D8%AA%D8%A7%D9%84%D9%8A%D8%A7%D8%AA+%D9%82%D9%8A%D8%A7%D8%B3",
+  "المثلثات":"https://www.youtube.com/results?search_query=%D8%B4%D8%B1%D8%AD+%D8%A7%D9%84%D9%85%D8%AB%D9%84%D8%AB%D8%A7%D8%AA+%D9%82%D9%8A%D8%A7%D8%B3",
+  "المربعات والمستطيلات":"https://www.youtube.com/results?search_query=%D8%B4%D8%B1%D8%AD+%D8%A7%D9%84%D9%85%D8%B3%D8%A7%D8%AD%D8%A7%D8%AA+%D9%82%D9%8A%D8%A7%D8%B3",
+  "الزوايا والأضلاع":"https://www.youtube.com/results?search_query=%D8%B4%D8%B1%D8%AD+%D8%A7%D9%84%D8%B2%D9%88%D8%A7%D9%8A%D8%A7+%D9%82%D9%8A%D8%A7%D8%B3",
+  "الدوائر":"https://www.youtube.com/results?search_query=%D8%B4%D8%B1%D8%AD+%D8%A7%D9%84%D8%AF%D9%88%D8%A7%D8%A6%D8%B1+%D9%82%D9%8A%D8%A7%D8%B3",
+  "تحليل البيانات والإحصاء":"https://www.youtube.com/results?search_query=%D8%B4%D8%B1%D8%AD+%D8%A7%D9%84%D8%A5%D8%AD%D8%B5%D8%A7%D8%A1+%D9%82%D9%8A%D8%A7%D8%B3",
+  "المقارنة الكمية":"https://www.youtube.com/results?search_query=%D8%B4%D8%B1%D8%AD+%D8%A7%D9%84%D9%85%D9%82%D8%A7%D8%B1%D9%86%D8%A9+%D8%A7%D9%84%D9%83%D9%85%D9%8A%D8%A9+%D9%82%D9%8A%D8%A7%D8%B3",
+  "إكمال الجمل":"https://www.youtube.com/results?search_query=%D8%B4%D8%B1%D8%AD+%D8%A5%D9%83%D9%85%D8%A7%D9%84+%D8%A7%D9%84%D8%AC%D9%85%D9%84+%D9%82%D9%8A%D8%A7%D8%B3",
+  "التناظر اللفظي":"https://www.youtube.com/results?search_query=%D8%B4%D8%B1%D8%AD+%D8%A7%D9%84%D8%AA%D9%86%D8%A7%D8%B8%D8%B1+%D8%A7%D9%84%D9%84%D9%81%D8%B8%D9%8A+%D9%82%D9%8A%D8%A7%D8%B3",
+  "استيعاب المقروء":"https://www.youtube.com/results?search_query=%D8%B4%D8%B1%D8%AD+%D8%A7%D8%B3%D8%AA%D9%8A%D8%B9%D8%A7%D8%A8+%D8%A7%D9%84%D9%85%D9%82%D8%B1%D9%88%D8%A1+%D9%82%D9%8A%D8%A7%D8%B3",
+  "الخطأ السياقي":"https://www.youtube.com/results?search_query=%D8%B4%D8%B1%D8%AD+%D8%A7%D9%84%D8%AE%D8%B7%D8%A3+%D8%A7%D9%84%D8%B3%D9%8A%D8%A7%D9%82%D9%8A+%D9%82%D9%8A%D8%A7%D8%B3",
+};
+
 const PLACEMENT_Q=[
   {id:1,sec:"كمي",q:"إذا كان 4 طلاب ينهون 10 سؤالاً في 10 دقائق، فكم سؤالاً ينجز 8 طلاب في نفس الوقت؟",opts:["20","30","40","80"],correct:2,why:"عدد العمال تضاعف والوقت ثابت → الإنجاز يتضاعف: 20×2=40"},
   {id:2,sec:"لفظي",q:"أكمل الجملة: النجاح لا يأتي من الحظ، بل من ____.",opts:["الاجتهاد","النسيان","الانتظار","التردد"],correct:0,why:"السياق يطلب ضد الحظ = الاجتهاد"},
@@ -2123,6 +2145,12 @@ function Session({settings,go,updateUser,trial,setTrial,addMistake,plan="free",s
           <p style={{color:"#fca5a5",fontWeight:700,fontSize:".84rem"}}>⏱ انتهى الوقت! الإجابة الصحيحة أسفله</p>
         </div>}
         {qData.shape&&<ShapeRender shape={qData.shape}/>}
+        {!checked&&CONCEPTS[curTopic||settings.topic]&&(
+          <div style={{display:"flex",alignItems:"center",gap:8,padding:"8px 12px",borderRadius:10,background:"rgba(34,211,238,.07)",border:"1px solid rgba(34,211,238,.16)",marginBottom:14}}>
+            <span style={{fontSize:".85rem",flexShrink:0}}>💡</span>
+            <p style={{fontSize:".72rem",color:"#67e8f9",fontWeight:700,lineHeight:1.6}}>{CONCEPTS[curTopic||settings.topic].formula!=="—"?CONCEPTS[curTopic||settings.topic].formula:CONCEPTS[curTopic||settings.topic].trap}</p>
+          </div>
+        )}
         <h2 style={{fontSize:"clamp(.95rem,3vw,1.12rem)",fontWeight:800,color:"#fff",lineHeight:1.85,marginBottom:6}}>{qData.question}</h2>
         <p style={{fontSize:".6rem",color:"#334155",fontWeight:600,marginBottom:14}}>{qData._fromDB?"بنك الأسئلة":"مثال AI"}</p>
 
@@ -2218,6 +2246,7 @@ function Session({settings,go,updateUser,trial,setTrial,addMistake,plan="free",s
           <p style={{fontSize:".74rem",fontWeight:800,color:"#fdba74",direction:"rtl",textAlign:"right"}}>{CONCEPTS[curTopic||settings.topic].formula}</p>
         </div>}
         <p style={{fontSize:".71rem",lineHeight:1.7,color:"#f87171"}}>{CONCEPTS[curTopic||settings.topic].trap}</p>
+        {YT_LINKS[curTopic||settings.topic]&&<a href={YT_LINKS[curTopic||settings.topic]} target="_blank" rel="noopener noreferrer" style={{display:"flex",alignItems:"center",gap:7,marginTop:10,padding:"7px 11px",borderRadius:9,background:"rgba(220,38,38,.08)",border:"1px solid rgba(220,38,38,.18)",color:"#f87171",fontWeight:700,fontSize:".7rem",textDecoration:"none",fontFamily:"Cairo,sans-serif"}}>▶ شرح على يوتيوب</a>}
       </div>}
       {history.length>0&&<div className="gl" style={{padding:"14px"}}>
         <p style={{fontSize:".67rem",color:"#f97316",fontWeight:700,letterSpacing:".08em",marginBottom:9}}>السجل</p>
@@ -2965,6 +2994,24 @@ function Dashboard({go,user,trial,mistakes}){
       </div>
       <div className="rg-4" style={{gap:11,marginTop:20}}>{[["الدقة",`${acc}%`,"#f97316"],["الأسئلة",user.totalSolved,"#22d3ee"],["الصحيح",user.correct,"#4ade80"],["أطول سلسلة",`${user.streak}🔥`,"#f97316"]].map(([l,v,c],i)=>(<div key={i} className={`gl2 stat au d${i+1}`}><p style={{fontSize:".68rem",color:"#64748b"}}>{l}</p><p key={String(v)} style={{marginTop:5,fontSize:"1.35rem",fontWeight:900,color:c,animation:"numPop .4s cubic-bezier(.34,1.56,.64,1) both"}}>{v}</p></div>))}</div>
     </div>
+    {mistakes.length>=3&&(()=>{
+      const counts={};
+      mistakes.forEach(m=>{counts[m.topic]=(counts[m.topic]||0)+1;});
+      const sorted=Object.entries(counts).sort((a,b)=>b[1]-a[1]);
+      const top=sorted[0];
+      return(
+        <div style={{padding:"14px 18px",borderRadius:16,background:"rgba(248,113,113,.07)",border:"1px solid rgba(248,113,113,.2)",display:"flex",alignItems:"center",justifyContent:"space-between",flexWrap:"wrap",gap:10}}>
+          <div style={{display:"flex",alignItems:"center",gap:10}}>
+            <span style={{fontSize:"1.3rem"}}>🎯</span>
+            <div>
+              <p style={{fontSize:".67rem",color:"#f87171",fontWeight:700,marginBottom:2}}>نقطة الضعف</p>
+              <p style={{fontSize:".88rem",fontWeight:800,color:"#fff"}}>{top[0]} <span style={{color:"#f87171",fontSize:".75rem"}}>({top[1]} {top[1]===1?"خطأ":"أخطاء"})</span></p>
+            </div>
+          </div>
+          <button className="btn btn-p" style={{fontSize:".78rem",padding:"8px 16px"}} onClick={()=>go("session")}>تدرّب عليه ←</button>
+        </div>
+      );
+    })()}
     <div className="gl" style={{padding:"24px"}}>
       <p style={{fontSize:".68rem",color:"#f97316",fontWeight:700,letterSpacing:".1em",marginBottom:13}}>ابدأ بسرعة</p>
       <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:11}}>
@@ -3047,8 +3094,7 @@ function TopicLesson({topic,onClose,onStartPractice}){
   const[err,setErr]=useState("");
   const sec=deriveSec(topic);
   const secColor=sec==="كمي"?"#f97316":"#22d3ee";
-  const ytQuery=encodeURIComponent(`شرح قدرات ${topic} قياس`);
-  const ytUrl=`https://www.youtube.com/results?search_query=${ytQuery}`;
+  const ytUrl=YT_LINKS[topic]||`https://www.youtube.com/results?search_query=${encodeURIComponent(`شرح قدرات ${topic} قياس`)}`;
 
   const load=()=>{
     setLoading(true);setErr("");setData(null);
