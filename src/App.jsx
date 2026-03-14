@@ -941,9 +941,9 @@ async function genQuestion({topic, difficulty, avoidQuestion="", userId=null, us
   const verbalNote = VERBAL_INSTRUCTIONS[topic]?`\n${VERBAL_INSTRUCTIONS[topic]}`:"";
   const avoidNote  = avoidQuestion?`\n⛔ لا تعيد هذا السؤال: "${avoidQuestion.slice(0,40)}"`:"";
 
-  // ══ 1. ابحث في قاعدة البيانات أولاً ══
-  if(userId && userId!=="guest" && userToken){
-    const cached=await sbGetQuestion(userId,userToken,{topic,section,difficulty});
+  // ══ 1. ابحث في قاعدة البيانات أولاً — دائماً ══
+  {
+    const cached=await sbGetQuestion(userId,userToken,{topic,section,difficulty:"متوسط"});
     if(cached){
       // سجّل أن المستخدم رأى هذا السؤال
       sbMarkSeen(userId,userToken,cached.id);
@@ -2895,17 +2895,33 @@ async function hashQuestion(text){
 
 // اسحب سؤال من DB للمستخدم (لم يرَه من قبل)
 const sbGetQuestion=async(userId,token,{topic,section,difficulty})=>{
-  if(IS_ARTIFACT||!userId||userId==="guest") return null;
+  if(IS_ARTIFACT) return null;
+  // استخدم دائماً متوسط — كل الأسئلة محفوظة بمستوى متوسط
+  const dbDiff = "متوسط";
   try{
-    const r=await fetch(
-      `${SUPABASE_URL}/rest/v1/rpc/get_question_for_user`,
-      {method:"POST",
-       headers:{"Content-Type":"application/json","apikey":SUPABASE_ANON,"Authorization":`Bearer ${token}`},
-       body:JSON.stringify({p_user_id:userId,p_topic:topic,p_section:section,p_difficulty:difficulty})}
+    // مستخدم مسجّل: استخدم الـ RPC الذي يتجنب الأسئلة المشاهدة
+    if(userId && userId!=="guest" && token){
+      const r=await fetch(
+        `${SUPABASE_URL}/rest/v1/rpc/get_question_for_user`,
+        {method:"POST",
+         headers:{"Content-Type":"application/json","apikey":SUPABASE_ANON,"Authorization":`Bearer ${token}`},
+         body:JSON.stringify({p_user_id:userId,p_topic:topic,p_section:section,p_difficulty:dbDiff})}
+      );
+      if(r.ok){
+        const rows=await r.json();
+        if(Array.isArray(rows)&&rows.length>0) return rows[0];
+      }
+    }
+    // guest أو انتهت الأسئلة الجديدة: اسحب سؤالاً عشوائياً من البنك
+    const r2=await fetch(
+      `${SUPABASE_URL}/rest/v1/questions?section=eq.${encodeURIComponent(section)}&topic=eq.${encodeURIComponent(topic)}&difficulty=eq.${encodeURIComponent(dbDiff)}&limit=1&order=times_served.asc`,
+      {headers:{"Content-Type":"application/json","apikey":SUPABASE_ANON,"Authorization":`Bearer ${SUPABASE_ANON}`}}
     );
-    if(!r.ok) return null;
-    const rows=await r.json();
-    return Array.isArray(rows)&&rows.length>0 ? rows[0] : null;
+    if(r2.ok){
+      const rows2=await r2.json();
+      if(Array.isArray(rows2)&&rows2.length>0) return rows2[0];
+    }
+    return null;
   }catch(e){ return null; }
 };
 
