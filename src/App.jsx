@@ -3995,27 +3995,29 @@ export default function Fahmni(){
   // حماية الصفحات — لو ما في session يرجع للصفحة الرئيسية
   const PROTECTED=["dashboard","roadmap","session","bank","sim","review","lesson","diagnostic","placement","placementResult","onboarding"];
   const PAID_ONLY=["sim","bank","review","roadmap","lesson"]; // require subscription
-  const R=()=>{
-    // 1) مو مسجّل → landing
-    if(PROTECTED.includes(page)&&!session){go("landing");return null;}
-    // 2) مسجّل لكن ما أكمل placement → أجبره على placement
+
+  // Redirect logic moved to useEffect — prevents go() from being called during render
+  useEffect(()=>{
     const NEEDS_PLACEMENT=["dashboard","session","bank","sim","review","roadmap","lesson","diagnostic"];
-    if(session&&!session.isGuest&&NEEDS_PLACEMENT.includes(page)&&!placementDoneRef.current){
-      go("placement");return null;
-    }
-    // 3) PAID_ONLY — يحتاج اشتراك
-    if(PAID_ONLY.includes(page)){
-      if(!trial.isSubscribed){
-        if(page==="session"&&trial.used<trial.limit){/* مسموح */}
-        else{go("paywall");return null;}
-      }
-    }
+    if(PROTECTED.includes(page)&&!session){go("landing");return;}
+    if(session&&!session.isGuest&&NEEDS_PLACEMENT.includes(page)&&!placementDoneRef.current){go("placement");return;}
+    if(PAID_ONLY.includes(page)&&!trial.isSubscribed&&!(page==="session"&&trial.used<trial.limit)){go("paywall");return;}
+    if(page==="placement"&&placementDone){go("dashboard");return;}
+    if(page==="lesson"&&!trial.isSubscribed){go("paywall");return;}
+  },[page,session,trial.isSubscribed,trial.used,placementDone]);
+
+  const R=()=>{
+    const NEEDS_PLACEMENT=["dashboard","session","bank","sim","review","roadmap","lesson","diagnostic"];
+    // Return null while useEffect redirect is pending — no go() calls during render
+    if(PROTECTED.includes(page)&&!session) return null;
+    if(session&&!session.isGuest&&NEEDS_PLACEMENT.includes(page)&&!placementDoneRef.current) return null;
+    if(PAID_ONLY.includes(page)&&!trial.isSubscribed&&!(page==="session"&&trial.used<trial.limit)) return null;
     const plan=trial.plan||'free';
     switch(page){
     case"login":case"signup":return <Auth mode={page} go={go} onLogin={handleLogin}/>;
     case"onboarding":return <Onboarding finish={d=>{setProfile(d);go("placement");}}/>;
     case"placement":
-      if(placementDone){go("dashboard");return null;}
+      if(placementDone) return null;
       return <PlacementQuiz profile={profile} onFinish={ans=>{setPAnswers(ans);const r=getRec({...profile,score:ans.filter(a=>a.ok).length,answers:ans});setRec(r);setSettings(p=>({...p,section:profile.section,topic:r.topic}));go("placementResult");}}/>;
     case"placementResult":return <PlacementResult rec={rec} score={pAnswers.filter(a=>a.ok).length} onFinish={()=>{
       placementDoneRef.current=true;setPlacementDone(true);
@@ -4025,7 +4027,7 @@ export default function Fahmni(){
     case"dashboard":return <Dashboard go={go} user={user} trial={trial} mistakes={mistakes}/>;
     case"roadmap":return <Roadmap go={go} setSettings={setSettings} openLesson={openLesson} trial={trial}/>;
     case"lesson":
-      if(!trial.isSubscribed){go("paywall");return null;}
+      if(!trial.isSubscribed) return null;
       return lessonTopic
       ? <TopicLesson
           topic={lessonTopic}
@@ -4056,7 +4058,7 @@ export default function Fahmni(){
         {milestone&&<MilestonePopup milestone={milestone} onClose={()=>setMilestone(null)}/>}
         <Nav isPub={PUB.includes(page)} go={go} userName={session?.name||user.name} title={TITLES[page]||""} onLogout={session?handleLogout:null}/>
         <div className="wrap" style={{paddingTop:24}}>
-          <R/>
+          {R()}
         </div>
       </div>
     </ErrorBoundary>
