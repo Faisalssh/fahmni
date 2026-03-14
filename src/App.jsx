@@ -2209,7 +2209,7 @@ function Session({settings,go,updateUser,trial,setTrial,addMistake,plan="free",s
           <div style={{marginTop:9}}>
             <div style={{display:"flex",justifyContent:"space-between",fontSize:".67rem",color:"#64748b",marginBottom:4}}>
               <span style={{color:"#a78bfa"}}>🎓 وضع المعلم بعد {TEACHER_TRIGGER-(history.length%TEACHER_TRIGGER)} أسئلة</span>
-              <span>{history.length%TEACHER_TRIGGER}{"⁄"}{TEACHER_TRIGGER}</span>
+              <span>{history.length%TEACHER_TRIGGER}{"/"}{TEACHER_TRIGGER}</span>
             </div>
             <div className="pt"><div style={{height:"100%",borderRadius:99,background:"linear-gradient(90deg,#a78bfa,#22d3ee)",width:`${Math.round((history.length%TEACHER_TRIGGER)*100/TEACHER_TRIGGER)}%`,transition:"width .6s ease"}}/></div>
           </div>
@@ -2222,10 +2222,10 @@ function Session({settings,go,updateUser,trial,setTrial,addMistake,plan="free",s
           <Ring pct={acc} size={44} color={acc>=70?"#4ade80":acc>=50?"#f97316":"#f87171"} label=""/>
           <div style={{flex:1}}>
             <p style={{fontSize:".7rem",color:"#64748b"}}>الصحيح / الكلي</p>
-            <p style={{fontSize:".9rem",fontWeight:900,color:"#fff"}}>{correct}{" ⁄ "}{history.length}</p>
+            <p style={{fontSize:".9rem",fontWeight:900,color:"#fff"}}>{correct}{" / "}{history.length}</p>
           </div>
           {!trial.isSubscribed&&<div style={{textAlign:"left",minWidth:80}}>
-            <p style={{fontSize:".62rem",color:"#f97316",fontWeight:700,marginBottom:3}}>{trial.used}{"⁄"}{trial.limit} سؤال</p>
+            <p style={{fontSize:".62rem",color:"#f97316",fontWeight:700,marginBottom:3}}>{trial.used}{"/"}{trial.limit} سؤال</p>
             <div className="pt"><div className="pf" style={{width:`${trialPct}%`}}/></div>
           </div>}
         </div>
@@ -2376,7 +2376,7 @@ function Session({settings,go,updateUser,trial,setTrial,addMistake,plan="free",s
         </div>
         <div className="gl2" style={{padding:"10px 13px"}}>
           <p style={{fontSize:".68rem",color:"#64748b"}}>الصحيح / الكلي</p>
-          <p style={{fontSize:"1.25rem",fontWeight:900,color:"#fff",marginTop:3}}>{correct}{" ⁄ "}{history.length}</p>
+          <p style={{fontSize:"1.25rem",fontWeight:900,color:"#fff",marginTop:3}}>{correct}{" / "}{history.length}</p>
         </div>
       </div>
       {CONCEPTS[curTopic||settings.topic]&&<div key={curTopic||settings.topic} className="gl au" style={{padding:"14px"}}>
@@ -2396,13 +2396,9 @@ function Session({settings,go,updateUser,trial,setTrial,addMistake,plan="free",s
       {!trial.isSubscribed&&<div className="gl2" style={{padding:"12px 14px",borderColor:"rgba(249,115,22,.2)",background:"rgba(249,115,22,.05)"}}>
         <p style={{fontSize:".67rem",color:"#f97316",fontWeight:700,marginBottom:6}}>التجربة المجانية</p>
         <div className="pt"><div className="pf" style={{width:`${trialPct}%`}}/></div>
-        <p style={{fontSize:".74rem",color:"#94a3b8",marginTop:6}}>{trial.used}{"⁄"}{trial.limit} سؤال</p>
+        <p style={{fontSize:".74rem",color:"#94a3b8",marginTop:6}}>{trial.used}{"/"}{trial.limit} سؤال</p>
       </div>}
-    </div>
-  </div>
-  </div>
-  </div>
-  </div>
+    </div></div></div></div></div>
 </div>);
 }
 /* ═══════════════════ REMAINING PAGES (compact) ═══════════════════ */
@@ -3282,7 +3278,7 @@ function Dashboard({go,user,trial,mistakes}){
           </div>
         </div>
         <div style={{display:"flex",alignItems:"center",gap:8}}>
-          <span style={{fontWeight:900,color:dailyDone_?"#4ade80":"#f97316",fontSize:"1rem"}}>{dailyDone}{"⁄"}{dailyGoal}</span>
+          <span style={{fontWeight:900,color:dailyDone_?"#4ade80":"#f97316",fontSize:"1rem"}}>{dailyDone}{"/"}{dailyGoal}</span>
           <button onClick={()=>setShowGoalPicker(p=>!p)} style={{
             background:"rgba(255,255,255,.06)",border:"1px solid rgba(255,255,255,.1)",
             borderRadius:8,padding:"4px 9px",cursor:"pointer",fontSize:".68rem",
