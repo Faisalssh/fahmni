@@ -1501,7 +1501,7 @@ function SimMode({settings,go,updateUser,addMistake,trial={}}){  useEffect(()=>{
             <div className="pt">
               <div style={{height:"100%",borderRadius:99,
                 background:`linear-gradient(90deg,${secColor},${secColor}88)`,
-                width:`${totalQ>0?Math.round(idx*100/totalQ):0}%`,transition:"width .4s ease"}}/>
+                width:`${Math.round((idx/totalQ)*100)}%`,transition:"width .4s ease"}}/>
             </div>
           </div>
 
@@ -1657,7 +1657,7 @@ function SimMode({settings,go,updateUser,addMistake,trial={}}){  useEffect(()=>{
               </div>
               <div className="pt" style={{marginBottom:8}}>
                 <div style={{height:"100%",borderRadius:99,background:color,
-                  width:`${tot>0?Math.round(cor*100/tot):0}%`,transition:"width .6s ease"}}/>
+                  width:`${tot?Math.round((cor/tot)*100):0}%`,transition:"width .6s ease"}}/>
               </div>
               <p style={{fontSize:".75rem",color:"#64748b"}}>{cor} صحيح من {tot} سؤال</p>
             </div>
