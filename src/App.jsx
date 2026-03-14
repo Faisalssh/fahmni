@@ -1580,7 +1580,7 @@ function SimMode({settings,go,updateUser,addMistake,trial={}}){  useEffect(()=>{
             <div className="pt">
               <div style={{height:"100%",borderRadius:99,
                 background:`linear-gradient(90deg,${secColor},${secColor}88)`,
-                width:`${Math.round((idx/totalQ)*100)}%`,transition:"width .4s ease"}}/>
+                width:`${totalQ>0?Math.round(idx*100/totalQ):0}%`,transition:"width .4s ease"}}/>
             </div>
           </div>
 
@@ -1736,7 +1736,7 @@ function SimMode({settings,go,updateUser,addMistake,trial={}}){  useEffect(()=>{
               </div>
               <div className="pt" style={{marginBottom:8}}>
                 <div style={{height:"100%",borderRadius:99,background:color,
-                  width:`${tot?Math.round((cor/tot)*100):0}%`,transition:"width .6s ease"}}/>
+                  width:`${tot>0?Math.round(cor*100/tot):0}%`,transition:"width .6s ease"}}/>
               </div>
               <p style={{fontSize:".75rem",color:"#64748b"}}>{cor} صحيح من {tot} سؤال</p>
             </div>
@@ -2093,6 +2093,7 @@ function Session({settings,go,updateUser,trial,setTrial,addMistake,plan="free",s
   const sounds=useNatureSounds();
   const correct=history.filter(h=>h.ok).length;
   const acc=history.length?Math.round((correct/history.length)*100):0;
+  const trialPct=trial.limit>0?Math.min(Math.round(trial.used*100/trial.limit),100):0;
   const isCorrect=checked&&sel===qData?.correct;
   const TEACHER_TRIGGER=5;
   const avgT=qTimes.length?Math.round(qTimes.reduce((a,b)=>a+b,0)/qTimes.length):0;
@@ -2210,7 +2211,7 @@ function Session({settings,go,updateUser,trial,setTrial,addMistake,plan="free",s
               <span style={{color:"#a78bfa"}}>🎓 وضع المعلم بعد {TEACHER_TRIGGER-(history.length%TEACHER_TRIGGER)} أسئلة</span>
               <span>{history.length%TEACHER_TRIGGER + "/" + TEACHER_TRIGGER}</span>
             </div>
-            <div className="pt"><div style={{height:"100%",borderRadius:99,background:"linear-gradient(90deg,#a78bfa,#22d3ee)",width:`${(history.length%TEACHER_TRIGGER)/TEACHER_TRIGGER*100}%`,transition:"width .6s ease"}}/></div>
+            <div className="pt"><div style={{height:"100%",borderRadius:99,background:"linear-gradient(90deg,#a78bfa,#22d3ee)",width:`${Math.round((history.length%TEACHER_TRIGGER)*100/TEACHER_TRIGGER)}%`,transition:"width .6s ease"}}/></div>
           </div>
         )}
       </div>
@@ -2225,7 +2226,7 @@ function Session({settings,go,updateUser,trial,setTrial,addMistake,plan="free",s
           </div>
           {!trial.isSubscribed&&<div style={{textAlign:"left",minWidth:80}}>
             <p style={{fontSize:".62rem",color:"#f97316",fontWeight:700,marginBottom:3}}>{trial.used + "/" + trial.limit} سؤال</p>
-            <div className="pt"><div className="pf" style={{width:`${Math.min((trial.used/trial.limit)*100,100)}%`}}/></div>
+            <div className="pt"><div className="pf" style={{width:`${trialPct}%`}}/></div>
           </div>}
         </div>
       </div>
@@ -2394,7 +2395,7 @@ function Session({settings,go,updateUser,trial,setTrial,addMistake,plan="free",s
       </div>}
       {!trial.isSubscribed&&<div className="gl2" style={{padding:"12px 14px",borderColor:"rgba(249,115,22,.2)",background:"rgba(249,115,22,.05)"}}>
         <p style={{fontSize:".67rem",color:"#f97316",fontWeight:700,marginBottom:6}}>التجربة المجانية</p>
-        <div className="pt"><div className="pf" style={{width:`${Math.min((trial.used/trial.limit)*100,100)}%`}}/></div>
+        <div className="pt"><div className="pf" style={{width:`${trialPct}%`}}/></div>
         <p style={{fontSize:".74rem",color:"#94a3b8",marginTop:6}}>{trial.used + "/" + trial.limit} سؤال</p>
       </div>}
     </div>
@@ -2402,7 +2403,7 @@ function Session({settings,go,updateUser,trial,setTrial,addMistake,plan="free",s
   </div>
   </div>
   </div>
-  </div>);
+</div>);
 }
 /* ═══════════════════ REMAINING PAGES (compact) ═══════════════════ */
 function AnimCounter({target,suffix="",duration=1800}){
@@ -3379,7 +3380,7 @@ function Dashboard({go,user,trial,mistakes}){
       <div style={{padding:"16px 20px",borderRadius:16,background:"linear-gradient(135deg,rgba(249,115,22,.1),rgba(34,211,238,.06))",border:"1px solid rgba(249,115,22,.18)",display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:12}}>
         <div>
           <p style={{fontWeight:700,color:"#fdba74",marginBottom:6}}>التجربة المجانية — {trial.limit-trial.used} سؤال متبقي</p>
-          <div className="pt" style={{width:"min(180px,60vw)"}}><div className="pf" style={{width:`${Math.min((trial.used/trial.limit)*100,100)}%`}}/></div>
+          <div className="pt" style={{width:"min(180px,60vw)"}}><div className="pf" style={{width:`${trialPct}%`}}/></div>
         </div>
         <button className="btn btn-p" style={{fontSize:".82rem"}} onClick={()=>go("pricing")}>اشترك الآن ←</button>
       </div>
