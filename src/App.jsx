@@ -25,8 +25,8 @@ const GS = () => (<style>{`
   .pi{animation:popIn .4s cubic-bezier(.34,1.56,.64,1) both}
   .d1{animation-delay:.07s}.d2{animation-delay:.14s}.d3{animation-delay:.21s}
   .d4{animation-delay:.28s}.d5{animation-delay:.35s}.d6{animation-delay:.42s}
-  .app{min-height:100vh;background:#05091a;color:#fff;direction:rtl;}
-  .wrap{max-width:1020px;margin:0 auto;padding:26px 18px;position:relative;z-index:1;}
+  .app{min-height:100vh;background:#05091a;color:#fff;direction:rtl;overflow-x:hidden;width:100%;}
+  .wrap{max-width:1020px;margin:0 auto;padding:26px 18px;position:relative;z-index:1;overflow-x:hidden;box-sizing:border-box;}
   .bg-f{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden;}
   .bg-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(249,115,22,.055)1px,transparent 1px),linear-gradient(90deg,rgba(249,115,22,.055)1px,transparent 1px);background-size:52px 52px;animation:gridAnim 5s ease-in-out infinite;}
   .orb{position:absolute;border-radius:50%;filter:blur(90px);animation:drift var(--d,10s) ease-in-out var(--dl,0s) infinite;}
@@ -92,8 +92,9 @@ const GS = () => (<style>{`
   .review-item:hover{border-color:rgba(248,113,113,.4);background:rgba(248,113,113,.09);transform:translateX(-3px);}
   .review-item.solved{border-color:rgba(74,222,128,.25);background:rgba(74,222,128,.05);}
   .diag-badge{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:99px;background:linear-gradient(135deg,rgba(167,139,250,.2),rgba(34,211,238,.1));border:1px solid rgba(167,139,250,.3);color:#c4b5fd;font-size:.72rem;font-weight:700;animation:float 3s ease-in-out infinite;}
-  @keyframes tmq{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
-  .app{overflow-x:hidden;}
+  .tmq-track{display:flex;gap:16px;width:max-content;}
+  .tmq-track:hover{animation-play-state:paused;}
+  .tmq-card{flex-shrink:0;width:260px;padding:16px 18px;border-radius:14px;background:rgba(10,18,40,.9);border:1px solid rgba(255,255,255,.08);}
   .app{overflow-x:hidden;}
   ::-webkit-scrollbar{width:4px;}
   ::-webkit-scrollbar-thumb{background:rgba(249,115,22,.35);border-radius:99px;}
@@ -2467,38 +2468,40 @@ const TESTIMONIALS=[
 ];
 
 function TestimonialsBar(){
+  const trackRef=useRef(null);
+  const[animStyle,setAnimStyle]=useState({});
+
+  useEffect(()=>{
+    const track=trackRef.current;
+    if(!track) return;
+    // Measure the first half (1 set) width
+    const halfW=track.scrollWidth/2;
+    // Inject a keyframe with exact px value into a <style> tag
+    const styleId="tmq-style";
+    let el=document.getElementById(styleId);
+    if(!el){el=document.createElement("style");el.id=styleId;document.head.appendChild(el);}
+    el.textContent=`@keyframes tmq{0%{transform:translateX(0)}100%{transform:translateX(-${halfW}px)}}`;
+    setAnimStyle({animation:`tmq 55s linear infinite`});
+  },[]);
+
   const items=[...TESTIMONIALS,...TESTIMONIALS];
   return(
-    <div style={{padding:"36px 0",borderTop:"1px solid rgba(255,255,255,.05)",borderBottom:"1px solid rgba(255,255,255,.05)",background:"rgba(5,9,26,.7)"}}>
+    <div style={{padding:"36px 0",borderTop:"1px solid rgba(255,255,255,.05)",borderBottom:"1px solid rgba(255,255,255,.05)",background:"rgba(5,9,26,.7)",width:"100%",overflow:"hidden"}}>
       <div style={{textAlign:"center",marginBottom:22}}>
         <span className="badge b-g" style={{marginBottom:8}}>⭐ آراء الطلاب</span>
         <h2 style={{fontSize:"1.2rem",fontWeight:900,color:"#fff",marginBottom:4}}>ماذا يقول طلاب فهمني؟</h2>
         <p style={{fontSize:".75rem",color:"#475569"}}>مرّر للقراءة أو اضغط لإيقاف الحركة</p>
       </div>
       <div style={{overflow:"hidden",width:"100%"}}>
-        <div onMouseEnter={e=>e.currentTarget.style.animationPlayState="paused"}
-             onMouseLeave={e=>e.currentTarget.style.animationPlayState="running"}
-             style={{display:"flex",gap:14,width:"max-content",animation:"tmq 45s linear infinite"}}>
+        <div ref={trackRef} className="tmq-track" style={animStyle}>
           {items.map((t,i)=>(
-            <div key={i} style={{
-              flexShrink:0,width:260,padding:"18px 20px",borderRadius:16,
-              background:"rgba(10,18,40,.88)",
-              border:"1px solid rgba(255,255,255,.08)",
-              display:"flex",flexDirection:"column",gap:10
-            }}>
-              <div style={{display:"flex",alignItems:"center",gap:10}}>
-                <div style={{
-                  width:36,height:36,borderRadius:10,flexShrink:0,
-                  background:"linear-gradient(135deg,#f97316,#fb923c)",
-                  display:"flex",alignItems:"center",justifyContent:"center",
-                  fontWeight:900,color:"#0a0f1e",fontSize:".85rem"
-                }}>{t.name[0]}</div>
+            <div key={i} className="tmq-card">
+              <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:8}}>
+                <div style={{width:36,height:36,borderRadius:10,flexShrink:0,background:"linear-gradient(135deg,#f97316,#fb923c)",display:"flex",alignItems:"center",justifyContent:"center",fontWeight:900,color:"#0a0f1e",fontSize:".85rem"}}>{t.name[0]}</div>
                 <p style={{fontWeight:800,color:"#fff",fontSize:".82rem"}}>{t.name}</p>
               </div>
-              <p style={{fontSize:".82rem",color:"#94a3b8",lineHeight:1.65}}>"{t.text}"</p>
-              <div style={{display:"flex",gap:2}}>
-                {[1,2,3,4,5].map(s=><span key={s} style={{color:"#fbbf24",fontSize:".72rem"}}>★</span>)}
-              </div>
+              <p style={{fontSize:".8rem",color:"#94a3b8",lineHeight:1.65}}>"{t.text}"</p>
+              <div style={{display:"flex",gap:2,marginTop:8}}>{[1,2,3,4,5].map(s=><span key={s} style={{color:"#fbbf24",fontSize:".7rem"}}>★</span>)}</div>
             </div>
           ))}
         </div>
@@ -2506,6 +2509,7 @@ function TestimonialsBar(){
     </div>
   );
 }
+
 
 
 function Landing({go}){
