@@ -269,7 +269,6 @@ const GS = () => (<style>{`
     .pricing-grid{grid-template-columns:1fr 1fr !important;}
     .rg-sim{grid-template-columns:1fr 200px;}
   }
-  .tmq-card{box-sizing:border-box;}
 `}</style>);
 
 /* ═══════════════════ NATURE SOUNDS (Web Audio API) ═══════════════════ */
@@ -646,8 +645,6 @@ const GEO=["المثلثات","المربعات والمستطيلات","الز�
 /* ── الأقسام الرسمية في اختبار قياس (موثّقة من ويكيبيديا + قياس) ── */
 const TOPICS={
   كمي:[
-    // باب 0 — تأسيس
-    "أساسيات الأعداد",
     // حساب ~40%
     "النسبة والتناسب","الأعمار","المتوسط الحسابي",
     "السرعة والمسافة والزمن","الأرباح والنسب المئوية",
@@ -667,164 +664,10 @@ const TOPICS={
     "الخطأ السياقي",     // ~15% — أُضيف رسمياً منذ 2013
   ]
 };
-/* باب 0 topics — يظهر كأول باب في كل قسم */
-const BAB0_TOPICS=["أساسيات الأعداد"];
-
-/* ═══════════════════════════════════════════════════════
-   TEMPLATE ENGINE — Layer 2 (zero AI cost)
-   Generates deterministic parametric questions locally.
-   Works for guests and logged-in users equally.
-   ══════════════════════════════════════════════════════= */
-
-function _rnd(arr){return arr[Math.floor(Math.random()*arr.length)];}
-function _shuffle(a){const b=[...a];for(let i=b.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[b[i],b[j]]=[b[j],b[i]];}return b;}
-function _wrongAvg(correct,range=4){
-  const opts=new Set([correct]);
-  while(opts.size<4) opts.add(correct+_rnd([-range,-range+1,-2,-1,1,2,range-1,range]));
-  return _shuffle([...opts]);
-}
-
-const TEMPLATES={
-
-  "المتوسط الحسابي":()=>{
-    const n=_rnd([3,4,5]);
-    const avg=_rnd([12,14,15,16,18,20,24,25,30]);
-    const total=avg*n;
-    const known=[];
-    let s=0;
-    for(let i=0;i<n-1;i++){
-      const v=_rnd([avg-6,avg-4,avg-2,avg-1,avg+1,avg+2,avg+4,avg+6]).toString();
-      known.push(+v); s+=+v;
-    }
-    const unknown=total-s;
-    if(unknown<1||unknown>99) return null; // retry guard
-    const opts=_wrongAvg(unknown);
-    const ci=opts.indexOf(unknown);
-    if(ci===-1) return null;
-    return{
-      question:`متوسط ${n} أعداد هو ${avg}، و${n-1} منها هي ${known.join(" و")}. ما العدد ${n===3?"الثالث":n===4?"الرابع":"الخامس"}؟`,
-      options:opts.map(String), correct:ci,
-      explanation_title:"إيجاد عدد مجهول من المتوسط",
-      steps:[`المجموع الكلي = ${avg} × ${n} = ${total}`,`مجموع الأعداد المعروفة = ${known.join(" + ")} = ${s}`,`العدد المجهول = ${total} - ${s} = ${unknown}`],
-      tip:"المجموع = المتوسط × عدد الأرقام",
-      topic:"المتوسط الحسابي", source:"template", _fromTemplate:true
-    };
-  },
-
-  "النسبة والتناسب":()=>{
-    const names=[["أحمد","سالم"],["علي","خالد"],["محمد","عمر"],["فهد","تركي"]];
-    const [a,b]=_rnd(names);
-    const r1=_rnd([1,2,3,2,3,4]);
-    const r2=_rnd([2,3,4,3,5,5]);
-    if(r1===r2) return null;
-    const total=_rnd([20,25,30,35,40,45,50])*(r1+r2);
-    const shareA=Math.round(total*r1/(r1+r2));
-    const shareB=total-shareA;
-    const opts=_wrongAvg(shareA,5);
-    const ci=opts.indexOf(shareA);
-    if(ci===-1) return null;
-    return{
-      question:`قسّم ${total} ريالاً بين ${a} و${b} بنسبة ${r1}:${r2}. كم نصيب ${a}؟`,
-      options:opts.map(String), correct:ci,
-      explanation_title:"تقسيم بالنسبة",
-      steps:[`مجموع أجزاء النسبة = ${r1}+${r2} = ${r1+r2}`,`نصيب ${a} = (${r1}÷${r1+r2}) × ${total} = ${shareA}`],
-      tip:"نصيب الفرد = (نصيبه النسبي ÷ مجموع النسبة) × الكل",
-      topic:"النسبة والتناسب", source:"template", _fromTemplate:true
-    };
-  },
-
-  "الأعمار":()=>{
-    const names=[["أحمد","أبيه"],["سارة","أمها"],["خالد","عمه"],["نورة","جدتها"]];
-    const [child,parent]=_rnd(names);
-    const diff=_rnd([10,12,15,18,20,22,24,25,28,30]);
-    const childNow=_rnd([5,6,8,10,12,14,15]);
-    const parentNow=childNow+diff;
-    const yearsLater=_rnd([3,4,5,6,8,10]);
-    const sumLater=(childNow+yearsLater)+(parentNow+yearsLater);
-    const opts=_wrongAvg(parentNow,4);
-    const ci=opts.indexOf(parentNow);
-    if(ci===-1) return null;
-    return{
-      question:`عمر ${child} الآن ${childNow} سنة، وبعد ${yearsLater} سنوات سيكون مجموع عمريهما مع ${parent} ${sumLater}. كم عمر ${parent} الآن؟`,
-      options:opts.map(String), correct:ci,
-      explanation_title:"مسألة الأعمار",
-      steps:[`مجموع الأعمار بعد ${yearsLater} سنوات = ${sumLater}`,`مجموع الأعمار الآن = ${sumLater} - ${2*yearsLater} = ${sumLater-2*yearsLater}`,`عمر ${parent} الآن = ${sumLater-2*yearsLater} - ${childNow} = ${parentNow}`],
-      tip:"الفرق بين عمرين لا يتغير مع مرور الوقت",
-      topic:"الأعمار", source:"template", _fromTemplate:true
-    };
-  },
-
-  "السرعة والمسافة والزمن":()=>{
-    const patterns=[
-      ()=>{
-        const speed=_rnd([60,80,90,100,120]);
-        const time=_rnd([2,3,4,5,2.5,1.5]);
-        const dist=speed*time;
-        const opts=_wrongAvg(dist,20);
-        const ci=opts.indexOf(dist);
-        if(ci===-1) return null;
-        return{question:`سيارة تسير بسرعة ${speed} كم/ساعة لمدة ${time} ساعة. كم قطعت من المسافة؟`,options:opts.map(String),correct:ci,steps:[`المسافة = السرعة × الزمن`,`= ${speed} × ${time} = ${dist} كم`],tip:"م = س × ز"};
-      },
-      ()=>{
-        const dist=_rnd([120,150,180,200,240,300,360]);
-        const speed=_rnd([60,80,100,120]);
-        const time=dist/speed;
-        if(!Number.isInteger(time*2)) return null;
-        const opts=_wrongAvg(time,2);
-        const ci=opts.indexOf(time);
-        if(ci===-1) return null;
-        return{question:`مسافة بين مدينتين ${dist} كم، تسير سيارة بسرعة ${speed} كم/ساعة. كم تحتاج من الوقت؟`,options:opts.map(v=>`${v} ساعة`),correct:ci,steps:[`الزمن = المسافة ÷ السرعة`,`= ${dist} ÷ ${speed} = ${time} ساعة`],tip:"ز = م ÷ س"};
-      }
-    ];
-    const result=_rnd(patterns)();
-    if(!result) return null;
-    return{...result, explanation_title:"مسألة السرعة والمسافة والزمن", topic:"السرعة والمسافة والزمن", source:"template", _fromTemplate:true};
-  },
-
-  "الأرباح والنسب المئوية":()=>{
-    const price=_rnd([100,200,250,400,500,800,1000]);
-    const pct=_rnd([5,10,15,20,25,30,40,50]);
-    const patterns=[
-      ()=>{const disc=Math.round(price*pct/100);const final=price-disc;const opts=_wrongAvg(final,15);const ci=opts.indexOf(final);if(ci===-1)return null;return{question:`سلعة سعرها ${price} ريال، خُصم منها ${pct}%. ما السعر بعد الخصم؟`,options:opts.map(String),correct:ci,steps:[`قيمة الخصم = ${price} × ${pct}% = ${disc}`,`السعر النهائي = ${price} - ${disc} = ${final}`],tip:"السعر بعد الخصم = الأصل × (1 - النسبة/100)"};},
-      ()=>{const inc=Math.round(price*pct/100);const final=price+inc;const opts=_wrongAvg(final,15);const ci=opts.indexOf(final);if(ci===-1)return null;return{question:`سلعة سعرها ${price} ريال، زاد سعرها بنسبة ${pct}%. ما السعر الجديد؟`,options:opts.map(String),correct:ci,steps:[`قيمة الزيادة = ${price} × ${pct}% = ${inc}`,`السعر الجديد = ${price} + ${inc} = ${final}`],tip:"السعر بعد الزيادة = الأصل × (1 + النسبة/100)"};},
-    ];
-    const result=_rnd(patterns)();
-    if(!result) return null;
-    return{...result, explanation_title:"مسألة النسب المئوية", topic:"الأرباح والنسب المئوية", source:"template", _fromTemplate:true};
-  },
-
-  "أساسيات الأعداد":()=>{
-    const patterns=[
-      ()=>{const n=_rnd([12,18,24,30,36,42,48]);const opts=_wrongAvg(n/2,3);const ci=opts.indexOf(n/2);if(ci===-1)return null;return{question:`ما نصف العدد ${n}؟`,options:opts.map(String),correct:ci,steps:[`${n} ÷ 2 = ${n/2}`],tip:"النصف = القسمة على 2"};},
-      ()=>{const n=_rnd([2,3,5,7,11,13]);const comp=_rnd([4,6,8,9,10,12,14,15]);return{question:`أيهما عدد أولي؟`,options:[String(n),String(comp),String(comp+2),String(comp+4)],correct:0,steps:[`العدد الأولي لا يقبل القسمة إلا على 1 وعلى نفسه`,`${n} أولي لأنه لا يقبل القسمة إلا على 1 و${n}`],tip:"جرّب القسمة على 2 و3 أولاً"};},
-    ];
-    const result=_rnd(patterns)();
-    if(!result) return null;
-    return{...result, explanation_title:"باب 0 — أساسيات الأعداد", topic:"أساسيات الأعداد", source:"template", _fromTemplate:true};
-  },
-
-};
-
-/* Try to generate a question from templates. Returns null if no template exists. */
-function tryTemplate(topic, difficulty){
-  const gen=TEMPLATES[topic];
-  if(!gen) return null;
-  // Try up to 5 times to get a valid result (some random combos produce null)
-  for(let i=0;i<5;i++){
-    try{
-      const q=gen();
-      if(q&&q.question&&Array.isArray(q.options)&&q.options.length===4&&typeof q.correct==="number")
-        return q;
-    }catch(e){}
-  }
-  return null;
-}
-
 
 /* ── تقسيم الأبواب لمجموعات فرعية للعرض في الخريطة ── */
 const TOPIC_GROUPS={
   كمي:[
-    {sub:"باب 0 — التأسيس",icon:"🌱",color:"#4ade80",pct:"مدخل",topics:["أساسيات الأعداد"]},
     {sub:"الحساب",icon:"🔢",color:"#f97316",pct:"~40%",topics:["النسبة والتناسب","الأعمار","المتوسط الحسابي","السرعة والمسافة والزمن","الأرباح والنسب المئوية"]},
     {sub:"الجبر",icon:"🔣",color:"#fb923c",pct:"~23%",topics:["الجبر والمعادلات","المتتاليات والأنماط"]},
     {sub:"الهندسة",icon:"📐",color:"#f59e0b",pct:"~24%",topics:["المثلثات","المربعات والمستطيلات","الزوايا والأضلاع","الدوائر"]},
@@ -875,51 +718,8 @@ const CONCEPTS={
   "إكمال الجمل":{icon:"✏️",formula:"اقرأ الجملة كاملة → حدّد الفكرة → ابحث عن الكلمة التي تكمل المعنى",rules:["اقرأ الجملة قبل النظر للخيارات","ابحث عن أدوات الربط: لكن / بل / لأن / إذن","جرّب كل خيار في الجملة واختر الأنسب للمعنى"],trap:"⚠ الفخ: الكلمة الأشهر ليست دائماً الأنسب للسياق"},
   "التناظر اللفظي":{icon:"🔀",formula:"سيف : قتال = قلم : ؟ — نفس العلاقة بين الزوجين",rules:["حدّد العلاقة بين الكلمتين الأوليين أولاً","ابحث عن نفس العلاقة بالضبط في الزوج الثاني","العلاقة: أداة ووظيفة / جزء وكل / مضاد / فئة ونوع"],trap:"⚠ الفخ: كلمة مرتبطة ≠ كلمة تحمل نفس العلاقة"},
   "استيعاب المقروء":{icon:"📖",formula:"الإجابة موجودة في النص — لا تعتمد على معلوماتك الشخصية",rules:["اقرأ السؤال أولاً ثم ابحث عنه في النص","كل كلمة في السؤال تقودك للفقرة الصحيحة","الخيار الصحيح مذكور أو مستنبط من النص فقط"],trap:"⚠ الفخ: المعلومة صحيحة عموماً لكن غير مذكورة في هذا النص"},
-  "أساسيات الأعداد":{icon:"🌱",formula:"الأعداد الطبيعية: 1,2,3... | الأعداد الصحيحة: ...2-,1-,0,1,2... | الكسور: بسط ÷ مقام",rules:["الأعداد الزوجية تقبل القسمة على 2","الأعداد الأولية لا تقبل القسمة إلا على 1 وعلى نفسها","ترتيب العمليات: قوس ثم ضرب/قسمة ثم جمع/طرح"],trap:"⚠ الفخ: الصفر ليس موجباً ولا سالباً"},
   "الخطأ السياقي":{icon:"🔍",formula:"جملة صحيحة إملائياً لكن فيها كلمة واحدة تكسر المعنى",rules:["اقرأ الجملة وتصوّر معناها الكامل","ابحث عن الكلمة التي لا تنتمي للسياق","الخطأ واحد فقط — لا أكثر"],trap:"⚠ الفخ: الكلمة مكتوبة صح إملائياً لكنها خطأ في المعنى"},
 };
-
-
-/* ═══════════════════ VIDEO LESSONS ═══════════════════
-   يحفظ فقط: videoId + عنوان + قناة + قسم
-   الفيديو يُعرض بـ iframe embed — لا تحميل، لا رفع
-   قانوني 100% بموجب YouTube Terms of Service
-   ════════════════════════════════════════════════════ */
-
-/* helper — أضف فيديوهات من قناة الـ playlist بتحديث videoId فقط */
-function makeLesson(videoId, title, channel, whyWatch){
-  return {videoId, title, channel, whyWatch,
-    thumb:`https://img.youtube.com/vi/${videoId}/mqdefault.jpg`};
-}
-
-const VIDEO_LESSONS={
-  /* ══ كمي ══ */
-  "النسبة والتناسب": makeLesson("UJ--Wz1wDDk","شرح النسبة والتناسب","قناة قدرات","يشرح لك كيف تفرّق بين الطردي والعكسي وتحل في ثوانٍ"),
-  "الأعمار":         makeLesson("UJ--Wz1wDDk","شرح مسائل الأعمار","قناة قدرات","يوضّح الفخ الأشهر: الفرق بين عمرين لا يتغير أبداً"),
-  "المتوسط الحسابي": makeLesson("UJ--Wz1wDDk","شرح المتوسط الحسابي","قناة قدرات","يعلمك تجد العدد المجهول من المتوسط بطريقة واحدة فقط"),
-  "السرعة والمسافة والزمن": makeLesson("UJ--Wz1wDDk","شرح السرعة والمسافة","قناة قدرات","يشرح المعادلة الأساسية ويوضح كيف توحّد الوحدات"),
-  "الأرباح والنسب المئوية": makeLesson("UJ--Wz1wDDk","شرح النسب المئوية","قناة قدرات","الخصم والزيادة المئوية بطريقة الضرب السريع"),
-  "الجبر والمعادلات": makeLesson("UJ--Wz1wDDk","شرح الجبر والمعادلات","قناة قدرات","عزل المجهول وحل المعادلة في خطوات واضحة"),
-  "المتتاليات والأنماط": makeLesson("UJ--Wz1wDDk","شرح المتتاليات","قناة قدرات","كيف تكشف النمط في 3 أرقام وتحل السؤال قبل الجميع"),
-  "المثلثات":         makeLesson("UJ--Wz1wDDk","شرح المثلثات","قناة قدرات","مجموع الزوايا والمساحة والوتر في 5 دقائق"),
-  "المربعات والمستطيلات": makeLesson("UJ--Wz1wDDk","شرح المربعات والمستطيلات","قناة قدرات","الفرق بين المساحة والمحيط وكيف لا تخلط بينهما"),
-  "الزوايا والأضلاع": makeLesson("UJ--Wz1wDDk","شرح الزوايا","قناة قدرات","الزوايا المتكاملة والمتتامة والمتقابلة في جدول واحد"),
-  "الدوائر":          makeLesson("UJ--Wz1wDDk","شرح الدوائر","قناة قدرات","محيط المساحة وكيف تتذكر π × نصف القطر²"),
-  "تحليل البيانات والإحصاء": makeLesson("UJ--Wz1wDDk","شرح الإحصاء","قناة قدرات","المتوسط والوسيط والمنوال والمدى في سؤال واحد"),
-  "المقارنة الكمية":  makeLesson("UJ--Wz1wDDk","شرح المقارنة الكمية","قناة قدرات","لا تحسب — قارن فقط، وفّر 80% من الوقت"),
-  /* ══ لفظي ══ */
-  "إكمال الجمل":      makeLesson("UJ--Wz1wDDk","شرح إكمال الجمل","قناة قدرات","كيف تختار الكلمة الأنسب للسياق لا الأشهر"),
-  "التناظر اللفظي":   makeLesson("UJ--Wz1wDDk","شرح التناظر اللفظي","قناة قدرات","حدّد العلاقة أولاً ثم طبّقها — الطريقة الوحيدة الصحيحة"),
-  "استيعاب المقروء":  makeLesson("UJ--Wz1wDDk","شرح استيعاب المقروء","قناة قدرات","اقرأ السؤال قبل النص — استراتيجية توفّر الوقت"),
-  "الخطأ السياقي":    makeLesson("UJ--Wz1wDDk","شرح الخطأ السياقي","قناة قدرات","الكلمة صحيحة إملائياً لكنها خطأ — كيف تكتشفها"),
-  /* ══ باب 0 ══ */
-  "أساسيات الأعداد":  makeLesson("UJ--Wz1wDDk","أساسيات الأعداد للمبتدئين","قناة قدرات","نقطة البداية الصحيحة قبل أي باب كمي"),
-};
-
-/* backward compat — YT_LINKS used in some places */
-const YT_LINKS=Object.fromEntries(
-  Object.entries(VIDEO_LESSONS).map(([k,v])=>[k,`https://www.youtube.com/watch?v=${v.videoId}`])
-);
 
 const PLACEMENT_Q=[
   {id:1,sec:"كمي",q:"إذا كان 4 طلاب ينهون 10 سؤالاً في 10 دقائق، فكم سؤالاً ينجز 8 طلاب في نفس الوقت؟",opts:["20","30","40","80"],correct:2,why:"عدد العمال تضاعف والوقت ثابت → الإنجاز يتضاعف: 20×2=40"},
@@ -1055,8 +855,6 @@ function deriveSec(topic){
 }
 
 const VERBAL_INSTRUCTIONS = {
-  "أساسيات الأعداد":
-    "اطرح سؤالاً حسابياً تأسيسياً: عمليات بسيطة، أعداد زوجية/فردية/أولية، أو كسور أساسية. الأسئلة بسيطة جداً.",
   "إكمال الجمل":
     "اكتب جملة عربية كاملة حُذف منها كلمة أو عبارة. الخيارات الأربعة متقاربة. الصحيحة هي الأنسب سياقياً ولغوياً — لا مجرد الأشهر.",
   "التناظر اللفظي":
@@ -1073,12 +871,19 @@ const ALL_TOPICS=[...TOPICS.كمي,...TOPICS.لفظي];
 async function genQuestion({topic, difficulty, avoidQuestion="", userId=null, userToken=null}){
   const section = deriveSec(topic);
   const isGeo   = GEO.includes(topic);
+  const shapeHint = isGeo
+    ? `"shape":{"type":"right_triangle"|"iso_triangle"|"rectangle"|"square"|"angle"|"circle","degrees":number,"unknown":"base"|"height"|"hyp"|"side"|"width"|"radius","labels":{"lBase":"...","lHeight":"...","lHyp":"...","lW":"...","lH":"...","lRadius":"...","lSide":"...","lDeg":"..."}}`
+    : `"shape":null`;
+  const verbalNote = VERBAL_INSTRUCTIONS[topic]?`\n${VERBAL_INSTRUCTIONS[topic]}`:"";
+  const avoidNote  = avoidQuestion?`\n⛔ لا تعيد هذا السؤال: "${avoidQuestion.slice(0,40)}"}`:"";
 
-  // ══ Layer 1: قاعدة البيانات (bank + ai_saved) ══
+  // ══ 1. ابحث في قاعدة البيانات أولاً ══
   if(userId && userId!=="guest" && userToken){
     const cached=await sbGetQuestion(userId,userToken,{topic,section,difficulty});
     if(cached){
+      // سجّل أن المستخدم رأى هذا السؤال
       sbMarkSeen(userId,userToken,cached.id);
+      // حوّل من شكل DB إلى شكل الـ app
       return {
         question         : cached.question_text,
         options          : Array.isArray(cached.options)?cached.options:JSON.parse(cached.options||"[]"),
@@ -1088,23 +893,13 @@ async function genQuestion({topic, difficulty, avoidQuestion="", userId=null, us
         tip              : cached.tip||"",
         shape            : cached.shape||null,
         topic,
-        _fromDB          : true,
+        _fromDB          : true,   // للتتبع فقط
         _dbId            : cached.id,
-        source           : cached.source||"bank",
       };
     }
   }
 
-  // ══ Layer 2: Templates (zero cost — works for guests) ══
-  const tmpl=tryTemplate(topic, difficulty);
-  if(tmpl) return tmpl;
-
-  // ══ Layer 5: Live AI — last resort only ══
-  const shapeHint = isGeo
-    ? `"shape":{"type":"right_triangle"|"iso_triangle"|"rectangle"|"square"|"angle"|"circle","degrees":number,"unknown":"base"|"height"|"hyp"|"side"|"width"|"radius","labels":{"lBase":"...","lHeight":"...","lHyp":"...","lW":"...","lH":"...","lRadius":"...","lSide":"...","lDeg":"..."}}`
-    : `"shape":null`;
-  const verbalNote = VERBAL_INSTRUCTIONS[topic]?`\n${VERBAL_INSTRUCTIONS[topic]}`:"";
-  const avoidNote  = avoidQuestion?`\n⛔ لا تعيد هذا السؤال: "${avoidQuestion.slice(0,40)}"}`:"";
+  // ══ 2. DB فارغة أو مستخدم guest → استدعِ Claude ══
   const raw = await callClaude(
 `اختبار قدرات قياس. باب: ${topic} | مستوى: ${difficulty}${verbalNote}${avoidNote}
 JSON فقط — لا نص خارجه:
@@ -1121,42 +916,19 @@ JSON فقط — لا نص خارجه:
   if(typeof parsed.correct!=="number"||parsed.correct<0||parsed.correct>3) parsed.correct=0;
   if(!Array.isArray(parsed.options)||parsed.options.length!==4) throw new Error("invalid options");
   if(!parsed.question||parsed.question.length<5) throw new Error("empty question");
-  // Strip accidental leading lone-alef (ا) prefix that sometimes appears in AI output
-  // Only strips ا when immediately followed by hamza variants (أ إ ئ ؤ) — never valid word start
-  const stripLeadingAlef=s=>typeof s==="string"?s.replace(/^ا(?=[أإئؤ])/,"").trim():s;
-  parsed.question=stripLeadingAlef(parsed.question);
-  parsed.options=parsed.options.map(stripLeadingAlef);
-  parsed.steps=Array.isArray(parsed.steps)?parsed.steps.map(stripLeadingAlef):[];
+  parsed.steps=Array.isArray(parsed.steps)?parsed.steps:[];
   parsed.tip=parsed.tip||"";
   parsed.explanation_title=parsed.explanation_title||"الحل";
   parsed.topic=parsed.topic||topic;
   parsed.shape=parsed.shape||null;
 
-  // ══ Layer 4: احفظ كـ ai_saved لإعادة استخدامه مع مستخدمين آخرين ══
-  parsed.source="ai_saved";
-  parsed._aiLive=true;
-  /* ── Validate before saving: reject malformed AI output ── */
-  const _validForSave=(
-    parsed.question && parsed.question.length>=8 &&
-    Array.isArray(parsed.options) && parsed.options.length===4 &&
-    parsed.options.every(o=>o&&o.length>=1) &&
-    typeof parsed.correct==="number" && parsed.correct>=0 && parsed.correct<=3 &&
-    Array.isArray(parsed.steps) && parsed.steps.length>=1
-  );
-  if(_validForSave && userId && userId!=="guest" && userToken){
-    /* async — does not block the user */
-    (async()=>{
-      try{
-        const dupKey=await normalizedHash(parsed,topic,difficulty);
-        sbSaveQuestion(userToken,{...parsed,
-          quality_score:65, approved_reuse:true, created_by:"ai",
-          bab:BAB0_TOPICS.includes(topic)?0:1,
-          question_hash:dupKey
-        },{topic,section,difficulty})
-          .then(newId=>{if(newId) sbMarkSeen(userId,userToken,newId);})
-          .catch(()=>{});
-      }catch(e){}
-    })();
+  // ══ 3. احفظ السؤال الجديد في DB (async — لا يبطئ المستخدم) ══
+  if(userId && userId!=="guest" && userToken){
+    sbSaveQuestion(userToken,parsed,{topic,section,difficulty})
+      .then(newId=>{
+        if(newId) sbMarkSeen(userId,userToken,newId);
+      })
+      .catch(()=>{});
   }
 
   return parsed;
@@ -2190,7 +1962,7 @@ function Session({settings,go,updateUser,trial,setTrial,addMistake,plan="free",s
   const[qStart,setQStart]=useState(Date.now());
   const[autoNext,setAutoNext]=useState(false);
   /* Live coach state */
-  const[coach,setCoach]=useState(null); // kept for future use
+  const[coach,setCoach]=useState(null);
   const[coachLoading,setCoachLoading]=useState(false);
   /* anti-repeat + current topic */
   const[curTopic,setCurTopic]=useState(()=>{
@@ -2259,26 +2031,30 @@ function Session({settings,go,updateUser,trial,setTrial,addMistake,plan="free",s
     /* ── كل الشرح يظهر فوراً دفعة واحدة ── */
     setSteps(qData?.steps||[]);
     setShowTip(true);
-    setAutoNext(true);
+    setAutoNext(false); // يبدأ بعد الكوتش
+    /* ── Quick AI Coach ── */
+    setCoach(null);setCoachLoading(true);
+    genQuickCoach({
+      topic:curTopic||settings.topic, ok,
+      question:qData?.question||"",
+      chosen:isExpired?"(انتهى الوقت)":(qData?.options[chosenIdx]||""),
+      correctAns:qData?.options[qData?.correct]||"",
+      history:nh
+    }).then(c=>setCoach(c))
+      .catch(()=>setCoach({emoji:ok?"✓":"💡",msg:ok?"أحسنت، إجابة صحيحة!":"راجع طريقة الحل.",tip:""}))
+      .finally(()=>{setCoachLoading(false);setAutoNext(true);});
     setTimeout(()=>explRef.current?.scrollIntoView({behavior:"smooth",block:"start"}),120);
     if(nh.length>0&&nh.length%TEACHER_TRIGGER===0)setTimeout(()=>setShowTeacher(true),2000);
   };
 
   const handleExpire=()=>{if(!checked){setExpired(true);doCheck(null,true);}};
 
-  if(showTeacher){
-    const recentHistory=history.slice(-TEACHER_TRIGGER);
-    const topicCounts={};
-    recentHistory.forEach(h=>{if(h.topic)topicCounts[h.topic]=(topicCounts[h.topic]||0)+1;});
-    const uniqueTopics=Object.keys(topicCounts);
-    const dominantTopic=uniqueTopics.length===1?uniqueTopics[0]:null;
-    return(
-      <TeacherSummary topic={dominantTopic||"مختلطة"} history={recentHistory}
-        onContinue={()=>{setShowTeacher(false);fetchQ();}}
-        onReview={()=>go("review")}
-        plan={plan}/>
-    );
-  }
+  if(showTeacher)return(
+    <TeacherSummary topic={settings.topic} history={history.slice(-TEACHER_TRIGGER)}
+      onContinue={()=>{setShowTeacher(false);fetchQ();}}
+      onReview={()=>go("review")}
+      plan={plan}/>
+  );
 
   const realSec=deriveSec(settings.topic);
 
@@ -2346,28 +2122,25 @@ function Session({settings,go,updateUser,trial,setTrial,addMistake,plan="free",s
           <p style={{color:"#fca5a5",fontWeight:700,fontSize:".84rem"}}>⏱ انتهى الوقت! الإجابة الصحيحة أسفله</p>
         </div>}
         {qData.shape&&<ShapeRender shape={qData.shape}/>}
-        {!checked&&CONCEPTS[curTopic||settings.topic]&&(
-          <div style={{display:"flex",alignItems:"center",gap:8,padding:"8px 12px",borderRadius:10,background:"rgba(34,211,238,.07)",border:"1px solid rgba(34,211,238,.16)",marginBottom:14}}>
-            <span style={{fontSize:".85rem",flexShrink:0}}>💡</span>
-            <p style={{fontSize:".72rem",color:"#67e8f9",fontWeight:700,lineHeight:1.6,direction:"rtl",unicodeBidi:"embed"}}>{CONCEPTS[curTopic||settings.topic].formula!=="—"?CONCEPTS[curTopic||settings.topic].formula:CONCEPTS[curTopic||settings.topic].trap}</p>
-          </div>
-        )}
-        <h2 style={{fontSize:"clamp(.95rem,3vw,1.12rem)",fontWeight:800,color:"#fff",lineHeight:1.85,marginBottom:6}}>{qData.question}</h2>
-        <p style={{fontSize:".6rem",color:"#334155",fontWeight:600,marginBottom:14}}>{qData._fromDB?"بنك الأسئلة":"مثال AI"}</p>
+        <h2 style={{fontSize:"clamp(.95rem,3vw,1.12rem)",fontWeight:800,color:"#fff",lineHeight:1.85,marginBottom:18}}>{qData.question}</h2>
 
         {/* Options — click = answer immediately */}
         <div style={{display:"flex",flexDirection:"column",gap:9}}>
-          {(qData.options||[]).map((opt,i)=>(
-            <button key={i}
-              className={`ans ${(checked&&i===qData.correct)?"ok":(checked&&sel===i&&i!==qData.correct)?"bad":sel===i&&!checked?"sel":""} ${checked?"lk":""}`}
-              onClick={()=>pickAnswer(i)}
-              style={{position:"relative"}}>
-              <span>{opt}</span>
-              <div className="opt-l">{String.fromCharCode(0x0627+i)}</div>
-              {(checked&&i===qData.correct)&&<span style={{position:"absolute",left:14,top:"50%",transform:"translateY(-50%)",fontSize:"1rem"}}>✓</span>}
-              {(checked&&sel===i&&i!==qData.correct)&&<span style={{position:"absolute",left:14,top:"50%",transform:"translateY(-50%)",fontSize:"1rem"}}>✗</span>}
-            </button>
-          ))}
+          {(qData.options||[]).map((opt,i)=>{
+            const showOk=checked&&i===qData.correct;
+            const showBad=checked&&sel===i&&i!==qData.correct;
+            return(
+              <button key={i}
+                className={`ans ${showOk?"ok":showBad?"bad":sel===i&&!checked?"sel":""} ${checked?"lk":""}`}
+                onClick={()=>pickAnswer(i)}
+                style={{position:"relative"}}>
+                <span>{opt}</span>
+                <div className="opt-l">{String.fromCharCode(0x0627+i)}</div>
+                {showOk&&<span style={{position:"absolute",left:14,top:"50%",transform:"translateY(-50%)",fontSize:"1rem"}}>✓</span>}
+                {showBad&&<span style={{position:"absolute",left:14,top:"50%",transform:"translateY(-50%)",fontSize:"1rem"}}>✗</span>}
+              </button>
+            );
+          })}
         </div>
 
         {/* Hint while waiting */}
@@ -2415,6 +2188,34 @@ function Session({settings,go,updateUser,trial,setTrial,addMistake,plan="free",s
           </div>
         )}
 
+        {/* Live AI Coach card */}
+          {(coachLoading||coach)&&(
+            <div className="au" style={{
+              marginTop:13,padding:"13px 16px",borderRadius:14,
+              background:"linear-gradient(135deg,rgba(139,92,246,.1),rgba(249,115,22,.07))",
+              border:"1px solid rgba(139,92,246,.22)"
+            }}>
+              <div style={{display:"flex",gap:8,alignItems:"flex-start"}}>
+                <span style={{fontSize:"1.2rem",flexShrink:0,marginTop:1}}>🎓</span>
+                <div style={{flex:1}}>
+                  <p style={{fontSize:".64rem",color:"#a78bfa",fontWeight:700,marginBottom:5,letterSpacing:".06em"}}>المعلم الذكي يقول</p>
+                  {coachLoading?(
+                    <div className="dots"><span/><span/><span/></div>
+                  ):(
+                    <>
+                      <p style={{fontSize:".86rem",fontWeight:700,color:"#e2e8f0",lineHeight:1.75,marginBottom:coach?.tip?6:0}}>
+                        {coach?.emoji} {coach?.msg}
+                      </p>
+                      {coach?.tip&&(
+                        <p style={{fontSize:".75rem",color:"#c4b5fd",lineHeight:1.6}}>⚡ {coach.tip}</p>
+                      )}
+                    </>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
         {/* Auto-advance or manual */}
         <div style={{marginTop:16,display:"flex",gap:9,justifyContent:"space-between",alignItems:"center",flexWrap:"wrap"}}>
           <div style={{display:"flex",gap:8}}>
@@ -2444,10 +2245,9 @@ function Session({settings,go,updateUser,trial,setTrial,addMistake,plan="free",s
         <p style={{fontSize:".67rem",color:"#22d3ee",fontWeight:700,letterSpacing:".08em",marginBottom:8}}>📌 مرجع سريع — {curTopic||settings.topic}</p>
         {CONCEPTS[curTopic||settings.topic].formula!=="—"&&<div className="gl2" style={{padding:"8px",marginBottom:7,textAlign:"right"}}>
           <p style={{fontSize:".67rem",color:"#f97316",marginBottom:3}}>الصيغة</p>
-          <p style={{fontSize:".74rem",fontWeight:800,color:"#fdba74",direction:"rtl",unicodeBidi:"embed",textAlign:"right"}}>{CONCEPTS[curTopic||settings.topic].formula}</p>
+          <p style={{fontSize:".74rem",fontWeight:800,color:"#fdba74",direction:"rtl",textAlign:"right"}}>{CONCEPTS[curTopic||settings.topic].formula}</p>
         </div>}
         <p style={{fontSize:".71rem",lineHeight:1.7,color:"#f87171"}}>{CONCEPTS[curTopic||settings.topic].trap}</p>
-        {YT_LINKS[curTopic||settings.topic]&&<a href={YT_LINKS[curTopic||settings.topic]} target="_blank" rel="noopener noreferrer" style={{display:"flex",alignItems:"center",gap:7,marginTop:10,padding:"7px 11px",borderRadius:9,background:"rgba(220,38,38,.08)",border:"1px solid rgba(220,38,38,.18)",color:"#f87171",fontWeight:700,fontSize:".7rem",textDecoration:"none",fontFamily:"Cairo,sans-serif"}}>▶ شرح على يوتيوب</a>}
       </div>}
       {history.length>0&&<div className="gl" style={{padding:"14px"}}>
         <p style={{fontSize:".67rem",color:"#f97316",fontWeight:700,letterSpacing:".08em",marginBottom:9}}>السجل</p>
@@ -2481,66 +2281,61 @@ function AnimCounter({target,suffix="",duration=1800}){
   return <span ref={ref}>{val.toLocaleString()}{suffix}</span>;
 }
 
-
 /* ═══════════════════ TESTIMONIALS ═══════════════════ */
 const TESTIMONIALS=[
-  {name:"سعد العتيبي",     text:"يارب أجيب 100"},
-  {name:"نورة",            text:"أول مرة أفهم اللفظي بهذا الشكل"},
-  {name:"محمد الشمري",     text:"المنصة رتبت لي الأفكار بشكل ممتاز"},
-  {name:"ريما",            text:"حسيت القدرات صار أسهل"},
-  {name:"خالد الدوسري",    text:"شرح الكمي هنا أوضح من أي مكان"},
-  {name:"جود",             text:"هذا أفضل شرح شفته"},
-  {name:"عبدالرحمن",       text:"أخيرًا فهمت الفقرة بدون تعقيد"},
-  {name:"تركي العسيري",    text:"الحلم أجيب درجة تدخلني أرامكو"},
-  {name:"سارة الغامدي",    text:"صرت أحل الأسئلة بثقة"},
-  {name:"منال",            text:"المنصة فعلًا ساعدتني أبدأ صح"},
-  {name:"فهد المطيري",     text:"شرح بسيط لكن قوي جداً"},
-  {name:"لجين",            text:"حسيت إني أتعلم مو بس أحفظ"},
-  {name:"عمر الزهراني",    text:"أفضل استعداد قبل الاختبار"},
-  {name:"دانة",            text:"الكمي كان كابوسي، الحين صار ممتعًا"},
-  {name:"بندر القحطاني",   text:"ما أحتاج مدرس خاص مع هذي المنصة"},
+  {name:"سعد العتيبي",  text:"يارب أجيب 100"},
+  {name:"نورة",         text:"أول مرة أفهم اللفظي بهذا الشكل"},
+  {name:"محمد الشمري",  text:"المنصة رتبت لي الأفكار بشكل ممتاز"},
+  {name:"ريما",         text:"حسيت القدرات صار أسهل"},
+  {name:"خالد الدوسري", text:"شرح الكمي هنا أوضح من أي مكان"},
+  {name:"جود",          text:"هذا أفضل شرح شفته"},
+  {name:"عبدالرحمن",    text:"أخيرًا فهمت الفقرة بدون تعقيد"},
+  {name:"تركي العسيري", text:"الحلم أجيب درجة تدخلني أرامكو"},
+  {name:"سارة الغامدي", text:"صرت أحل الأسئلة بثقة"},
+  {name:"منال",         text:"المنصة فعلًا ساعدتني أبدأ صح"},
+  {name:"فهد المطيري",  text:"شرح بسيط لكن قوي جداً"},
+  {name:"لجين",         text:"حسيت إني أتعلم مو بس أحفظ"},
+  {name:"عمر الزهراني", text:"أفضل استعداد قبل الاختبار"},
+  {name:"دانة",         text:"الكمي كان كابوسي، الحين صار ممتعًا"},
+  {name:"بندر القحطاني",text:"ما أحتاج مدرس خاص مع هذي المنصة"},
 ];
-
 function TestimonialsBar(){
   const trackRef=useRef(null);
-  const styleRef=useRef(null);
+  const injected=useRef(false);
   useEffect(()=>{
-    const track=trackRef.current;
-    if(!track) return;
+    if(injected.current) return;
+    const t=trackRef.current;
+    if(!t) return;
     requestAnimationFrame(()=>{
-      const halfW=track.scrollWidth/2;
-      if(!styleRef.current){
-        const el=document.createElement("style");
-        el.id="tmq-kf";
-        document.head.appendChild(el);
-        styleRef.current=el;
-      }
-      styleRef.current.textContent=`@keyframes tmqRun{0%{transform:translateX(0)}100%{transform:translateX(-${halfW}px)}}`;
-      track.style.cssText="display:flex !important;flex-direction:row !important;flex-wrap:nowrap !important;width:max-content !important;gap:16px;animation:tmqRun 55s linear infinite;will-change:transform;";
+      const half=t.scrollWidth/2;
+      const el=document.createElement("style");
+      el.textContent=`@keyframes tmqS{from{transform:translateX(0)}to{transform:translateX(-${half}px)}}`;
+      document.head.appendChild(el);
+      t.style.cssText="display:flex !important;flex-direction:row !important;flex-wrap:nowrap !important;width:max-content !important;gap:16px;animation:tmqS 55s linear infinite;";
+      injected.current=true;
     });
-    return()=>{if(styleRef.current)styleRef.current.textContent="";};
   },[]);
   const items=[...TESTIMONIALS,...TESTIMONIALS];
-  const card={flexShrink:0,minWidth:"260px",width:"260px",padding:"16px 18px",borderRadius:14,background:"rgba(10,18,40,.9)",border:"1px solid rgba(255,255,255,.08)",boxSizing:"border-box"};
   return(
-    <div style={{padding:"36px 0",borderTop:"1px solid rgba(255,255,255,.05)",borderBottom:"1px solid rgba(255,255,255,.05)",background:"rgba(5,9,26,.7)"}}>
-      <div style={{textAlign:"center",marginBottom:22}}>
-        <span className="badge b-g" style={{marginBottom:8}}>⭐ آراء الطلاب</span>
-        <h2 style={{fontSize:"1.2rem",fontWeight:900,color:"#fff",marginBottom:4}}>ماذا يقول طلاب فهمني؟</h2>
-        <p style={{fontSize:".75rem",color:"#475569"}}>اضغط لإيقاف الحركة</p>
+    <div style={{padding:"24px 0",borderTop:"1px solid rgba(255,255,255,.05)",borderBottom:"1px solid rgba(255,255,255,.05)",background:"rgba(5,9,26,.7)"}}>
+      <div style={{textAlign:"center",marginBottom:16}}>
+        <span className="badge b-g" style={{marginBottom:6}}>⭐ آراء الطلاب</span>
+        <p style={{fontSize:"1rem",fontWeight:900,color:"#fff",marginBottom:2}}>ماذا يقول طلاب فهمني؟</p>
+        <p style={{fontSize:".7rem",color:"#475569"}}>اضغط لإيقاف الحركة</p>
       </div>
       <div style={{overflow:"hidden",width:"100%"}}>
         <div ref={trackRef}
+          style={{display:"flex",flexDirection:"row",flexWrap:"nowrap",width:"max-content",gap:16}}
           onMouseEnter={e=>{e.currentTarget.style.animationPlayState="paused";}}
           onMouseLeave={e=>{e.currentTarget.style.animationPlayState="running";}}>
           {items.map((t,i)=>(
-            <div key={i} style={card}>
+            <div key={i} style={{flexShrink:0,width:"220px",padding:"13px 15px",borderRadius:12,background:"rgba(10,18,40,.9)",border:"1px solid rgba(255,255,255,.08)",boxSizing:"border-box"}}>
               <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:8}}>
-                <div style={{width:36,height:36,borderRadius:10,flexShrink:0,background:"linear-gradient(135deg,#f97316,#fb923c)",display:"flex",alignItems:"center",justifyContent:"center",fontWeight:900,color:"#0a0f1e",fontSize:".85rem"}}>{t.name[0]}</div>
-                <p style={{fontWeight:800,color:"#fff",fontSize:".82rem"}}>{t.name}</p>
+                <div style={{width:30,height:30,borderRadius:8,flexShrink:0,background:"linear-gradient(135deg,#f97316,#fb923c)",display:"flex",alignItems:"center",justifyContent:"center",fontWeight:900,color:"#0a0f1e",fontSize:".75rem"}}>{t.name[0]}</div>
+                <p style={{fontWeight:800,color:"#fff",fontSize:".8rem"}}>{t.name}</p>
               </div>
-              <p style={{fontSize:".8rem",color:"#94a3b8",lineHeight:1.65}}>"{t.text}"</p>
-              <div style={{display:"flex",gap:2,marginTop:8}}>{[1,2,3,4,5].map(s=><span key={s} style={{color:"#fbbf24",fontSize:".7rem"}}>★</span>)}</div>
+              <p style={{fontSize:".79rem",color:"#94a3b8",lineHeight:1.6}}>"{t.text}"</p>
+              <div style={{display:"flex",gap:2,marginTop:7}}>{[1,2,3,4,5].map(s=><span key={s} style={{color:"#fbbf24",fontSize:".68rem"}}>★</span>)}</div>
             </div>
           ))}
         </div>
@@ -2548,7 +2343,6 @@ function TestimonialsBar(){
     </div>
   );
 }
-
 function Landing({go}){
   const[bannerClosed,setBannerClosed]=useState(false);
   const[activeFeature,setActiveFeature]=useState(0);
@@ -2989,15 +2783,6 @@ async function hashQuestion(text){
   const buf=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(text.trim().toLowerCase()));
   return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,"0")).join("");
 }
-/* normalizedHash: stem + sorted choices + topic + difficulty
-   Prevents saving near-duplicate AI questions with slightly rephrased text */
-async function normalizedHash(q,topic,difficulty){
-  const stem=(q.question||"").trim().toLowerCase().replace(/\s+/g," ");
-  const choices=[...(q.options||[])].map(s=>(s||"").trim().toLowerCase()).sort().join("|");
-  const key=`${stem}::${choices}::${topic}::${difficulty}`;
-  const buf=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(key));
-  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,"0")).join("");
-}
 
 // اسحب سؤال من DB للمستخدم (لم يرَه من قبل)
 const sbGetQuestion=async(userId,token,{topic,section,difficulty})=>{
@@ -3019,7 +2804,7 @@ const sbGetQuestion=async(userId,token,{topic,section,difficulty})=>{
 const sbSaveQuestion=async(token,q,{topic,section,difficulty})=>{
   if(IS_ARTIFACT||!token) return null;
   try{
-    const hash=await normalizedHash(q,topic,difficulty);
+    const hash=await hashQuestion(q.question||"");
     const r=await fetch(
       `${SUPABASE_URL}/rest/v1/questions`,
       {method:"POST",
@@ -3027,20 +2812,15 @@ const sbSaveQuestion=async(token,q,{topic,section,difficulty})=>{
                 "Authorization":`Bearer ${token}`,"Prefer":"return=representation"},
        body:JSON.stringify({
          section, topic, difficulty,
-         question_text    : q.question,
-         options          : q.options,
-         correct          : q.correct,
+         question_text : q.question,
+         options       : q.options,
+         correct       : q.correct,
          explanation_title: q.explanation_title||"الحل",
-         steps            : q.steps||[],
-         tip              : q.tip||"",
-         shape            : q.shape||null,
-         question_hash    : hash,
-         ai_generated     : q.ai_generated!==undefined?q.ai_generated:true,
-         source           : q.source||"ai_saved",
-         approved_reuse   : q.approved_reuse!==undefined?q.approved_reuse:true,
-         quality_score    : q.quality_score||65,
-         created_by       : q.created_by||"ai",
-         bab              : q.bab!==undefined?q.bab:1
+         steps         : q.steps||[],
+         tip           : q.tip||"",
+         shape         : q.shape||null,
+         question_hash : hash,
+         ai_generated  : true
        })}
     );
     if(!r.ok) return null;
@@ -3280,24 +3060,6 @@ function Dashboard({go,user,trial,mistakes}){
       </div>
       <div className="rg-4" style={{gap:11,marginTop:20}}>{[["الدقة",`${acc}%`,"#f97316"],["الأسئلة",user.totalSolved,"#22d3ee"],["الصحيح",user.correct,"#4ade80"],["أطول سلسلة",`${user.streak}🔥`,"#f97316"]].map(([l,v,c],i)=>(<div key={i} className={`gl2 stat au d${i+1}`}><p style={{fontSize:".68rem",color:"#64748b"}}>{l}</p><p key={String(v)} style={{marginTop:5,fontSize:"1.35rem",fontWeight:900,color:c,animation:"numPop .4s cubic-bezier(.34,1.56,.64,1) both"}}>{v}</p></div>))}</div>
     </div>
-    {mistakes.length>=3&&(()=>{
-      const counts={};
-      mistakes.forEach(m=>{counts[m.topic]=(counts[m.topic]||0)+1;});
-      const sorted=Object.entries(counts).sort((a,b)=>b[1]-a[1]);
-      const top=sorted[0];
-      return(
-        <div style={{padding:"14px 18px",borderRadius:16,background:"rgba(248,113,113,.07)",border:"1px solid rgba(248,113,113,.2)",display:"flex",alignItems:"center",justifyContent:"space-between",flexWrap:"wrap",gap:10}}>
-          <div style={{display:"flex",alignItems:"center",gap:10}}>
-            <span style={{fontSize:"1.3rem"}}>🎯</span>
-            <div>
-              <p style={{fontSize:".67rem",color:"#f87171",fontWeight:700,marginBottom:2}}>نقطة الضعف</p>
-              <p style={{fontSize:".88rem",fontWeight:800,color:"#fff"}}>{top[0]} <span style={{color:"#f87171",fontSize:".75rem"}}>({top[1]} {top[1]===1?"خطأ":"أخطاء"})</span></p>
-            </div>
-          </div>
-          <button className="btn btn-p" style={{fontSize:".78rem",padding:"8px 16px"}} onClick={()=>go("session")}>تدرّب عليه ←</button>
-        </div>
-      );
-    })()}
     <div className="gl" style={{padding:"24px"}}>
       <p style={{fontSize:".68rem",color:"#f97316",fontWeight:700,letterSpacing:".1em",marginBottom:13}}>ابدأ بسرعة</p>
       <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:11}}>
@@ -3374,171 +3136,14 @@ ${!ok?`الصحيح: "${correctAns}"`:""}
 }
 
 /* ═══════════════════ TOPIC LESSON PAGE ═══════════════════ */
-
-/* ═══════════════════ VIDEO LESSON COMPONENT ═══════════════════
-   - يعرض iframe embed (لا تحميل، لا رفع)
-   - وصف "لماذا تشاهد هذا؟"
-   - ملخص نصي من CONCEPTS
-   - 3 أسئلة تدريبية من template engine
-   - زر انتقال للدرس التالي
-   ════════════════════════════════════════════════════════════ */
-function VideoLesson({topic, onStartPractice, onClose}){
-  const lesson = VIDEO_LESSONS[topic];
-  const concept = CONCEPTS[topic];
-  const sec = deriveSec(topic);
-  const secColor = sec==="كمي"?"#f97316":"#22d3ee";
-  const [drillDone, setDrillDone] = useState(false);
-  const [drillAnswers, setDrillAnswers] = useState({});
-  const [drillChecked, setDrillChecked] = useState(false);
-
-  /* توليد 3 أسئلة تدريبية من template — صفر تكلفة */
-  const drillQs = useState(()=>{
-    const qs=[];
-    for(let i=0;i<8&&qs.length<3;i++){
-      const q=tryTemplate(topic,"سهل");
-      if(q) qs.push(q);
-    }
-    return qs;
-  })[0];
-
-  const allCorrect = drillQs.length>0 && drillQs.every((_,i)=>drillAnswers[i]===drillQs[i].correct);
-  const attempted = Object.keys(drillAnswers).length===drillQs.length && drillQs.length>0;
-
-  return(
-    <div style={{display:"grid",gap:14}}>
-
-      {/* ── Header ── */}
-      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:10}}>
-        <div style={{display:"flex",alignItems:"center",gap:10}}>
-          <span style={{fontSize:"1.3rem"}}>{concept?.icon||"📖"}</span>
-          <div>
-            <h1 style={{fontWeight:900,color:"#fff",fontSize:"1.1rem"}}>{topic}</h1>
-            <span className={`badge ${sec==="كمي"?"b-o":"b-c"}`} style={{fontSize:".6rem"}}>{sec}</span>
-          </div>
-        </div>
-        <button className="btn btn-g" style={{fontSize:".8rem"}} onClick={onClose}>← رجوع</button>
-      </div>
-
-      {/* ── Video embed ── */}
-      {lesson&&(
-        <div className="gl" style={{padding:0,overflow:"hidden"}}>
-          <div style={{padding:"12px 16px",borderBottom:"1px solid rgba(255,255,255,.07)",background:"rgba(255,255,255,.03)",display:"flex",alignItems:"center",gap:10}}>
-            <span style={{fontSize:".95rem"}}>▶</span>
-            <div style={{flex:1,minWidth:0}}>
-              <p style={{fontWeight:700,color:"#fff",fontSize:".85rem",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{lesson.title}</p>
-              <p style={{fontSize:".65rem",color:"#475569"}}>{lesson.channel}</p>
-            </div>
-          </div>
-          {/* لماذا تشاهد هذا؟ */}
-          <div style={{padding:"10px 16px",background:`${secColor}0a`,borderBottom:`1px solid ${secColor}18`}}>
-            <p style={{fontSize:".75rem",color:secColor,fontWeight:700}}>💡 لماذا تشاهد هذا الفيديو؟</p>
-            <p style={{fontSize:".78rem",color:"#94a3b8",marginTop:3,lineHeight:1.6}}>{lesson.whyWatch}</p>
-          </div>
-          {/* iframe embed — القانوني الوحيد */}
-          <div style={{position:"relative",paddingBottom:"56.25%",height:0,overflow:"hidden"}}>
-            <iframe
-              src={`https://www.youtube.com/embed/${lesson.videoId}?rel=0&modestbranding=1`}
-              title={lesson.title}
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
-              style={{position:"absolute",top:0,right:0,width:"100%",height:"100%",border:"none"}}
-            />
-          </div>
-        </div>
-      )}
-
-      {/* ── ملخص نصي من CONCEPTS ── */}
-      {concept&&(
-        <div className="gl" style={{padding:"18px 20px"}}>
-          <p style={{fontSize:".68rem",color:secColor,fontWeight:700,letterSpacing:".08em",marginBottom:12}}>▸ ملخص الدرس</p>
-          <div style={{display:"flex",flexDirection:"column",gap:9}}>
-            {concept.rules&&concept.rules.map((r,i)=>(
-              <div key={i} style={{display:"flex",gap:10,padding:"10px 13px",borderRadius:11,background:"rgba(255,255,255,.03)",border:"1px solid rgba(255,255,255,.06)"}}>
-                <div style={{width:22,height:22,borderRadius:7,background:`${secColor}18`,border:`1px solid ${secColor}28`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:".65rem",fontWeight:900,color:secColor,flexShrink:0,marginTop:1}}>{i+1}</div>
-                <p style={{fontSize:".83rem",lineHeight:1.75,color:"#e2e8f0"}}>{r}</p>
-              </div>
-            ))}
-            {concept.formula&&concept.formula!=="—"&&(
-              <div style={{padding:"10px 13px",borderRadius:11,background:"rgba(249,115,22,.06)",border:"1px solid rgba(249,115,22,.18)"}}>
-                <p style={{fontSize:".67rem",color:"#f97316",marginBottom:4}}>📐 الصيغة</p>
-                <p style={{fontSize:".82rem",fontWeight:800,color:"#fdba74",direction:"rtl",unicodeBidi:"embed"}}>{concept.formula}</p>
-              </div>
-            )}
-            <div style={{padding:"10px 13px",borderRadius:11,background:"rgba(248,113,113,.05)",border:"1px solid rgba(248,113,113,.14)"}}>
-              <p style={{fontSize:".78rem",color:"#fca5a5",lineHeight:1.6}}>{concept.trap}</p>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ── 3 أسئلة تدريبية ── */}
-      {drillQs.length>0&&(
-        <div className="gl" style={{padding:"18px 20px"}}>
-          <p style={{fontSize:".68rem",color:"#a78bfa",fontWeight:700,letterSpacing:".08em",marginBottom:14}}>🎯 تدرّب — 3 أسئلة سريعة</p>
-          <div style={{display:"flex",flexDirection:"column",gap:18}}>
-            {drillQs.map((q,qi)=>(
-              <div key={qi}>
-                <p style={{fontSize:".86rem",fontWeight:700,color:"#f1f5f9",lineHeight:1.75,marginBottom:10}}>{qi+1}. {q.question}</p>
-                <div style={{display:"flex",flexDirection:"column",gap:7}}>
-                  {q.options.map((opt,oi)=>{
-                    const chosen=drillAnswers[qi]===oi;
-                    const showOk=drillChecked&&oi===q.correct;
-                    const showBad=drillChecked&&chosen&&oi!==q.correct;
-                    return(
-                      <button key={oi}
-                        className={`ans ${showOk?"ok":showBad?"bad":chosen&&!drillChecked?"sel":""} ${drillChecked?"lk":""}`}
-                        onClick={()=>{if(!drillChecked)setDrillAnswers(p=>({...p,[qi]:oi}));}}>
-                        <span>{opt}</span>
-                        <div className="opt-l">{String.fromCharCode(0x0627+oi)}</div>
-                      </button>
-                    );
-                  })}
-                </div>
-                {drillChecked&&(
-                  <div style={{marginTop:8,padding:"8px 12px",borderRadius:10,background:drillAnswers[qi]===q.correct?"rgba(74,222,128,.07)":"rgba(248,113,113,.07)",border:`1px solid ${drillAnswers[qi]===q.correct?"rgba(74,222,128,.2)":"rgba(248,113,113,.2)"}`}}>
-                    {q.steps&&q.steps.map((s,si)=><p key={si} style={{fontSize:".76rem",color:"#94a3b8",lineHeight:1.6}}>{si+1}. {s}</p>)}
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-          <div style={{marginTop:16,display:"flex",gap:10,justifyContent:"flex-end",flexWrap:"wrap"}}>
-            {!drillChecked?(
-              <button className="btn btn-p" disabled={Object.keys(drillAnswers).length<drillQs.length}
-                onClick={()=>{setDrillChecked(true);setDrillDone(true);}}>
-                تحقق من الإجابات ←
-              </button>
-            ):(
-              <div style={{display:"flex",gap:9,alignItems:"center"}}>
-                {allCorrect&&<span className="badge b-g">✓ ممتاز! جاهز للتدريب</span>}
-                <button className="btn btn-p" onClick={onStartPractice}>
-                  ابدأ التدريب الكامل ←
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* ── إذا ما في أسئلة template ── */}
-      {drillQs.length===0&&(
-        <div style={{display:"flex",justifyContent:"flex-end"}}>
-          <button className="btn btn-p" onClick={onStartPractice}>ابدأ التدريب ←</button>
-        </div>
-      )}
-
-    </div>
-  );
-}
-
 function TopicLesson({topic,onClose,onStartPractice}){
-  const[tab,setTab]=useState(VIDEO_LESSONS[topic]?"video":"lesson"); // default: video if available
   const[data,setData]=useState(null);
   const[loading,setLoading]=useState(true);
   const[err,setErr]=useState("");
   const sec=deriveSec(topic);
   const secColor=sec==="كمي"?"#f97316":"#22d3ee";
-  const ytUrl=YT_LINKS[topic]||`https://www.youtube.com/results?search_query=${encodeURIComponent(`شرح قدرات ${topic} قياس`)}`;
+  const ytQuery=encodeURIComponent(`شرح قدرات ${topic} قياس`);
+  const ytUrl=`https://www.youtube.com/results?search_query=${ytQuery}`;
 
   const load=()=>{
     setLoading(true);setErr("");setData(null);
@@ -3552,21 +3157,8 @@ function TopicLesson({topic,onClose,onStartPractice}){
   };
   useEffect(()=>{load();},[topic]);
 
-  /* If user chose video tab, show VideoLesson */
-  if(tab==="video") return(
-    <VideoLesson topic={topic} onClose={onClose} onStartPractice={onStartPractice}/>
-  );
-
   return(
     <div style={{display:"grid",gap:14}}>
-
-      {/* Tab switcher */}
-      {VIDEO_LESSONS[topic]&&(
-        <div style={{display:"flex",gap:8,padding:"4px",borderRadius:12,background:"rgba(255,255,255,.04)",border:"1px solid rgba(255,255,255,.07)",width:"fit-content"}}>
-          <button onClick={()=>setTab("video")} style={{padding:"7px 18px",borderRadius:9,border:"none",cursor:"pointer",fontFamily:"Cairo,sans-serif",fontWeight:700,fontSize:".78rem",background:tab==="video"?"rgba(249,115,22,.2)":"transparent",color:tab==="video"?"#f97316":"#64748b",transition:"all .18s"}}>▶ الفيديو</button>
-          <button onClick={()=>setTab("lesson")} style={{padding:"7px 18px",borderRadius:9,border:"none",cursor:"pointer",fontFamily:"Cairo,sans-serif",fontWeight:700,fontSize:".78rem",background:tab==="lesson"?"rgba(34,211,238,.15)":"transparent",color:tab==="lesson"?"#22d3ee":"#64748b",transition:"all .18s"}}>📖 الشرح المكتوب</button>
-        </div>
-      )}
 
       {/* Header / back button */}
       <div style={{
@@ -3766,7 +3358,7 @@ function TopicLesson({topic,onClose,onStartPractice}){
                     textAlign:"center"
                   }}>
                     <p style={{fontSize:".65rem",color:"#f97316",marginBottom:4}}>الصيغة</p>
-                    <p style={{fontSize:".82rem",fontWeight:800,color:"#fdba74",direction:"rtl",unicodeBidi:"embed"}}>
+                    <p style={{fontSize:".82rem",fontWeight:800,color:"#fdba74",direction:"rtl"}}>
                       {CONCEPTS[topic].formula}
                     </p>
                   </div>
@@ -3948,10 +3540,7 @@ function Roadmap({go,setSettings,openLesson,trial={}}){
                     }}>{ICON_LABELS[t]||t.slice(0,3)}</span>
                   </div>
                   <div style={{flex:1,minWidth:0}}>
-                    <div style={{display:"flex",alignItems:"center",gap:6}}>
-                      <p style={{fontSize:".84rem",fontWeight:700,color:"#f1f5f9",lineHeight:1.4}}>{t}</p>
-                      {BAB0_TOPICS.includes(t)&&<span style={{fontSize:".55rem",padding:"1px 6px",borderRadius:99,background:"rgba(74,222,128,.15)",border:"1px solid rgba(74,222,128,.3)",color:"#4ade80",fontWeight:700,flexShrink:0}}>باب 0</span>}
-                    </div>
+                    <p style={{fontSize:".84rem",fontWeight:700,color:"#f1f5f9",lineHeight:1.4}}>{t}</p>
                     <p style={{fontSize:".63rem",color:"#475569",marginTop:2}}>
                       {CONCEPTS[t]?.trap?.replace("⚠ الفخ: ","").slice(0,35)+"…"}
                     </p>
@@ -4475,29 +4064,27 @@ export default function Fahmni(){
   // حماية الصفحات — لو ما في session يرجع للصفحة الرئيسية
   const PROTECTED=["dashboard","roadmap","session","bank","sim","review","lesson","diagnostic","placement","placementResult","onboarding"];
   const PAID_ONLY=["sim","bank","review","roadmap","lesson"]; // require subscription
-
-  // Redirect logic moved to useEffect — prevents go() from being called during render
-  useEffect(()=>{
-    const NEEDS_PLACEMENT=["dashboard","session","bank","sim","review","roadmap","lesson","diagnostic"];
-    if(PROTECTED.includes(page)&&!session){go("landing");return;}
-    if(session&&!session.isGuest&&NEEDS_PLACEMENT.includes(page)&&!placementDoneRef.current){go("placement");return;}
-    if(PAID_ONLY.includes(page)&&!trial.isSubscribed&&!(page==="session"&&trial.used<trial.limit)){go("paywall");return;}
-    if(page==="placement"&&placementDone){go("dashboard");return;}
-    if(page==="lesson"&&!trial.isSubscribed){go("paywall");return;}
-  },[page,session,trial.isSubscribed,trial.used,placementDone]);
-
   const R=()=>{
+    // 1) مو مسجّل → landing
+    if(PROTECTED.includes(page)&&!session){go("landing");return null;}
+    // 2) مسجّل لكن ما أكمل placement → أجبره على placement
     const NEEDS_PLACEMENT=["dashboard","session","bank","sim","review","roadmap","lesson","diagnostic"];
-    // Return null while useEffect redirect is pending — no go() calls during render
-    if(PROTECTED.includes(page)&&!session) return null;
-    if(session&&!session.isGuest&&NEEDS_PLACEMENT.includes(page)&&!placementDoneRef.current) return null;
-    if(PAID_ONLY.includes(page)&&!trial.isSubscribed&&!(page==="session"&&trial.used<trial.limit)) return null;
+    if(session&&!session.isGuest&&NEEDS_PLACEMENT.includes(page)&&!placementDoneRef.current){
+      go("placement");return null;
+    }
+    // 3) PAID_ONLY — يحتاج اشتراك
+    if(PAID_ONLY.includes(page)){
+      if(!trial.isSubscribed){
+        if(page==="session"&&trial.used<trial.limit){/* مسموح */}
+        else{go("paywall");return null;}
+      }
+    }
     const plan=trial.plan||'free';
     switch(page){
     case"login":case"signup":return <Auth mode={page} go={go} onLogin={handleLogin}/>;
     case"onboarding":return <Onboarding finish={d=>{setProfile(d);go("placement");}}/>;
     case"placement":
-      if(placementDone) return null;
+      if(placementDone){go("dashboard");return null;}
       return <PlacementQuiz profile={profile} onFinish={ans=>{setPAnswers(ans);const r=getRec({...profile,score:ans.filter(a=>a.ok).length,answers:ans});setRec(r);setSettings(p=>({...p,section:profile.section,topic:r.topic}));go("placementResult");}}/>;
     case"placementResult":return <PlacementResult rec={rec} score={pAnswers.filter(a=>a.ok).length} onFinish={()=>{
       placementDoneRef.current=true;setPlacementDone(true);
@@ -4507,7 +4094,7 @@ export default function Fahmni(){
     case"dashboard":return <Dashboard go={go} user={user} trial={trial} mistakes={mistakes}/>;
     case"roadmap":return <Roadmap go={go} setSettings={setSettings} openLesson={openLesson} trial={trial}/>;
     case"lesson":
-      if(!trial.isSubscribed) return null;
+      if(!trial.isSubscribed){go("paywall");return null;}
       return lessonTopic
       ? <TopicLesson
           topic={lessonTopic}
@@ -4536,9 +4123,9 @@ export default function Fahmni(){
         <GS/><Bg/>
         <Confetti active={confetti} onDone={()=>setConfetti(false)}/>
         {milestone&&<MilestonePopup milestone={milestone} onClose={()=>setMilestone(null)}/>}
-        <Nav isPub={PUB.includes(page) && !session} go={go} userName={session?.name||user.name} title={TITLES[page]||""} onLogout={session?handleLogout:null}/>
+        <Nav isPub={PUB.includes(page)} go={go} userName={session?.name||user.name} title={TITLES[page]||""} onLogout={session?handleLogout:null}/>
         <div className="wrap" style={{paddingTop:24}}>
-          {R()}
+          <R/>
         </div>
       </div>
     </ErrorBoundary>
