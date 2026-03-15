@@ -2317,7 +2317,7 @@ function TestimonialsBar(){
   },[]);
   const items=[...TESTIMONIALS,...TESTIMONIALS];
   return(
-    <div style={{padding:"24px 0",borderTop:"1px solid rgba(255,255,255,.05)",borderBottom:"1px solid rgba(255,255,255,.05)",background:"rgba(5,9,26,.7)"}}>
+    <div style={{padding:"24px 0",borderTop:"1px solid rgba(255,255,255,.05)",borderBottom:"1px solid rgba(255,255,255,.05)",background:"rgba(5,9,26,.7)",overflow:"hidden",maxWidth:"100vw"}}>
       <div style={{textAlign:"center",marginBottom:16}}>
         <span className="badge b-g" style={{marginBottom:6}}>⭐ آراء الطلاب</span>
         <p style={{fontSize:"1rem",fontWeight:900,color:"#fff",marginBottom:2}}>ماذا يقول طلاب فهمني؟</p>
