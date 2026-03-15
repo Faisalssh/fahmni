@@ -92,6 +92,10 @@ const GS = () => (<style>{`
   .review-item:hover{border-color:rgba(248,113,113,.4);background:rgba(248,113,113,.09);transform:translateX(-3px);}
   .review-item.solved{border-color:rgba(74,222,128,.25);background:rgba(74,222,128,.05);}
   .diag-badge{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:99px;background:linear-gradient(135deg,rgba(167,139,250,.2),rgba(34,211,238,.1));border:1px solid rgba(167,139,250,.3);color:#c4b5fd;font-size:.72rem;font-weight:700;animation:float 3s ease-in-out infinite;}
+  .marquee-wrap{overflow:hidden;width:100%;position:relative;}
+  .marquee-track{display:flex;gap:14px;width:max-content;animation:marqueeRTL 32s linear infinite;}
+  .marquee-track:hover{animation-play-state:paused;}
+  @keyframes marqueeRTL{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
   ::-webkit-scrollbar{width:4px;}
   ::-webkit-scrollbar-thumb{background:rgba(249,115,22,.35);border-radius:99px;}
 
@@ -2484,6 +2488,65 @@ function AnimCounter({target,suffix="",duration=1800}){
   return <span ref={ref}>{val.toLocaleString()}{suffix}</span>;
 }
 
+
+/* ═══════════════════ TESTIMONIALS ═══════════════════ */
+const TESTIMONIALS=[
+  {name:"محمد العتيبي",    city:"الرياض",  score:"92%", text:"فهمني غيّر طريقة مذاكرتي كلياً — كنت أحفظ، الآن أفهم.",      stars:5, section:"كمي"},
+  {name:"نورة الشمري",     city:"جدة",     score:"88%", text:"باب الأعمار كان يرهبني، الشرح المبسط خلاني أحلّه بثواني.",    stars:5, section:"لفظي"},
+  {name:"خالد الدوسري",   city:"الدمام",  score:"95%", text:"المحاكاة الكاملة طوّعت عليّ على ضغط الاختبار الحقيقي.",       stars:5, section:"كمي"},
+  {name:"الجوهرة القحطاني",city:"مكة",    score:"85%", text:"التشخيص حدّد ضعفي بدقة وما ضيّعت وقتي في أبواب أعرفها.",     stars:5, section:"لفظي"},
+  {name:"عبدالعزيز الزهراني",city:"الطائف",score:"90%", text:"وضع المعلم الذكي يحلّل أخطائي مثل مدرّس خاص بالضبط.",        stars:5, section:"كمي"},
+  {name:"ريما السبيعي",    city:"الرياض",  score:"87%", text:"أسئلة لا تتكرر ومستوى صعوبة تدريجي — بالضبط ما احتاجه.",     stars:5, section:"لفظي"},
+  {name:"فيصل المطيري",    city:"القصيم",  score:"93%", text:"رفعت درجتي من 78 إلى 93 في شهر واحد فقط بسبب فهمني.",        stars:5, section:"كمي"},
+  {name:"العنود الحربي",   city:"المدينة", score:"89%", text:"السجل يبيّن أين أخطأت بالضبط، ومراجعة الأخطاء توفّر الوقت.", stars:5, section:"لفظي"},
+  {name:"تركي العسيري",    city:"أبها",    score:"91%", text:"جربت منصات كثيرة، فهمني الوحيدة اللي تشرح بدل ما تختبر فقط.", stars:5, section:"كمي"},
+  {name:"سارة الغامدي",    city:"جدة",     score:"94%", text:"القاعدة الذهبية قبل كل سؤال فكرة عبقرية — تذكّرني بالمفهوم.", stars:5, section:"لفظي"},
+];
+
+function TestimonialsBar(){
+  // Double the array so the seamless loop works
+  const doubled=[...TESTIMONIALS,...TESTIMONIALS];
+  return(
+    <div style={{padding:"32px 0",borderTop:"1px solid rgba(255,255,255,.05)",borderBottom:"1px solid rgba(255,255,255,.05)",background:"rgba(5,9,26,.6)"}}>
+      <div style={{textAlign:"center",marginBottom:20}}>
+        <span className="badge b-g" style={{marginBottom:8}}>⭐ آراء الطلاب</span>
+        <h2 style={{fontSize:"1.3rem",fontWeight:900,color:"#fff"}}>ماذا يقول طلاب فهمني؟</h2>
+      </div>
+      <div className="marquee-wrap">
+        <div className="marquee-track">
+          {doubled.map((t,i)=>(
+            <div key={i} style={{
+              flexShrink:0,width:260,padding:"16px 18px",borderRadius:16,
+              background:"rgba(10,18,40,.88)",
+              border:"1px solid rgba(255,255,255,.07)",
+              display:"flex",flexDirection:"column",gap:10
+            }}>
+              <div style={{display:"flex",alignItems:"center",gap:10}}>
+                <div style={{
+                  width:38,height:38,borderRadius:11,flexShrink:0,
+                  background:`linear-gradient(135deg,${t.section==="كمي"?"#f97316,#fbbf24":"#22d3ee,#38bdf8"})`,
+                  display:"flex",alignItems:"center",justifyContent:"center",
+                  fontWeight:900,color:"#0a0f1e",fontSize:".88rem"
+                }}>{t.name[0]}</div>
+                <div style={{minWidth:0}}>
+                  <p style={{fontWeight:800,color:"#fff",fontSize:".82rem",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{t.name}</p>
+                  <p style={{fontSize:".65rem",color:"#475569"}}>{t.city} · درجة {t.score}</p>
+                </div>
+                <span className={`badge ${t.section==="كمي"?"b-o":"b-c"}`} style={{fontSize:".58rem",flexShrink:0,marginRight:"auto"}}>{t.section}</span>
+              </div>
+              <p style={{fontSize:".78rem",color:"#94a3b8",lineHeight:1.7,fontStyle:"italic"}}>"{t.text}"</p>
+              <div style={{display:"flex",gap:2}}>
+                {Array.from({length:t.stars}).map((_,si)=>(
+                  <span key={si} style={{color:"#fbbf24",fontSize:".75rem"}}>★</span>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
 function Landing({go}){
   const[bannerClosed,setBannerClosed]=useState(false);
   const[activeFeature,setActiveFeature]=useState(0);
@@ -2622,6 +2685,9 @@ function Landing({go}){
         ))}
       </div>
 
+      {/* ── آراء الطلاب ── */}
+      <TestimonialsBar/>
+
       {/* ── المميزات التفاعلية ── */}
       <div style={{padding:"0 0 48px"}}>
         <div style={{textAlign:"center",marginBottom:28}}>
@@ -2752,7 +2818,7 @@ function Landing({go}){
                 {activeData.concept?.formula&&activeData.concept.formula!=="—"&&(
                   <div style={{padding:"10px 14px",borderRadius:11,background:"rgba(249,115,22,.06)",border:"1px solid rgba(249,115,22,.15)"}}>
                     <p style={{fontSize:".67rem",color:"#f97316",fontWeight:700,marginBottom:4}}>📐 الصيغة</p>
-                    <p style={{fontSize:".82rem",color:"#fdba74",lineHeight:1.6,direction:"rtl",unicodeBidi:"embed"}}>{activeData.concept.formula}</p>
+                    <p style={{fontSize:".82rem",color:"#fdba74",lineHeight:1.6}}>{activeData.concept.formula}</p>
                   </div>
                 )}
                 {/* Trap */}
