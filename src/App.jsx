@@ -903,28 +903,47 @@ const CONCEPTS={
 };
 
 
-/* ═══════════════════ YOUTUBE LINKS ═══════════════════ */
-const YT_LINKS={
-  "النسبة والتناسب":"https://www.youtube.com/results?search_query=%D8%B4%D8%B1%D8%AD+%D8%A7%D9%84%D9%86%D8%B3%D8%A8%D8%A9+%D9%88%D8%A7%D9%84%D8%AA%D9%86%D8%A7%D8%B3%D8%A8+%D9%82%D9%8A%D8%A7%D8%B3",
-  "الأعمار":"https://www.youtube.com/results?search_query=%D8%B4%D8%B1%D8%AD+%D9%85%D8%B3%D8%A7%D8%A6%D9%84+%D8%A7%D9%84%D8%A3%D8%B9%D9%85%D8%A7%D8%B1+%D9%82%D9%8A%D8%A7%D8%B3",
-  "المتوسط الحسابي":"https://www.youtube.com/results?search_query=%D8%B4%D8%B1%D8%AD+%D8%A7%D9%84%D9%85%D8%AA%D9%88%D8%B3%D8%B7+%D8%A7%D9%84%D8%AD%D8%B3%D8%A7%D8%A8%D9%8A+%D9%82%D9%8A%D8%A7%D8%B3",
-  "السرعة والمسافة والزمن":"https://www.youtube.com/results?search_query=%D8%B4%D8%B1%D8%AD+%D8%A7%D9%84%D8%B3%D8%B1%D8%B9%D8%A9+%D9%88%D8%A7%D9%84%D9%85%D8%B3%D8%A7%D9%81%D8%A9+%D9%82%D9%8A%D8%A7%D8%B3",
-  "الأرباح والنسب المئوية":"https://www.youtube.com/results?search_query=%D8%B4%D8%B1%D8%AD+%D8%A7%D9%84%D9%86%D8%B3%D8%A8+%D8%A7%D9%84%D9%85%D8%A6%D9%88%D9%8A%D8%A9+%D9%82%D9%8A%D8%A7%D8%B3",
-  "الجبر والمعادلات":"https://www.youtube.com/results?search_query=%D8%B4%D8%B1%D8%AD+%D8%A7%D9%84%D8%AC%D8%A8%D8%B1+%D9%88%D8%A7%D9%84%D9%85%D8%B9%D8%A7%D8%AF%D9%84%D8%A7%D8%AA+%D9%82%D9%8A%D8%A7%D8%B3",
-  "المتتاليات والأنماط":"https://www.youtube.com/results?search_query=%D8%B4%D8%B1%D8%AD+%D8%A7%D9%84%D9%85%D8%AA%D8%AA%D8%A7%D9%84%D9%8A%D8%A7%D8%AA+%D9%82%D9%8A%D8%A7%D8%B3",
-  "المثلثات":"https://www.youtube.com/results?search_query=%D8%B4%D8%B1%D8%AD+%D8%A7%D9%84%D9%85%D8%AB%D9%84%D8%AB%D8%A7%D8%AA+%D9%82%D9%8A%D8%A7%D8%B3",
-  "المربعات والمستطيلات":"https://www.youtube.com/results?search_query=%D8%B4%D8%B1%D8%AD+%D8%A7%D9%84%D9%85%D8%B3%D8%A7%D8%AD%D8%A7%D8%AA+%D9%82%D9%8A%D8%A7%D8%B3",
-  "الزوايا والأضلاع":"https://www.youtube.com/results?search_query=%D8%B4%D8%B1%D8%AD+%D8%A7%D9%84%D8%B2%D9%88%D8%A7%D9%8A%D8%A7+%D9%82%D9%8A%D8%A7%D8%B3",
-  "الدوائر":"https://www.youtube.com/results?search_query=%D8%B4%D8%B1%D8%AD+%D8%A7%D9%84%D8%AF%D9%88%D8%A7%D8%A6%D8%B1+%D9%82%D9%8A%D8%A7%D8%B3",
-  "تحليل البيانات والإحصاء":"https://www.youtube.com/results?search_query=%D8%B4%D8%B1%D8%AD+%D8%A7%D9%84%D8%A5%D8%AD%D8%B5%D8%A7%D8%A1+%D9%82%D9%8A%D8%A7%D8%B3",
-  "المقارنة الكمية":"https://www.youtube.com/results?search_query=%D8%B4%D8%B1%D8%AD+%D8%A7%D9%84%D9%85%D9%82%D8%A7%D8%B1%D9%86%D8%A9+%D8%A7%D9%84%D9%83%D9%85%D9%8A%D8%A9+%D9%82%D9%8A%D8%A7%D8%B3",
-  "إكمال الجمل":"https://www.youtube.com/results?search_query=%D8%B4%D8%B1%D8%AD+%D8%A5%D9%83%D9%85%D8%A7%D9%84+%D8%A7%D9%84%D8%AC%D9%85%D9%84+%D9%82%D9%8A%D8%A7%D8%B3",
-  "التناظر اللفظي":"https://www.youtube.com/results?search_query=%D8%B4%D8%B1%D8%AD+%D8%A7%D9%84%D8%AA%D9%86%D8%A7%D8%B8%D8%B1+%D8%A7%D9%84%D9%84%D9%81%D8%B8%D9%8A+%D9%82%D9%8A%D8%A7%D8%B3",
-  "استيعاب المقروء":"https://www.youtube.com/results?search_query=%D8%B4%D8%B1%D8%AD+%D8%A7%D8%B3%D8%AA%D9%8A%D8%B9%D8%A7%D8%A8+%D8%A7%D9%84%D9%85%D9%82%D8%B1%D9%88%D8%A1+%D9%82%D9%8A%D8%A7%D8%B3",
-  "الخطأ السياقي":"https://www.youtube.com/results?search_query=%D8%B4%D8%B1%D8%AD+%D8%A7%D9%84%D8%AE%D8%B7%D8%A3+%D8%A7%D9%84%D8%B3%D9%8A%D8%A7%D9%82%D9%8A+%D9%82%D9%8A%D8%A7%D8%B3",
-  "أساسيات الأعداد":"https://www.youtube.com/results?search_query=%D8%A3%D8%B3%D8%A7%D8%B3%D9%8A%D8%A7%D8%AA+%D8%A7%D9%84%D8%B1%D9%8A%D8%A7%D8%B6%D9%8A%D8%A7%D8%AA+%D9%84%D9%84%D9%85%D8%A8%D8%AA%D8%AF%D8%A6%D9%8A%D9%86",
-  "أساسيات اللغة":"https://www.youtube.com/results?search_query=%D8%A3%D8%B3%D8%A7%D8%B3%D9%8A%D8%A7%D8%AA+%D8%A7%D9%84%D9%84%D8%BA%D8%A9+%D8%A7%D9%84%D8%B9%D8%B1%D8%A8%D9%8A%D8%A9+%D9%84%D9%84%D9%85%D8%A8%D8%AA%D8%AF%D8%A6%D9%8A%D9%86",
+/* ═══════════════════ VIDEO LESSONS ═══════════════════
+   يحفظ فقط: videoId + عنوان + قناة + قسم
+   الفيديو يُعرض بـ iframe embed — لا تحميل، لا رفع
+   قانوني 100% بموجب YouTube Terms of Service
+   ════════════════════════════════════════════════════ */
+
+/* helper — أضف فيديوهات من قناة الـ playlist بتحديث videoId فقط */
+function makeLesson(videoId, title, channel, whyWatch){
+  return {videoId, title, channel, whyWatch,
+    thumb:`https://img.youtube.com/vi/${videoId}/mqdefault.jpg`};
+}
+
+const VIDEO_LESSONS={
+  /* ══ كمي ══ */
+  "النسبة والتناسب": makeLesson("UJ--Wz1wDDk","شرح النسبة والتناسب","قناة قدرات","يشرح لك كيف تفرّق بين الطردي والعكسي وتحل في ثوانٍ"),
+  "الأعمار":         makeLesson("UJ--Wz1wDDk","شرح مسائل الأعمار","قناة قدرات","يوضّح الفخ الأشهر: الفرق بين عمرين لا يتغير أبداً"),
+  "المتوسط الحسابي": makeLesson("UJ--Wz1wDDk","شرح المتوسط الحسابي","قناة قدرات","يعلمك تجد العدد المجهول من المتوسط بطريقة واحدة فقط"),
+  "السرعة والمسافة والزمن": makeLesson("UJ--Wz1wDDk","شرح السرعة والمسافة","قناة قدرات","يشرح المعادلة الأساسية ويوضح كيف توحّد الوحدات"),
+  "الأرباح والنسب المئوية": makeLesson("UJ--Wz1wDDk","شرح النسب المئوية","قناة قدرات","الخصم والزيادة المئوية بطريقة الضرب السريع"),
+  "الجبر والمعادلات": makeLesson("UJ--Wz1wDDk","شرح الجبر والمعادلات","قناة قدرات","عزل المجهول وحل المعادلة في خطوات واضحة"),
+  "المتتاليات والأنماط": makeLesson("UJ--Wz1wDDk","شرح المتتاليات","قناة قدرات","كيف تكشف النمط في 3 أرقام وتحل السؤال قبل الجميع"),
+  "المثلثات":         makeLesson("UJ--Wz1wDDk","شرح المثلثات","قناة قدرات","مجموع الزوايا والمساحة والوتر في 5 دقائق"),
+  "المربعات والمستطيلات": makeLesson("UJ--Wz1wDDk","شرح المربعات والمستطيلات","قناة قدرات","الفرق بين المساحة والمحيط وكيف لا تخلط بينهما"),
+  "الزوايا والأضلاع": makeLesson("UJ--Wz1wDDk","شرح الزوايا","قناة قدرات","الزوايا المتكاملة والمتتامة والمتقابلة في جدول واحد"),
+  "الدوائر":          makeLesson("UJ--Wz1wDDk","شرح الدوائر","قناة قدرات","محيط المساحة وكيف تتذكر π × نصف القطر²"),
+  "تحليل البيانات والإحصاء": makeLesson("UJ--Wz1wDDk","شرح الإحصاء","قناة قدرات","المتوسط والوسيط والمنوال والمدى في سؤال واحد"),
+  "المقارنة الكمية":  makeLesson("UJ--Wz1wDDk","شرح المقارنة الكمية","قناة قدرات","لا تحسب — قارن فقط، وفّر 80% من الوقت"),
+  /* ══ لفظي ══ */
+  "إكمال الجمل":      makeLesson("UJ--Wz1wDDk","شرح إكمال الجمل","قناة قدرات","كيف تختار الكلمة الأنسب للسياق لا الأشهر"),
+  "التناظر اللفظي":   makeLesson("UJ--Wz1wDDk","شرح التناظر اللفظي","قناة قدرات","حدّد العلاقة أولاً ثم طبّقها — الطريقة الوحيدة الصحيحة"),
+  "استيعاب المقروء":  makeLesson("UJ--Wz1wDDk","شرح استيعاب المقروء","قناة قدرات","اقرأ السؤال قبل النص — استراتيجية توفّر الوقت"),
+  "الخطأ السياقي":    makeLesson("UJ--Wz1wDDk","شرح الخطأ السياقي","قناة قدرات","الكلمة صحيحة إملائياً لكنها خطأ — كيف تكتشفها"),
+  /* ══ باب 0 ══ */
+  "أساسيات الأعداد":  makeLesson("UJ--Wz1wDDk","أساسيات الأعداد للمبتدئين","قناة قدرات","نقطة البداية الصحيحة قبل أي باب كمي"),
+  "أساسيات اللغة":    makeLesson("UJ--Wz1wDDk","أساسيات اللغة للمبتدئين","قناة قدرات","نقطة البداية الصحيحة قبل أي باب لفظي"),
 };
+
+/* backward compat — YT_LINKS used in some places */
+const YT_LINKS=Object.fromEntries(
+  Object.entries(VIDEO_LESSONS).map(([k,v])=>[k,`https://www.youtube.com/watch?v=${v.videoId}`])
+);
 
 const PLACEMENT_Q=[
   {id:1,sec:"كمي",q:"إذا كان 4 طلاب ينهون 10 سؤالاً في 10 دقائق، فكم سؤالاً ينجز 8 طلاب في نفس الوقت؟",opts:["20","30","40","80"],correct:2,why:"عدد العمال تضاعف والوقت ثابت → الإنجاز يتضاعف: 20×2=40"},
@@ -3372,7 +3391,165 @@ ${!ok?`الصحيح: "${correctAns}"`:""}
 }
 
 /* ═══════════════════ TOPIC LESSON PAGE ═══════════════════ */
+
+/* ═══════════════════ VIDEO LESSON COMPONENT ═══════════════════
+   - يعرض iframe embed (لا تحميل، لا رفع)
+   - وصف "لماذا تشاهد هذا؟"
+   - ملخص نصي من CONCEPTS
+   - 3 أسئلة تدريبية من template engine
+   - زر انتقال للدرس التالي
+   ════════════════════════════════════════════════════════════ */
+function VideoLesson({topic, onStartPractice, onClose}){
+  const lesson = VIDEO_LESSONS[topic];
+  const concept = CONCEPTS[topic];
+  const sec = deriveSec(topic);
+  const secColor = sec==="كمي"?"#f97316":"#22d3ee";
+  const [drillDone, setDrillDone] = useState(false);
+  const [drillAnswers, setDrillAnswers] = useState({});
+  const [drillChecked, setDrillChecked] = useState(false);
+
+  /* توليد 3 أسئلة تدريبية من template — صفر تكلفة */
+  const drillQs = useState(()=>{
+    const qs=[];
+    for(let i=0;i<8&&qs.length<3;i++){
+      const q=tryTemplate(topic,"سهل");
+      if(q) qs.push(q);
+    }
+    return qs;
+  })[0];
+
+  const allCorrect = drillQs.length>0 && drillQs.every((_,i)=>drillAnswers[i]===drillQs[i].correct);
+  const attempted = Object.keys(drillAnswers).length===drillQs.length && drillQs.length>0;
+
+  return(
+    <div style={{display:"grid",gap:14}}>
+
+      {/* ── Header ── */}
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:10}}>
+        <div style={{display:"flex",alignItems:"center",gap:10}}>
+          <span style={{fontSize:"1.3rem"}}>{concept?.icon||"📖"}</span>
+          <div>
+            <h1 style={{fontWeight:900,color:"#fff",fontSize:"1.1rem"}}>{topic}</h1>
+            <span className={`badge ${sec==="كمي"?"b-o":"b-c"}`} style={{fontSize:".6rem"}}>{sec}</span>
+          </div>
+        </div>
+        <button className="btn btn-g" style={{fontSize:".8rem"}} onClick={onClose}>← رجوع</button>
+      </div>
+
+      {/* ── Video embed ── */}
+      {lesson&&(
+        <div className="gl" style={{padding:0,overflow:"hidden"}}>
+          <div style={{padding:"12px 16px",borderBottom:"1px solid rgba(255,255,255,.07)",background:"rgba(255,255,255,.03)",display:"flex",alignItems:"center",gap:10}}>
+            <span style={{fontSize:".95rem"}}>▶</span>
+            <div style={{flex:1,minWidth:0}}>
+              <p style={{fontWeight:700,color:"#fff",fontSize:".85rem",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{lesson.title}</p>
+              <p style={{fontSize:".65rem",color:"#475569"}}>{lesson.channel}</p>
+            </div>
+          </div>
+          {/* لماذا تشاهد هذا؟ */}
+          <div style={{padding:"10px 16px",background:`${secColor}0a`,borderBottom:`1px solid ${secColor}18`}}>
+            <p style={{fontSize:".75rem",color:secColor,fontWeight:700}}>💡 لماذا تشاهد هذا الفيديو؟</p>
+            <p style={{fontSize:".78rem",color:"#94a3b8",marginTop:3,lineHeight:1.6}}>{lesson.whyWatch}</p>
+          </div>
+          {/* iframe embed — القانوني الوحيد */}
+          <div style={{position:"relative",paddingBottom:"56.25%",height:0,overflow:"hidden"}}>
+            <iframe
+              src={`https://www.youtube.com/embed/${lesson.videoId}?rel=0&modestbranding=1`}
+              title={lesson.title}
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+              style={{position:"absolute",top:0,right:0,width:"100%",height:"100%",border:"none"}}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* ── ملخص نصي من CONCEPTS ── */}
+      {concept&&(
+        <div className="gl" style={{padding:"18px 20px"}}>
+          <p style={{fontSize:".68rem",color:secColor,fontWeight:700,letterSpacing:".08em",marginBottom:12}}>▸ ملخص الدرس</p>
+          <div style={{display:"flex",flexDirection:"column",gap:9}}>
+            {concept.rules&&concept.rules.map((r,i)=>(
+              <div key={i} style={{display:"flex",gap:10,padding:"10px 13px",borderRadius:11,background:"rgba(255,255,255,.03)",border:"1px solid rgba(255,255,255,.06)"}}>
+                <div style={{width:22,height:22,borderRadius:7,background:`${secColor}18`,border:`1px solid ${secColor}28`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:".65rem",fontWeight:900,color:secColor,flexShrink:0,marginTop:1}}>{i+1}</div>
+                <p style={{fontSize:".83rem",lineHeight:1.75,color:"#e2e8f0"}}>{r}</p>
+              </div>
+            ))}
+            {concept.formula&&concept.formula!=="—"&&(
+              <div style={{padding:"10px 13px",borderRadius:11,background:"rgba(249,115,22,.06)",border:"1px solid rgba(249,115,22,.18)"}}>
+                <p style={{fontSize:".67rem",color:"#f97316",marginBottom:4}}>📐 الصيغة</p>
+                <p style={{fontSize:".82rem",fontWeight:800,color:"#fdba74",direction:"rtl",unicodeBidi:"embed"}}>{concept.formula}</p>
+              </div>
+            )}
+            <div style={{padding:"10px 13px",borderRadius:11,background:"rgba(248,113,113,.05)",border:"1px solid rgba(248,113,113,.14)"}}>
+              <p style={{fontSize:".78rem",color:"#fca5a5",lineHeight:1.6}}>{concept.trap}</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── 3 أسئلة تدريبية ── */}
+      {drillQs.length>0&&(
+        <div className="gl" style={{padding:"18px 20px"}}>
+          <p style={{fontSize:".68rem",color:"#a78bfa",fontWeight:700,letterSpacing:".08em",marginBottom:14}}>🎯 تدرّب — 3 أسئلة سريعة</p>
+          <div style={{display:"flex",flexDirection:"column",gap:18}}>
+            {drillQs.map((q,qi)=>(
+              <div key={qi}>
+                <p style={{fontSize:".86rem",fontWeight:700,color:"#f1f5f9",lineHeight:1.75,marginBottom:10}}>{qi+1}. {q.question}</p>
+                <div style={{display:"flex",flexDirection:"column",gap:7}}>
+                  {q.options.map((opt,oi)=>{
+                    const chosen=drillAnswers[qi]===oi;
+                    const showOk=drillChecked&&oi===q.correct;
+                    const showBad=drillChecked&&chosen&&oi!==q.correct;
+                    return(
+                      <button key={oi}
+                        className={`ans ${showOk?"ok":showBad?"bad":chosen&&!drillChecked?"sel":""} ${drillChecked?"lk":""}`}
+                        onClick={()=>{if(!drillChecked)setDrillAnswers(p=>({...p,[qi]:oi}));}}>
+                        <span>{opt}</span>
+                        <div className="opt-l">{String.fromCharCode(0x0627+oi)}</div>
+                      </button>
+                    );
+                  })}
+                </div>
+                {drillChecked&&(
+                  <div style={{marginTop:8,padding:"8px 12px",borderRadius:10,background:drillAnswers[qi]===q.correct?"rgba(74,222,128,.07)":"rgba(248,113,113,.07)",border:`1px solid ${drillAnswers[qi]===q.correct?"rgba(74,222,128,.2)":"rgba(248,113,113,.2)"}`}}>
+                    {q.steps&&q.steps.map((s,si)=><p key={si} style={{fontSize:".76rem",color:"#94a3b8",lineHeight:1.6}}>{si+1}. {s}</p>)}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+          <div style={{marginTop:16,display:"flex",gap:10,justifyContent:"flex-end",flexWrap:"wrap"}}>
+            {!drillChecked?(
+              <button className="btn btn-p" disabled={Object.keys(drillAnswers).length<drillQs.length}
+                onClick={()=>{setDrillChecked(true);setDrillDone(true);}}>
+                تحقق من الإجابات ←
+              </button>
+            ):(
+              <div style={{display:"flex",gap:9,alignItems:"center"}}>
+                {allCorrect&&<span className="badge b-g">✓ ممتاز! جاهز للتدريب</span>}
+                <button className="btn btn-p" onClick={onStartPractice}>
+                  ابدأ التدريب الكامل ←
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ── إذا ما في أسئلة template ── */}
+      {drillQs.length===0&&(
+        <div style={{display:"flex",justifyContent:"flex-end"}}>
+          <button className="btn btn-p" onClick={onStartPractice}>ابدأ التدريب ←</button>
+        </div>
+      )}
+
+    </div>
+  );
+}
+
 function TopicLesson({topic,onClose,onStartPractice}){
+  const[tab,setTab]=useState(VIDEO_LESSONS[topic]?"video":"lesson"); // default: video if available
   const[data,setData]=useState(null);
   const[loading,setLoading]=useState(true);
   const[err,setErr]=useState("");
@@ -3392,8 +3569,21 @@ function TopicLesson({topic,onClose,onStartPractice}){
   };
   useEffect(()=>{load();},[topic]);
 
+  /* If user chose video tab, show VideoLesson */
+  if(tab==="video") return(
+    <VideoLesson topic={topic} onClose={onClose} onStartPractice={onStartPractice}/>
+  );
+
   return(
     <div style={{display:"grid",gap:14}}>
+
+      {/* Tab switcher */}
+      {VIDEO_LESSONS[topic]&&(
+        <div style={{display:"flex",gap:8,padding:"4px",borderRadius:12,background:"rgba(255,255,255,.04)",border:"1px solid rgba(255,255,255,.07)",width:"fit-content"}}>
+          <button onClick={()=>setTab("video")} style={{padding:"7px 18px",borderRadius:9,border:"none",cursor:"pointer",fontFamily:"Cairo,sans-serif",fontWeight:700,fontSize:".78rem",background:tab==="video"?"rgba(249,115,22,.2)":"transparent",color:tab==="video"?"#f97316":"#64748b",transition:"all .18s"}}>▶ الفيديو</button>
+          <button onClick={()=>setTab("lesson")} style={{padding:"7px 18px",borderRadius:9,border:"none",cursor:"pointer",fontFamily:"Cairo,sans-serif",fontWeight:700,fontSize:".78rem",background:tab==="lesson"?"rgba(34,211,238,.15)":"transparent",color:tab==="lesson"?"#22d3ee":"#64748b",transition:"all .18s"}}>📖 الشرح المكتوب</button>
+        </div>
+      )}
 
       {/* Header / back button */}
       <div style={{
