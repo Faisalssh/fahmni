@@ -269,13 +269,7 @@ const GS = () => (<style>{`
     .pricing-grid{grid-template-columns:1fr 1fr !important;}
     .rg-sim{grid-template-columns:1fr 200px;}
   }
-
-  /* ── Testimonials marquee ── */
-  .tmq-track{display:flex;flex-direction:row;gap:16px;width:max-content;}
-  .tmq-track:hover{animation-play-state:paused;}
-  .tmq-card{flex-shrink:0;width:260px;padding:16px 18px;border-radius:14px;background:rgba(10,18,40,.9);border:1px solid rgba(255,255,255,.08);}
-  /* ── Prevent horizontal overflow ── */
-  .app{overflow-x:hidden;}
+  .tmq-card{box-sizing:border-box;}
 `}</style>);
 
 /* ═══════════════════ NATURE SOUNDS (Web Audio API) ═══════════════════ */
@@ -2510,40 +2504,37 @@ const TESTIMONIALS=[
 function TestimonialsBar(){
   const trackRef=useRef(null);
   const styleRef=useRef(null);
-
   useEffect(()=>{
     const track=trackRef.current;
     if(!track) return;
-    // Wait one frame so layout is complete
     requestAnimationFrame(()=>{
       const halfW=track.scrollWidth/2;
       if(!styleRef.current){
         const el=document.createElement("style");
-        el.id="tmq-style";
+        el.id="tmq-kf";
         document.head.appendChild(el);
         styleRef.current=el;
       }
-      styleRef.current.textContent=
-        `@keyframes tmq{0%{transform:translateX(0)}100%{transform:translateX(-${halfW}px)}}`;
-      track.style.animation=`tmq 55s linear infinite`;
+      styleRef.current.textContent=`@keyframes tmqRun{0%{transform:translateX(0)}100%{transform:translateX(-${halfW}px)}}`;
+      track.style.cssText="display:flex !important;flex-direction:row !important;flex-wrap:nowrap !important;width:max-content !important;gap:16px;animation:tmqRun 55s linear infinite;will-change:transform;";
     });
-    return()=>{if(styleRef.current) styleRef.current.textContent="";};
+    return()=>{if(styleRef.current)styleRef.current.textContent="";};
   },[]);
-
   const items=[...TESTIMONIALS,...TESTIMONIALS];
+  const card={flexShrink:0,minWidth:"260px",width:"260px",padding:"16px 18px",borderRadius:14,background:"rgba(10,18,40,.9)",border:"1px solid rgba(255,255,255,.08)",boxSizing:"border-box"};
   return(
-    <div style={{padding:"36px 0",borderTop:"1px solid rgba(255,255,255,.05)",borderBottom:"1px solid rgba(255,255,255,.05)",background:"rgba(5,9,26,.7)",overflow:"hidden"}}>
+    <div style={{padding:"36px 0",borderTop:"1px solid rgba(255,255,255,.05)",borderBottom:"1px solid rgba(255,255,255,.05)",background:"rgba(5,9,26,.7)"}}>
       <div style={{textAlign:"center",marginBottom:22}}>
         <span className="badge b-g" style={{marginBottom:8}}>⭐ آراء الطلاب</span>
         <h2 style={{fontSize:"1.2rem",fontWeight:900,color:"#fff",marginBottom:4}}>ماذا يقول طلاب فهمني؟</h2>
-        <p style={{fontSize:".75rem",color:"#475569"}}>مرّر للقراءة أو اضغط لإيقاف الحركة</p>
+        <p style={{fontSize:".75rem",color:"#475569"}}>اضغط لإيقاف الحركة</p>
       </div>
       <div style={{overflow:"hidden",width:"100%"}}>
-        <div ref={trackRef} className="tmq-track"
+        <div ref={trackRef}
           onMouseEnter={e=>{e.currentTarget.style.animationPlayState="paused";}}
           onMouseLeave={e=>{e.currentTarget.style.animationPlayState="running";}}>
           {items.map((t,i)=>(
-            <div key={i} className="tmq-card">
+            <div key={i} style={card}>
               <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:8}}>
                 <div style={{width:36,height:36,borderRadius:10,flexShrink:0,background:"linear-gradient(135deg,#f97316,#fb923c)",display:"flex",alignItems:"center",justifyContent:"center",fontWeight:900,color:"#0a0f1e",fontSize:".85rem"}}>{t.name[0]}</div>
                 <p style={{fontWeight:800,color:"#fff",fontSize:".82rem"}}>{t.name}</p>
@@ -2557,8 +2548,6 @@ function TestimonialsBar(){
     </div>
   );
 }
-
-
 
 function Landing({go}){
   const[bannerClosed,setBannerClosed]=useState(false);
