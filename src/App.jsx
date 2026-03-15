@@ -271,7 +271,7 @@ const GS = () => (<style>{`
   }
 
   /* ── Testimonials marquee ── */
-  .tmq-track{display:flex;gap:16px;width:max-content;}
+  .tmq-track{display:flex;flex-direction:row;gap:16px;width:max-content;}
   .tmq-track:hover{animation-play-state:paused;}
   .tmq-card{flex-shrink:0;width:260px;padding:16px 18px;border-radius:14px;background:rgba(10,18,40,.9);border:1px solid rgba(255,255,255,.08);}
   /* ── Prevent horizontal overflow ── */
@@ -2509,31 +2509,39 @@ const TESTIMONIALS=[
 
 function TestimonialsBar(){
   const trackRef=useRef(null);
-  const[animStyle,setAnimStyle]=useState({});
+  const styleRef=useRef(null);
 
   useEffect(()=>{
     const track=trackRef.current;
     if(!track) return;
-    // Measure the first half (1 set) width
-    const halfW=track.scrollWidth/2;
-    // Inject a keyframe with exact px value into a <style> tag
-    const styleId="tmq-style";
-    let el=document.getElementById(styleId);
-    if(!el){el=document.createElement("style");el.id=styleId;document.head.appendChild(el);}
-    el.textContent=`@keyframes tmq{0%{transform:translateX(0)}100%{transform:translateX(-${halfW}px)}}`;
-    setAnimStyle({animation:`tmq 55s linear infinite`});
+    // Wait one frame so layout is complete
+    requestAnimationFrame(()=>{
+      const halfW=track.scrollWidth/2;
+      if(!styleRef.current){
+        const el=document.createElement("style");
+        el.id="tmq-style";
+        document.head.appendChild(el);
+        styleRef.current=el;
+      }
+      styleRef.current.textContent=
+        `@keyframes tmq{0%{transform:translateX(0)}100%{transform:translateX(-${halfW}px)}}`;
+      track.style.animation=`tmq 55s linear infinite`;
+    });
+    return()=>{if(styleRef.current) styleRef.current.textContent="";};
   },[]);
 
   const items=[...TESTIMONIALS,...TESTIMONIALS];
   return(
-    <div style={{padding:"36px 0",borderTop:"1px solid rgba(255,255,255,.05)",borderBottom:"1px solid rgba(255,255,255,.05)",background:"rgba(5,9,26,.7)",width:"100%",overflow:"hidden"}}>
+    <div style={{padding:"36px 0",borderTop:"1px solid rgba(255,255,255,.05)",borderBottom:"1px solid rgba(255,255,255,.05)",background:"rgba(5,9,26,.7)",overflow:"hidden"}}>
       <div style={{textAlign:"center",marginBottom:22}}>
         <span className="badge b-g" style={{marginBottom:8}}>⭐ آراء الطلاب</span>
         <h2 style={{fontSize:"1.2rem",fontWeight:900,color:"#fff",marginBottom:4}}>ماذا يقول طلاب فهمني؟</h2>
         <p style={{fontSize:".75rem",color:"#475569"}}>مرّر للقراءة أو اضغط لإيقاف الحركة</p>
       </div>
       <div style={{overflow:"hidden",width:"100%"}}>
-        <div ref={trackRef} className="tmq-track" style={animStyle}>
+        <div ref={trackRef} className="tmq-track"
+          onMouseEnter={e=>{e.currentTarget.style.animationPlayState="paused";}}
+          onMouseLeave={e=>{e.currentTarget.style.animationPlayState="running";}}>
           {items.map((t,i)=>(
             <div key={i} className="tmq-card">
               <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:8}}>
