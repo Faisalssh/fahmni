@@ -92,10 +92,9 @@ const GS = () => (<style>{`
   .review-item:hover{border-color:rgba(248,113,113,.4);background:rgba(248,113,113,.09);transform:translateX(-3px);}
   .review-item.solved{border-color:rgba(74,222,128,.25);background:rgba(74,222,128,.05);}
   .diag-badge{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:99px;background:linear-gradient(135deg,rgba(167,139,250,.2),rgba(34,211,238,.1));border:1px solid rgba(167,139,250,.3);color:#c4b5fd;font-size:.72rem;font-weight:700;animation:float 3s ease-in-out infinite;}
-  .marquee-wrap{overflow:hidden;width:100%;position:relative;}
-  .marquee-track{display:flex;gap:14px;width:max-content;animation:marqueeRTL 32s linear infinite;}
-  .marquee-track:hover{animation-play-state:paused;}
-  @keyframes marqueeRTL{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+  @keyframes tmq{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+  .app{overflow-x:hidden;}
+  .app{overflow-x:hidden;}
   ::-webkit-scrollbar{width:4px;}
   ::-webkit-scrollbar-thumb{background:rgba(249,115,22,.35);border-radius:99px;}
 
@@ -118,160 +117,100 @@ const GS = () => (<style>{`
      MOBILE ONLY — max 640px (iPhone 11 = 414px)
      ديسكتوب وتابلت ما يتأثرون أبداً
      ══════════════════════════════════════════ */
+  /* ══════════════════════════════
+     MOBILE — max 640px
+  ══════════════════════════════ */
   @media(max-width:640px){
-
-    /* ── Layout ── */
-    .wrap{padding:10px 12px 100px !important;}
+    /* Layout */
+    .wrap{padding:10px 12px 100px !important;box-sizing:border-box !important;}
     @supports(padding-bottom:env(safe-area-inset-bottom)){
       .wrap{padding-bottom:calc(100px + env(safe-area-inset-bottom)) !important;}
     }
-
-    /* ── Grids → عمود واحد ── */
-    .rg-2,.rg-3,.rg-4,.rg-sidebar,.rg-sim,.rg-lesson,.rg-onboard{
-      grid-template-columns:1fr !important;
-    }
+    /* Grids */
+    .rg-2,.rg-3,.rg-sidebar,.rg-sim,.rg-lesson,.rg-onboard{grid-template-columns:1fr !important;}
     .rg-4{grid-template-columns:1fr 1fr !important;}
-    .pricing-grid,.bank-grid,.sim-running,.lesson-cols,.sim-tracks,.teacher-grid{
-      grid-template-columns:1fr !important;
-    }
-    .placement-stats,.landing-features,.landing-stats,.topic-btn-grid,.sim-grid{
-      grid-template-columns:1fr 1fr !important;
-    }
-
-    /* ── Nav ── */
-    .nav{padding:10px 14px !important;margin-bottom:0;}
-    /* ── Nav موبايل ── */
+    .pricing-grid,.bank-grid,.sim-running,.lesson-cols,.sim-tracks,.teacher-grid{grid-template-columns:1fr !important;}
+    .placement-stats,.landing-features,.landing-stats,.topic-btn-grid,.sim-grid{grid-template-columns:1fr 1fr !important;}
+    /* Nav */
+    .nav{padding:10px 14px !important;}
     .nav-desktop{display:none !important;}
     .nav-mob-row{display:flex !important;}
-
-    /* ── Buttons — minimum 48px touch target (Apple HIG) ── */
-    .btn{
-      min-height:48px !important;
-      padding:13px 18px !important;
-      font-size:.92rem !important;
-      border-radius:14px !important;
-    }
-    .landing-hero-btns .btn{
-      width:100% !important;
-      justify-content:center !important;
-      font-size:1rem !important;
-      padding:16px !important;
-    }
+    /* Buttons */
+    .btn{min-height:44px !important;padding:11px 16px !important;font-size:.88rem !important;border-radius:13px !important;box-sizing:border-box !important;}
+    .landing-hero-btns .btn{width:100% !important;justify-content:center !important;font-size:.96rem !important;padding:15px !important;}
     .landing-hero-btns{flex-direction:column !important;align-items:stretch !important;gap:10px !important;}
-
-    /* ── Cards ── */
-    .gl{border-radius:16px;padding:14px !important;}
-    .gl2{border-radius:12px;}
-
-    /* ── Typography ── */
-    h1{font-size:1.45rem !important;line-height:1.3 !important;}
-    h2{font-size:1.1rem !important;line-height:1.4 !important;}
-    h3{font-size:.95rem !important;}
-
-    /* ── Answers — راحة في الضغط ── */
-    .ans{
-      padding:17px 14px !important;
-      font-size:.93rem !important;
-      line-height:1.7 !important;
-      border-radius:14px !important;
-    }
-    .opt-l{min-width:34px !important;height:34px !important;font-size:.76rem !important;border-radius:9px !important;}
-
-    /* ── Session sidebar مخفي على موبايل ── */
+    /* Cards */
+    .gl{border-radius:14px !important;padding:13px !important;}
+    .gl2{border-radius:11px !important;}
+    /* Typography */
+    h1{font-size:clamp(1.2rem,5.5vw,1.55rem) !important;line-height:1.3 !important;}
+    h2{font-size:clamp(1rem,4.5vw,1.15rem) !important;line-height:1.4 !important;}
+    h3{font-size:.93rem !important;}
+    p{word-break:break-word;}
+    /* Answers */
+    .ans{padding:15px 12px !important;font-size:.9rem !important;line-height:1.7 !important;border-radius:13px !important;}
+    .opt-l{min-width:32px !important;height:32px !important;font-size:.72rem !important;border-radius:8px !important;}
+    /* Session */
     .mob-hide{display:none !important;}
     .mob-show{display:flex !important;}
-
-    /* ── Mobile stats bar (يظهر بدل السايدبار) ── */
-    .mob-stats-bar{
-      display:flex !important;
-      align-items:center;
-      gap:10px;
-      padding:10px 14px;
-      border-radius:14px;
-      background:rgba(10,18,40,.95);
-      border:1px solid rgba(255,255,255,.08);
-      margin-bottom:10px;
-      flex-wrap:wrap;
-    }
-
-    /* ── Session question card ── */
-    .si{padding:18px !important;}
-
-    /* ── Roadmap tabs scrollable ── */
-    .roadmap-tabs{
-      overflow-x:auto;
-      -webkit-overflow-scrolling:touch;
-      white-space:nowrap;
-      padding-bottom:4px;
-      scrollbar-width:none;
-    }
+    .mob-stats-bar{display:flex !important;align-items:center;gap:9px;padding:9px 13px;border-radius:13px;background:rgba(10,18,40,.95);border:1px solid rgba(255,255,255,.08);margin-bottom:10px;flex-wrap:wrap;}
+    .si{padding:16px !important;}
+    /* Roadmap */
+    .roadmap-tabs{overflow-x:auto;-webkit-overflow-scrolling:touch;white-space:nowrap;padding-bottom:4px;scrollbar-width:none;}
     .roadmap-tabs::-webkit-scrollbar{display:none;}
-    .topic-btn-grid .sc{padding:12px 10px !important;}
-
-    /* ── Override large inline paddings on mobile ── */
-    .gl-pad-lg{padding:18px !important;}
-    /* ── Landing page mobile overhaul ── */
-
-    /* Stats bar → 2x2 */
+    .topic-btn-grid .sc{padding:11px 9px !important;}
+    /* Landing */
+    .gl-pad-lg{padding:16px !important;}
     .landing-stats-bar{grid-template-columns:1fr 1fr !important;}
     .landing-stats-bar>div{border-left:none !important;border-bottom:1px solid rgba(255,255,255,.06);}
-
-    /* Features → 1 col, hide demo panel */
     .landing-feat-grid{grid-template-columns:1fr !important;}
     .feat-demo{display:none !important;}
-
-    /* Feature buttons — more compact */
-    .landing-feat-grid button{padding:12px 14px !important;}
-    .landing-feat-grid button>div:first-child{width:36px !important;height:36px !important;}
-
-    /* Steps → 1 col horizontal cards */
-    .landing-steps{grid-template-columns:1fr !important;gap:10px !important;}
-    .landing-step-card{
-      display:flex !important;
-      align-items:center !important;
-      gap:14px !important;
-      padding:16px !important;
-    }
-    .landing-step-card>div:first-child{
-      position:static !important;
-      font-size:1.6rem !important;
-      opacity:1 !important;
-      color:inherit !important;
-      flex-shrink:0;
-    }
-
-    /* CTA buttons full width */
+    .landing-feat-grid button{padding:11px 13px !important;}
+    .landing-feat-grid button>div:first-child{width:34px !important;height:34px !important;}
+    .landing-steps{grid-template-columns:1fr !important;gap:9px !important;}
+    .landing-step-card{display:flex !important;align-items:center !important;gap:13px !important;padding:15px !important;}
+    .landing-step-card>div:first-child{position:static !important;font-size:1.5rem !important;opacity:1 !important;color:inherit !important;flex-shrink:0;}
     .landing-cta-btns{flex-direction:column !important;align-items:stretch !important;}
     .landing-cta-btns .btn{width:100% !important;justify-content:center !important;}
-
-    /* ── Misc ── */
     .mob-full{width:100% !important;justify-content:center !important;}
     .next-cd-btn{width:100% !important;justify-content:center !important;}
-    .orb{display:none;}
+    .orb{display:none !important;}
     .mob-cta{position:sticky;bottom:14px;z-index:100;display:flex;gap:9px;justify-content:center;flex-wrap:wrap;}
-
-    /* ── Large paddings → ضغط على موبايل فقط ── */
-    [style*="padding:"32px"],[style*="padding:"34px"],[style*="padding:"36px"],
-    [style*="padding:"38px"],[style*="padding:"48px"],[style*="padding:"60px"]{
-      padding:16px !important;
-    }
+    /* Testimonials */
+    .t-card-wrap{width:220px !important;}
   }
 
-  /* ── iPhone SE / صغير جداً ── */
+  /* ══════════════════════════════
+     iPhone SE — max 375px
+  ══════════════════════════════ */
   @media(max-width:375px){
-    .btn{font-size:.84rem !important;padding:12px 14px !important;}
-    h1{font-size:1.25rem !important;}
-    .ans{font-size:.85rem !important;padding:14px 12px !important;}
+    .btn{font-size:.82rem !important;padding:11px 13px !important;}
+    h1{font-size:1.18rem !important;}
+    .ans{font-size:.83rem !important;padding:13px 11px !important;}
     .wrap{padding:8px 10px 100px !important;}
+    .gl{padding:11px !important;}
   }
 
-  /* ── Tablet (641-900px) ── */
+  /* ══════════════════════════════
+     Tablet — 641–900px
+  ══════════════════════════════ */
   @media(min-width:641px) and (max-width:900px){
-    .rg-sidebar{grid-template-columns:1fr 220px;}
-    .rg-4{grid-template-columns:1fr 1fr;}
-    .rg-3{grid-template-columns:1fr 1fr;}
+    .rg-sidebar{grid-template-columns:1fr 210px !important;}
+    .rg-4{grid-template-columns:1fr 1fr !important;}
+    .rg-3{grid-template-columns:1fr 1fr !important;}
     .pricing-grid{grid-template-columns:1fr 1fr !important;}
-    .rg-sim{grid-template-columns:1fr 200px;}
+    .rg-sim{grid-template-columns:1fr 190px !important;}
+    .rg-lesson{grid-template-columns:1fr 1fr !important;}
+    .landing-feat-grid{grid-template-columns:1fr 1fr !important;}
+    h1{font-size:clamp(1.5rem,4vw,2.4rem);}
+    .wrap{padding:18px 16px;}
+  }
+
+  /* ══════════════════════════════
+     Large screens — min 1280px
+  ══════════════════════════════ */
+  @media(min-width:1280px){
+    .wrap{max-width:1080px;}
   }
 `}</style>);
 
@@ -2510,54 +2449,55 @@ function AnimCounter({target,suffix="",duration=1800}){
 
 /* ═══════════════════ TESTIMONIALS ═══════════════════ */
 const TESTIMONIALS=[
-  {name:"محمد العتيبي",    city:"الرياض",  score:"92%", text:"فهمني غيّر طريقة مذاكرتي كلياً — كنت أحفظ، الآن أفهم.",      stars:5, section:"كمي"},
-  {name:"نورة الشمري",     city:"جدة",     score:"88%", text:"باب الأعمار كان يرهبني، الشرح المبسط خلاني أحلّه بثواني.",    stars:5, section:"لفظي"},
-  {name:"خالد الدوسري",   city:"الدمام",  score:"95%", text:"المحاكاة الكاملة طوّعت عليّ على ضغط الاختبار الحقيقي.",       stars:5, section:"كمي"},
-  {name:"الجوهرة القحطاني",city:"مكة",    score:"85%", text:"التشخيص حدّد ضعفي بدقة وما ضيّعت وقتي في أبواب أعرفها.",     stars:5, section:"لفظي"},
-  {name:"عبدالعزيز الزهراني",city:"الطائف",score:"90%", text:"وضع المعلم الذكي يحلّل أخطائي مثل مدرّس خاص بالضبط.",        stars:5, section:"كمي"},
-  {name:"ريما السبيعي",    city:"الرياض",  score:"87%", text:"أسئلة لا تتكرر ومستوى صعوبة تدريجي — بالضبط ما احتاجه.",     stars:5, section:"لفظي"},
-  {name:"فيصل المطيري",    city:"القصيم",  score:"93%", text:"رفعت درجتي من 78 إلى 93 في شهر واحد فقط بسبب فهمني.",        stars:5, section:"كمي"},
-  {name:"العنود الحربي",   city:"المدينة", score:"89%", text:"السجل يبيّن أين أخطأت بالضبط، ومراجعة الأخطاء توفّر الوقت.", stars:5, section:"لفظي"},
-  {name:"تركي العسيري",    city:"أبها",    score:"91%", text:"جربت منصات كثيرة، فهمني الوحيدة اللي تشرح بدل ما تختبر فقط.", stars:5, section:"كمي"},
-  {name:"سارة الغامدي",    city:"جدة",     score:"94%", text:"القاعدة الذهبية قبل كل سؤال فكرة عبقرية — تذكّرني بالمفهوم.", stars:5, section:"لفظي"},
+  {name:"سعد العتيبي",     text:"يارب أجيب 100"},
+  {name:"نورة",            text:"أول مرة أفهم اللفظي بهذا الشكل"},
+  {name:"محمد الشمري",     text:"المنصة رتبت لي الأفكار بشكل ممتاز"},
+  {name:"ريما",            text:"حسيت القدرات صار أسهل"},
+  {name:"خالد الدوسري",    text:"شرح الكمي هنا أوضح من أي مكان"},
+  {name:"جود",             text:"هذا أفضل شرح شفته"},
+  {name:"عبدالرحمن",       text:"أخيرًا فهمت الفقرة بدون تعقيد"},
+  {name:"تركي العسيري",    text:"الحلم أجيب درجة تدخلني أرامكو"},
+  {name:"سارة الغامدي",    text:"صرت أحل الأسئلة بثقة"},
+  {name:"منال",            text:"المنصة فعلًا ساعدتني أبدأ صح"},
+  {name:"فهد المطيري",     text:"شرح بسيط لكن قوي جداً"},
+  {name:"لجين",            text:"حسيت إني أتعلم مو بس أحفظ"},
+  {name:"عمر الزهراني",    text:"أفضل استعداد قبل الاختبار"},
+  {name:"دانة",            text:"الكمي كان كابوسي، الحين صار ممتعًا"},
+  {name:"بندر القحطاني",   text:"ما أحتاج مدرس خاص مع هذي المنصة"},
 ];
 
 function TestimonialsBar(){
-  // Double the array so the seamless loop works
-  const doubled=[...TESTIMONIALS,...TESTIMONIALS];
+  const items=[...TESTIMONIALS,...TESTIMONIALS];
   return(
-    <div style={{padding:"32px 0",borderTop:"1px solid rgba(255,255,255,.05)",borderBottom:"1px solid rgba(255,255,255,.05)",background:"rgba(5,9,26,.6)"}}>
-      <div style={{textAlign:"center",marginBottom:20}}>
+    <div style={{padding:"36px 0",borderTop:"1px solid rgba(255,255,255,.05)",borderBottom:"1px solid rgba(255,255,255,.05)",background:"rgba(5,9,26,.7)"}}>
+      <div style={{textAlign:"center",marginBottom:22}}>
         <span className="badge b-g" style={{marginBottom:8}}>⭐ آراء الطلاب</span>
-        <h2 style={{fontSize:"1.3rem",fontWeight:900,color:"#fff"}}>ماذا يقول طلاب فهمني؟</h2>
+        <h2 style={{fontSize:"1.2rem",fontWeight:900,color:"#fff",marginBottom:4}}>ماذا يقول طلاب فهمني؟</h2>
+        <p style={{fontSize:".75rem",color:"#475569"}}>مرّر للقراءة أو اضغط لإيقاف الحركة</p>
       </div>
-      <div className="marquee-wrap">
-        <div className="marquee-track">
-          {doubled.map((t,i)=>(
+      <div style={{overflow:"hidden",width:"100%"}}>
+        <div onMouseEnter={e=>e.currentTarget.style.animationPlayState="paused"}
+             onMouseLeave={e=>e.currentTarget.style.animationPlayState="running"}
+             style={{display:"flex",gap:14,width:"max-content",animation:"tmq 45s linear infinite"}}>
+          {items.map((t,i)=>(
             <div key={i} style={{
-              flexShrink:0,width:260,padding:"16px 18px",borderRadius:16,
+              flexShrink:0,width:260,padding:"18px 20px",borderRadius:16,
               background:"rgba(10,18,40,.88)",
-              border:"1px solid rgba(255,255,255,.07)",
+              border:"1px solid rgba(255,255,255,.08)",
               display:"flex",flexDirection:"column",gap:10
             }}>
               <div style={{display:"flex",alignItems:"center",gap:10}}>
                 <div style={{
-                  width:38,height:38,borderRadius:11,flexShrink:0,
-                  background:`linear-gradient(135deg,${t.section==="كمي"?"#f97316,#fbbf24":"#22d3ee,#38bdf8"})`,
+                  width:36,height:36,borderRadius:10,flexShrink:0,
+                  background:"linear-gradient(135deg,#f97316,#fb923c)",
                   display:"flex",alignItems:"center",justifyContent:"center",
-                  fontWeight:900,color:"#0a0f1e",fontSize:".88rem"
+                  fontWeight:900,color:"#0a0f1e",fontSize:".85rem"
                 }}>{t.name[0]}</div>
-                <div style={{minWidth:0}}>
-                  <p style={{fontWeight:800,color:"#fff",fontSize:".82rem",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{t.name}</p>
-                  <p style={{fontSize:".65rem",color:"#475569"}}>{t.city} · درجة {t.score}</p>
-                </div>
-                <span className={`badge ${t.section==="كمي"?"b-o":"b-c"}`} style={{fontSize:".58rem",flexShrink:0,marginRight:"auto"}}>{t.section}</span>
+                <p style={{fontWeight:800,color:"#fff",fontSize:".82rem"}}>{t.name}</p>
               </div>
-              <p style={{fontSize:".78rem",color:"#94a3b8",lineHeight:1.7,fontStyle:"italic"}}>"{t.text}"</p>
+              <p style={{fontSize:".82rem",color:"#94a3b8",lineHeight:1.65}}>"{t.text}"</p>
               <div style={{display:"flex",gap:2}}>
-                {Array.from({length:t.stars}).map((_,si)=>(
-                  <span key={si} style={{color:"#fbbf24",fontSize:".75rem"}}>★</span>
-                ))}
+                {[1,2,3,4,5].map(s=><span key={s} style={{color:"#fbbf24",fontSize:".72rem"}}>★</span>)}
               </div>
             </div>
           ))}
@@ -2566,6 +2506,8 @@ function TestimonialsBar(){
     </div>
   );
 }
+
+
 function Landing({go}){
   const[bannerClosed,setBannerClosed]=useState(false);
   const[activeFeature,setActiveFeature]=useState(0);
