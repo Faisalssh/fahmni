@@ -25,8 +25,8 @@ const GS = () => (<style>{`
   .pi{animation:popIn .4s cubic-bezier(.34,1.56,.64,1) both}
   .d1{animation-delay:.07s}.d2{animation-delay:.14s}.d3{animation-delay:.21s}
   .d4{animation-delay:.28s}.d5{animation-delay:.35s}.d6{animation-delay:.42s}
-  .app{min-height:100vh;background:#05091a;color:#fff;direction:rtl;overflow-x:hidden;width:100%;}
-  .wrap{max-width:1020px;margin:0 auto;padding:26px 18px;position:relative;z-index:1;overflow-x:hidden;box-sizing:border-box;}
+  .app{min-height:100vh;background:#05091a;color:#fff;direction:rtl;}
+  .wrap{max-width:1020px;margin:0 auto;padding:26px 18px;position:relative;z-index:1;}
   .bg-f{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden;}
   .bg-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(249,115,22,.055)1px,transparent 1px),linear-gradient(90deg,rgba(249,115,22,.055)1px,transparent 1px);background-size:52px 52px;animation:gridAnim 5s ease-in-out infinite;}
   .orb{position:absolute;border-radius:50%;filter:blur(90px);animation:drift var(--d,10s) ease-in-out var(--dl,0s) infinite;}
@@ -92,10 +92,6 @@ const GS = () => (<style>{`
   .review-item:hover{border-color:rgba(248,113,113,.4);background:rgba(248,113,113,.09);transform:translateX(-3px);}
   .review-item.solved{border-color:rgba(74,222,128,.25);background:rgba(74,222,128,.05);}
   .diag-badge{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:99px;background:linear-gradient(135deg,rgba(167,139,250,.2),rgba(34,211,238,.1));border:1px solid rgba(167,139,250,.3);color:#c4b5fd;font-size:.72rem;font-weight:700;animation:float 3s ease-in-out infinite;}
-  .tmq-track{display:flex;gap:16px;width:max-content;}
-  .tmq-track:hover{animation-play-state:paused;}
-  .tmq-card{flex-shrink:0;width:260px;padding:16px 18px;border-radius:14px;background:rgba(10,18,40,.9);border:1px solid rgba(255,255,255,.08);}
-  .app{overflow-x:hidden;}
   ::-webkit-scrollbar{width:4px;}
   ::-webkit-scrollbar-thumb{background:rgba(249,115,22,.35);border-radius:99px;}
 
@@ -118,101 +114,168 @@ const GS = () => (<style>{`
      MOBILE ONLY — max 640px (iPhone 11 = 414px)
      ديسكتوب وتابلت ما يتأثرون أبداً
      ══════════════════════════════════════════ */
-  /* ══════════════════════════════
-     MOBILE — max 640px
-  ══════════════════════════════ */
   @media(max-width:640px){
-    /* Layout */
-    .wrap{padding:10px 12px 100px !important;box-sizing:border-box !important;}
+
+    /* ── Layout ── */
+    .wrap{padding:10px 12px 100px !important;}
     @supports(padding-bottom:env(safe-area-inset-bottom)){
       .wrap{padding-bottom:calc(100px + env(safe-area-inset-bottom)) !important;}
     }
-    /* Grids */
-    .rg-2,.rg-3,.rg-sidebar,.rg-sim,.rg-lesson,.rg-onboard{grid-template-columns:1fr !important;}
+
+    /* ── Grids → عمود واحد ── */
+    .rg-2,.rg-3,.rg-4,.rg-sidebar,.rg-sim,.rg-lesson,.rg-onboard{
+      grid-template-columns:1fr !important;
+    }
     .rg-4{grid-template-columns:1fr 1fr !important;}
-    .pricing-grid,.bank-grid,.sim-running,.lesson-cols,.sim-tracks,.teacher-grid{grid-template-columns:1fr !important;}
-    .placement-stats,.landing-features,.landing-stats,.topic-btn-grid,.sim-grid{grid-template-columns:1fr 1fr !important;}
-    /* Nav */
-    .nav{padding:10px 14px !important;}
+    .pricing-grid,.bank-grid,.sim-running,.lesson-cols,.sim-tracks,.teacher-grid{
+      grid-template-columns:1fr !important;
+    }
+    .placement-stats,.landing-features,.landing-stats,.topic-btn-grid,.sim-grid{
+      grid-template-columns:1fr 1fr !important;
+    }
+
+    /* ── Nav ── */
+    .nav{padding:10px 14px !important;margin-bottom:0;}
+    /* ── Nav موبايل ── */
     .nav-desktop{display:none !important;}
     .nav-mob-row{display:flex !important;}
-    /* Buttons */
-    .btn{min-height:44px !important;padding:11px 16px !important;font-size:.88rem !important;border-radius:13px !important;box-sizing:border-box !important;}
-    .landing-hero-btns .btn{width:100% !important;justify-content:center !important;font-size:.96rem !important;padding:15px !important;}
+
+    /* ── Buttons — minimum 48px touch target (Apple HIG) ── */
+    .btn{
+      min-height:48px !important;
+      padding:13px 18px !important;
+      font-size:.92rem !important;
+      border-radius:14px !important;
+    }
+    .landing-hero-btns .btn{
+      width:100% !important;
+      justify-content:center !important;
+      font-size:1rem !important;
+      padding:16px !important;
+    }
     .landing-hero-btns{flex-direction:column !important;align-items:stretch !important;gap:10px !important;}
-    /* Cards */
-    .gl{border-radius:14px !important;padding:13px !important;}
-    .gl2{border-radius:11px !important;}
-    /* Typography */
-    h1{font-size:clamp(1.2rem,5.5vw,1.55rem) !important;line-height:1.3 !important;}
-    h2{font-size:clamp(1rem,4.5vw,1.15rem) !important;line-height:1.4 !important;}
-    h3{font-size:.93rem !important;}
-    p{word-break:break-word;}
-    /* Answers */
-    .ans{padding:15px 12px !important;font-size:.9rem !important;line-height:1.7 !important;border-radius:13px !important;}
-    .opt-l{min-width:32px !important;height:32px !important;font-size:.72rem !important;border-radius:8px !important;}
-    /* Session */
+
+    /* ── Cards ── */
+    .gl{border-radius:16px;padding:14px !important;}
+    .gl2{border-radius:12px;}
+
+    /* ── Typography ── */
+    h1{font-size:1.45rem !important;line-height:1.3 !important;}
+    h2{font-size:1.1rem !important;line-height:1.4 !important;}
+    h3{font-size:.95rem !important;}
+
+    /* ── Answers — راحة في الضغط ── */
+    .ans{
+      padding:17px 14px !important;
+      font-size:.93rem !important;
+      line-height:1.7 !important;
+      border-radius:14px !important;
+    }
+    .opt-l{min-width:34px !important;height:34px !important;font-size:.76rem !important;border-radius:9px !important;}
+
+    /* ── Session sidebar مخفي على موبايل ── */
     .mob-hide{display:none !important;}
     .mob-show{display:flex !important;}
-    .mob-stats-bar{display:flex !important;align-items:center;gap:9px;padding:9px 13px;border-radius:13px;background:rgba(10,18,40,.95);border:1px solid rgba(255,255,255,.08);margin-bottom:10px;flex-wrap:wrap;}
-    .si{padding:16px !important;}
-    /* Roadmap */
-    .roadmap-tabs{overflow-x:auto;-webkit-overflow-scrolling:touch;white-space:nowrap;padding-bottom:4px;scrollbar-width:none;}
+
+    /* ── Mobile stats bar (يظهر بدل السايدبار) ── */
+    .mob-stats-bar{
+      display:flex !important;
+      align-items:center;
+      gap:10px;
+      padding:10px 14px;
+      border-radius:14px;
+      background:rgba(10,18,40,.95);
+      border:1px solid rgba(255,255,255,.08);
+      margin-bottom:10px;
+      flex-wrap:wrap;
+    }
+
+    /* ── Session question card ── */
+    .si{padding:18px !important;}
+
+    /* ── Roadmap tabs scrollable ── */
+    .roadmap-tabs{
+      overflow-x:auto;
+      -webkit-overflow-scrolling:touch;
+      white-space:nowrap;
+      padding-bottom:4px;
+      scrollbar-width:none;
+    }
     .roadmap-tabs::-webkit-scrollbar{display:none;}
-    .topic-btn-grid .sc{padding:11px 9px !important;}
-    /* Landing */
-    .gl-pad-lg{padding:16px !important;}
+    .topic-btn-grid .sc{padding:12px 10px !important;}
+
+    /* ── Override large inline paddings on mobile ── */
+    .gl-pad-lg{padding:18px !important;}
+    /* ── Landing page mobile overhaul ── */
+
+    /* Stats bar → 2x2 */
     .landing-stats-bar{grid-template-columns:1fr 1fr !important;}
     .landing-stats-bar>div{border-left:none !important;border-bottom:1px solid rgba(255,255,255,.06);}
+
+    /* Features → 1 col, hide demo panel */
     .landing-feat-grid{grid-template-columns:1fr !important;}
     .feat-demo{display:none !important;}
-    .landing-feat-grid button{padding:11px 13px !important;}
-    .landing-feat-grid button>div:first-child{width:34px !important;height:34px !important;}
-    .landing-steps{grid-template-columns:1fr !important;gap:9px !important;}
-    .landing-step-card{display:flex !important;align-items:center !important;gap:13px !important;padding:15px !important;}
-    .landing-step-card>div:first-child{position:static !important;font-size:1.5rem !important;opacity:1 !important;color:inherit !important;flex-shrink:0;}
+
+    /* Feature buttons — more compact */
+    .landing-feat-grid button{padding:12px 14px !important;}
+    .landing-feat-grid button>div:first-child{width:36px !important;height:36px !important;}
+
+    /* Steps → 1 col horizontal cards */
+    .landing-steps{grid-template-columns:1fr !important;gap:10px !important;}
+    .landing-step-card{
+      display:flex !important;
+      align-items:center !important;
+      gap:14px !important;
+      padding:16px !important;
+    }
+    .landing-step-card>div:first-child{
+      position:static !important;
+      font-size:1.6rem !important;
+      opacity:1 !important;
+      color:inherit !important;
+      flex-shrink:0;
+    }
+
+    /* CTA buttons full width */
     .landing-cta-btns{flex-direction:column !important;align-items:stretch !important;}
     .landing-cta-btns .btn{width:100% !important;justify-content:center !important;}
+
+    /* ── Misc ── */
     .mob-full{width:100% !important;justify-content:center !important;}
     .next-cd-btn{width:100% !important;justify-content:center !important;}
-    .orb{display:none !important;}
+    .orb{display:none;}
     .mob-cta{position:sticky;bottom:14px;z-index:100;display:flex;gap:9px;justify-content:center;flex-wrap:wrap;}
-    /* Testimonials */
-    .t-card-wrap{width:220px !important;}
+
+    /* ── Large paddings → ضغط على موبايل فقط ── */
+    [style*="padding:"32px"],[style*="padding:"34px"],[style*="padding:"36px"],
+    [style*="padding:"38px"],[style*="padding:"48px"],[style*="padding:"60px"]{
+      padding:16px !important;
+    }
   }
 
-  /* ══════════════════════════════
-     iPhone SE — max 375px
-  ══════════════════════════════ */
+  /* ── iPhone SE / صغير جداً ── */
   @media(max-width:375px){
-    .btn{font-size:.82rem !important;padding:11px 13px !important;}
-    h1{font-size:1.18rem !important;}
-    .ans{font-size:.83rem !important;padding:13px 11px !important;}
+    .btn{font-size:.84rem !important;padding:12px 14px !important;}
+    h1{font-size:1.25rem !important;}
+    .ans{font-size:.85rem !important;padding:14px 12px !important;}
     .wrap{padding:8px 10px 100px !important;}
-    .gl{padding:11px !important;}
   }
 
-  /* ══════════════════════════════
-     Tablet — 641–900px
-  ══════════════════════════════ */
+  /* ── Tablet (641-900px) ── */
   @media(min-width:641px) and (max-width:900px){
-    .rg-sidebar{grid-template-columns:1fr 210px !important;}
-    .rg-4{grid-template-columns:1fr 1fr !important;}
-    .rg-3{grid-template-columns:1fr 1fr !important;}
+    .rg-sidebar{grid-template-columns:1fr 220px;}
+    .rg-4{grid-template-columns:1fr 1fr;}
+    .rg-3{grid-template-columns:1fr 1fr;}
     .pricing-grid{grid-template-columns:1fr 1fr !important;}
-    .rg-sim{grid-template-columns:1fr 190px !important;}
-    .rg-lesson{grid-template-columns:1fr 1fr !important;}
-    .landing-feat-grid{grid-template-columns:1fr 1fr !important;}
-    h1{font-size:clamp(1.5rem,4vw,2.4rem);}
-    .wrap{padding:18px 16px;}
+    .rg-sim{grid-template-columns:1fr 200px;}
   }
 
-  /* ══════════════════════════════
-     Large screens — min 1280px
-  ══════════════════════════════ */
-  @media(min-width:1280px){
-    .wrap{max-width:1080px;}
-  }
+  /* ── Testimonials marquee ── */
+  .tmq-track{display:flex;gap:16px;width:max-content;}
+  .tmq-track:hover{animation-play-state:paused;}
+  .tmq-card{flex-shrink:0;width:260px;padding:16px 18px;border-radius:14px;background:rgba(10,18,40,.9);border:1px solid rgba(255,255,255,.08);}
+  /* ── Prevent horizontal overflow ── */
+  .app{overflow-x:hidden;}
 `}</style>);
 
 /* ═══════════════════ NATURE SOUNDS (Web Audio API) ═══════════════════ */
