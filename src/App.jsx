@@ -1785,7 +1785,7 @@ function Pricing({go}){
     {
       id:"free",name:"مجاني",price:0,per:"",color:"#22d3ee",
       badge:"ابدأ هنا 🎁",badgeBg:"rgba(34,211,238,.12)",
-      features:["10 أسئلة مجانية","بطاقات المفهوم","خريطة المسار","اختبار تحديد المستوى"],
+      features:["15 سؤال تجربة","استعراض بعض المفاهيم","خريطة مسار التعلم","تجربة واجهة الاختبار"],
       locked:["أسئلة AI غير محدودة","شرح تفصيلي لكل سؤال","وضع المحاكاة","تحليل التقدم"],
       btn:"ابدأ مجانًا ←",isPaid:false,highlight:false,
     },
@@ -1966,9 +1966,11 @@ function Pricing({go}){
         <p style={{fontWeight:800,color:"#fff",marginBottom:14,fontSize:".9rem"}}>❓ أسئلة شائعة</p>
         <div style={{display:"flex",flexDirection:"column",gap:12}}>
           {[
-            ["هل يمكنني الإلغاء في أي وقت؟","نعم، يمكنك إلغاء اشتراكك في أي وقت دون أي رسوم إضافية."],
-            ["متى ستتوفر الاشتراكات المدفوعة؟","قريباً بعد تفعيل بوابة الدفع، ستتلقى إشعاراً فور الإطلاق."],
-            ["هل هناك فرق بين الأساسي والمميز؟","الأساسي يغطي كل ما تحتاجه للتدريب. المميز يضيف AI شخصي وتحليل متقدم لنقاط ضعفك."],
+            ["كم عدد الأسئلة في منصة فهمني+؟","تحتوي المنصة على بنك أسئلة كبير يغطي جميع أبواب اختبار القدرات ويتم تحديثه باستمرار لتوفير تدريب متنوع وقريب من نمط الاختبار الحقيقي."],
+            ["هل الأسئلة مشابهة لاختبار القدرات الحقيقي؟","تم تصميم الأسئلة بأسلوب تدريبي قريب من نمط اختبار القدرات من حيث طريقة التفكير ومستوى الصعوبة لمساعدتك على الاستعداد بثقة."],
+            ["كيف تساعدني المنصة على رفع درجتي؟","توفر فهمني+ اختبارات محاكاة وتحليل أداء وتدريب على جميع الأبواب مما يساعدك على معرفة نقاط ضعفك والتدرب عليها حتى تتحسن درجتك."],
+            ["هل يمكنني تجربة المنصة قبل الاشتراك؟","نعم، يمكنك تجربة المنصة من خلال الباقة المجانية التي تحتوي على 15 سؤالاً للتعرف على طريقة التدريب قبل الاشتراك."],
+            ["لماذا التدريب عبر فهمني+ أفضل من الحل العشوائي؟","لأن المنصة تقدم تدريباً منظماً يشمل بنك أسئلة ومحاكاة للاختبار وتحليل للأداء مما يساعدك على الاستعداد بشكل أكثر فعالية."],
           ].map(([q,a],i)=>(
             <div key={i} style={{borderBottom:"1px solid rgba(255,255,255,.05)",paddingBottom:10}}>
               <p style={{fontSize:".8rem",fontWeight:700,color:"#e2e8f0",marginBottom:4}}>◆ {q}</p>
@@ -2906,7 +2908,7 @@ const sbCreateProfile=async(userId,token,name)=>{
   try{
     await fetch(`${SUPABASE_URL}/rest/v1/profiles`,{
       method:"POST",headers:{...sbH(token),"Prefer":"resolution=ignore-duplicates"},
-      body:JSON.stringify({id:userId,full_name:name,total_solved:0,total_correct:0,current_streak:0,trial_used:0,trial_limit:10,plan:'free',placement_done:false,placement_level:null})
+      body:JSON.stringify({id:userId,full_name:name,total_solved:0,total_correct:0,current_streak:0,trial_used:0,trial_limit:15,plan:'free',placement_done:false,placement_level:null})
     });
   }catch(e){}
 };
