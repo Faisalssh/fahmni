@@ -391,13 +391,13 @@ function ResultCard({stats,onClose}){
   const[copied,setCopied]=useState(false);
   const[shared,setShared]=useState(false);
 
-  const shareText="🎯 فهمني — نتيجة جلستي\n\n📚 الباب: "+topic+" ("+section+")\n✅ الصح: "+correct+"/"+total+"\n🎯 الدقة: "+acc+"%\n⏱ متوسط: "+avgTime+" ثانية\n📊 التقييم: "+grade+"\n\nجرّب فهمني — أذكى طريقة للقدرات 🧠\nfahmni.sa";
-  const shareUrl="https://fahmni.sa";
+  const shareText="🎯 فهمني+ — نتيجة جلستي\n\n📚 الباب: "+topic+" ("+section+")\n✅ الصح: "+correct+"/"+total+"\n🎯 الدقة: "+acc+"%\n⏱ متوسط: "+avgTime+" ثانية\n📊 التقييم: "+grade+"\n\nجرّب فهمني+ — طريقك الأذكى للقدرات 🧠\nfahmniplus.com";
+  const shareUrl="https://fahmniplus.com";
 
   const doWebShare=async()=>{
     if(navigator.share){
       try{
-        await navigator.share({title:"فهمني — نتيجتي",text:shareText,url:shareUrl});
+        await navigator.share({title:"فهمني+ — نتيجتي",text:shareText,url:shareUrl});
         setShared(true);
       }catch(e){}
     }else{
@@ -428,7 +428,7 @@ function ResultCard({stats,onClose}){
               <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:12}}>
                 <div className="logo" style={{width:34,height:34,fontSize:".9rem"}}>ف</div>
                 <div>
-                  <p style={{fontSize:".78rem",fontWeight:800,color:"#fff"}}>فهمني</p>
+                  <p style={{fontSize:".78rem",fontWeight:800,color:"#fff"}}>فهمني+</p>
                   <p style={{fontSize:".58rem",color:"#475569"}}>نتيجة الجلسة</p>
                 </div>
               </div>
@@ -504,7 +504,7 @@ function ResultCard({stats,onClose}){
           <button className="btn btn-g" style={{width:"100%",justifyContent:"center",fontSize:".85rem"}} onClick={onClose}>
             إغلاق
           </button>
-          <p style={{marginTop:10,fontSize:".62rem",color:"#1e293b",textAlign:"center"}}>fahmni.sa · ذاكر بذكاء على اختبار القدرات</p>
+          <p style={{marginTop:10,fontSize:".62rem",color:"#1e293b",textAlign:"center"}}>fahmniplus.com · استعد للقدرات بذكاء على اختبار القدرات</p>
         </div>
       </div>
     </div>
@@ -1006,9 +1006,9 @@ function Nav({isPub,go,userName,title,onLogout}){
           onClick={()=>{go(isPub?"landing":"dashboard");setMenuOpen(false);}}>
           <div className="logo" style={{flexShrink:0}}>ف</div>
           <div style={{minWidth:0}}>
-            <p style={{fontSize:".95rem",fontWeight:900,color:"#fff",lineHeight:1}}>فهمني</p>
+            <p style={{fontSize:".95rem",fontWeight:900,color:"#fff",lineHeight:1}}>فهمني+</p>
             <p style={{fontSize:".58rem",color:"#475569",marginTop:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>
-              {isPub?"ذاكر بذكاء على القدرات":title||""}
+              {isPub?"استعد للقدرات بذكاء":title||""}
             </p>
           </div>
         </div>
@@ -1123,7 +1123,7 @@ function DiagnosticQ({topic,section,onResult,onSkip}){
   const[sel,setSel]=useState(null);
   const[revealed,setRevealed]=useState(false);
   useEffect(()=>{genDiagnostic({section,topic}).then(setQ).catch(()=>setQ(null)).finally(()=>setLoading(false));},[]);
-  if(loading)return(<div className="gl" style={{padding:"48px",textAlign:"center"}}><div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:14}}><div className="spin spin-lg"/><p style={{color:"#a78bfa",fontSize:".9rem"}}>🧠 فهمني يشخّص مستواك في {topic}...</p></div></div>);
+  if(loading)return(<div className="gl" style={{padding:"48px",textAlign:"center"}}><div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:14}}><div className="spin spin-lg"/><p style={{color:"#a78bfa",fontSize:".9rem"}}>🧠 فهمني+ يشخّص مستواك في {topic}...</p></div></div>);
   if(!q)return(<div className="gl" style={{padding:"28px",textAlign:"center"}}><p style={{color:"#64748b",marginBottom:14}}>تعذّر توليد سؤال التشخيص</p><button className="btn btn-p" onClick={onSkip}>تخطى وابدأ مباشرة</button></div>);
   const ok=sel===q.correct;
   return(<div style={{display:"grid",gap:14}}>
@@ -1162,7 +1162,7 @@ function TeacherSummary({topic,history,onContinue,onReview,plan="free"}){
         <div>
           <span className="badge b-v" style={{marginBottom:12}}>🎓 وضع المعلم — بعد 5 أسئلة</span>
           <h2 style={{fontSize:"1.6rem",fontWeight:900,color:"#fff",marginBottom:6}}>تقييمك في <span style={{color:"#f97316"}}>{topic}</span></h2>
-          <p style={{fontSize:".82rem",color:"#64748b"}}>فهمني حلّل إجاباتك بالتفصيل</p>
+          <p style={{fontSize:".82rem",color:"#64748b"}}>فهمني+ حلّل إجاباتك بالتفصيل</p>
         </div>
         <Ring pct={acc} size={96} color={gradeColor}/>
       </div>
@@ -2323,7 +2323,7 @@ function TestimonialsBar(){
     <div style={{padding:"24px 0",borderTop:"1px solid rgba(255,255,255,.05)",borderBottom:"1px solid rgba(255,255,255,.05)",background:"rgba(5,9,26,.7)",overflow:"hidden",maxWidth:"100vw"}}>
       <div style={{textAlign:"center",marginBottom:16}}>
         <span className="badge b-g" style={{marginBottom:6}}>⭐ آراء الطلاب</span>
-        <p style={{fontSize:"1rem",fontWeight:900,color:"#fff",marginBottom:2}}>ماذا يقول طلاب فهمني؟</p>
+        <p style={{fontSize:"1rem",fontWeight:900,color:"#fff",marginBottom:2}}>ماذا يقول طلاب فهمني+؟</p>
         <p style={{fontSize:".7rem",color:"#475569"}}>اضغط لإيقاف الحركة</p>
       </div>
       <div style={{overflow:"hidden",width:"100%"}}>
@@ -2440,14 +2440,14 @@ function Landing({go}){
           </div>
 
           <h1 style={{fontSize:"clamp(2rem,5vw,3.2rem)",fontWeight:900,lineHeight:1.15,color:"#fff",marginBottom:18,animation:"fadeUp .5s .08s both"}}>
-            ذاكر بذكاء<br/>
+            استعد للقدرات<br/>
             <span style={{background:"linear-gradient(135deg,#f97316,#fb923c,#fbbf24,#22d3ee)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",backgroundSize:"200%"}}>
-              وافهم أسرع
+              بأذكى طريقة
             </span>
           </h1>
 
           <p style={{fontSize:"clamp(.88rem,2vw,1.05rem)",lineHeight:1.9,color:"#64748b",maxWidth:520,margin:"0 auto 30px",animation:"fadeUp .5s .14s both"}}>
-            فهمني منصة القدرات الأذكى في السعودية — AI يولّد أسئلة لا تنتهي، ويشخّص أداءك، ويشرح كل باب بلغة تفهمها.
+            المنصة الأذكى للقدرات في السعودية — تدرّب بأسئلة لا تنتهي، شرح لكل باب، وتحليل يحدد أين تحتاج تحسين.
           </p>
 
           <div className="landing-hero-btns" style={{display:"flex",gap:12,justifyContent:"center",flexWrap:"wrap",animation:"fadeUp .5s .2s both"}}>
@@ -2525,7 +2525,7 @@ function Landing({go}){
               <div style={{padding:"12px 16px",borderBottom:"1px solid rgba(255,255,255,.06)",
                 background:"rgba(255,255,255,.03)",display:"flex",alignItems:"center",gap:8}}>
                 <div style={{display:"flex",gap:5}}>{["#f87171","#fbbf24","#4ade80"].map((c,i)=><div key={i} style={{width:9,height:9,borderRadius:"50%",background:c}}/>)}</div>
-                <p style={{fontSize:".65rem",color:"#334155",fontWeight:600}}>fahmni.sa — {FEATURES[activeFeature].title}</p>
+                <p style={{fontSize:".65rem",color:"#334155",fontWeight:600}}>fahmniplus.com — {FEATURES[activeFeature].title}</p>
               </div>
               <div style={{padding:"18px",animation:"scaleIn .3s cubic-bezier(.22,1,.36,1)"}}>
                 {FEATURES[activeFeature].demo}
@@ -2705,7 +2705,7 @@ function Landing({go}){
             </button>
           ))}
         </div>
-        <p style={{fontSize:".65rem",color:"#1e293b"}}>© {new Date().getFullYear()} فهمني — المملكة العربية السعودية 🇸🇦</p>
+        <p style={{fontSize:".65rem",color:"#1e293b"}}>© {new Date().getFullYear()} فهمني+ · FahmniPlus — المملكة العربية السعودية 🇸🇦</p>
       </div>
 
     </div>
@@ -2908,7 +2908,7 @@ const canAccess=(trial,feature)=>{
 
   const guestLogin=()=>{
     const guestName=name||"طالب";
-    onLogin({token:"guest",userId:"guest",name:guestName,email:"guest@fahmni.sa",isGuest:true,trialUsed:0,trialLimit:5});
+    onLogin({token:"guest",userId:"guest",name:guestName,email:"guest@fahmniplus.com",isGuest:true,trialUsed:0,trialLimit:5});
   };
 
   const sendReset=async()=>{
@@ -3012,7 +3012,7 @@ const canAccess=(trial,feature)=>{
             <div style={{display:"flex",flexDirection:"column",gap:9,marginTop:4}}>
               <input className="inp" placeholder="اسمك (اختياري)" value={name} onChange={e=>setName(e.target.value)}/>
               <button className="btn btn-p" style={{width:"100%",justifyContent:"center",padding:"13px"}} onClick={guestLogin}>
-                ⚡ ادخل وجرّب فهمني الآن ←
+                ⚡ جرّب فهمني+ مجاناً ←
               </button>
               <p style={{fontSize:".69rem",color:"#475569",textAlign:"center"}}>على الموقع الحقيقي يطلب بريد وكلمة مرور</p>
             </div>
@@ -3778,7 +3778,7 @@ function Privacy({go}){
     {title:"حقوقك",items:[
       "يحق لك طلب نسخة من بياناتك المحفوظة في أي وقت.",
       "يمكنك حذف حسابك وجميع بياناتك نهائياً من إعدادات الحساب.",
-      "للاستفسار أو طلب الحذف: support@fahmni.sa"
+      "للاستفسار أو طلب الحذف: support@fahmniplus.com"
     ]}
   ]}/>;
 }
@@ -3786,7 +3786,7 @@ function Privacy({go}){
 function Terms({go}){
   return <LegalPage go={go} title="الشروط والأحكام" badge="📋 الشروط" badgeClass="b-o" sections={[
     {title:"قبول الشروط",items:[
-      "باستخدام فهمني فأنت توافق على هذه الشروط. إذا كنت دون سن 18 فيجب الحصول على موافقة ولي الأمر.",
+      "باستخدام فهمني+ فأنت توافق على هذه الشروط. إذا كنت دون سن 18 فيجب الحصول على موافقة ولي الأمر.",
       "نحتفظ بحق تعديل هذه الشروط مع إشعار مسبق عبر البريد الإلكتروني.",
     ]},
     {title:"الاشتراكات والمدفوعات",items:[
@@ -3802,7 +3802,7 @@ function Terms({go}){
       "نحتفظ بحق إيقاف الحسابات التي تنتهك هذه الشروط دون استرداد."
     ]},
     {title:"إخلاء المسؤولية",items:[
-      "فهمني منصة تعليمية مساعدة وليست بديلاً عن الدراسة الرسمية.",
+      "فهمني+ منصة تعليمية مساعدة وليست بديلاً عن الدراسة الرسمية.",
       "لا نضمن نتائج معينة في الاختبارات، لكننا نبذل قصارى جهدنا لتقديم محتوى دقيق.",
       "المحتوى مولّد بالذكاء الاصطناعي وقد يحتوي على أخطاء — نرحب بالإبلاغ عنها."
     ]}
@@ -3817,7 +3817,7 @@ function Refund({go}){
       "في حالة وجود خلل تقني من جانبنا يمنعك من الوصول للمنصة لأكثر من 48 ساعة، يحق لك استرداد نسبي.",
     ]},
     {title:"كيف تطلب الاسترداد؟",items:[
-      "أرسل طلبك على support@fahmni.sa مع ذكر سبب الطلب ورقم الطلب.",
+      "أرسل طلبك على support@fahmniplus.com مع ذكر سبب الطلب ورقم الطلب.",
       "سنرد خلال 3 أيام عمل ونُعالج المبلغ خلال 5-7 أيام عمل.",
       "يُعاد المبلغ لنفس وسيلة الدفع المستخدمة."
     ]},
