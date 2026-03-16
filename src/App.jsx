@@ -768,7 +768,7 @@ const canAccess=(trial,feature)=>{
 const SUPABASE_ANON="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVzZHJhbHJ4ZXNzbGF4dnB5eXBhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMxNzE0NTgsImV4cCI6MjA4ODc0NzQ1OH0.WiHlteyRHs8SUch4Q9msuZb5pWwLi9IWx9L_f5Fp_Ho";
 
 /* استخدام Anthropic API مباشرة — يعمل داخل artifacts */
-const callClaude=async(prompt,maxTok=800,userId=null)=>{
+const callClaude=async(prompt,maxTok=600,userId=null)=>{
   const IS_ART=typeof window!=="undefined"&&window.location.hostname.includes("claude.ai");
   const url=IS_ART?"https://api.anthropic.com/v1/messages":"/api/claude";
   const headers={"Content-Type":"application/json"};
@@ -938,9 +938,14 @@ JSON فقط — لا نص خارجه:
 }
 
 async function genDiagnostic({section,topic}){
+  /* Try template first — zero cost */
+  const tmpl=tryTemplate(topic,"متوسط");
+  if(tmpl){
+    return {question:tmpl.question,options:tmpl.options,correct:tmpl.correct,
+            levelIfCorrect:"متقدم",levelIfWrong:"سهل",explanation:tmpl.steps?.[0]||""};
+  }
   const raw=await callClaude(`اكتب سؤال تشخيصي واحد لباب "${topic}" (${section}) لتحديد مستوى الطالب.
-السؤال يجب أن يكشف إذا كان الطالب يملك الأساس أم لا.
-JSON فقط: {"question":"...","options":["...","...","...","..."],"correct":0,"levelIfCorrect":"متقدم","levelIfWrong":"تأسيس","explanation":"جملة واحدة تشرح المفهاهيم الأساسية"}`);
+JSON فقط: {"question":"...","options":["...","...","...","..."],"correct":0,"levelIfCorrect":"متقدم","levelIfWrong":"تأسيس","explanation":"جملة واحدة"}`);
   try{
     const clean=raw.replace(/```json|```/g,"").trim();
     const s=clean.indexOf("{"),e=clean.lastIndexOf("}");
@@ -957,7 +962,7 @@ JSON فقط: {"question":"...","options":["...","...","...","..."],"correct":0,"
 
 async function genTeacherSummary({topic,history,userId=null}){
   const wrong=history.filter(h=>!h.ok).map(h=>`السؤال: "${h.q}" — أجاب: "${h.chosen}" والصحيح: "${h.correct}"`).join("\n");
-  const raw=await callClaude(`أنت معلم ذكي تحلل أداء طالب في باب "${topic}".
+  const raw=await callClaude(`أنت معلم ذكي تحلل أداء طالب في باب "${topic}". اختصر.
 
 نتيجته: ${history.filter(h=>h.ok).length}/${history.length} صحيح
 
@@ -1720,6 +1725,62 @@ function SimMode({settings,go,updateUser,addMistake,trial={}}){  useEffect(()=>{
 /* ═══════════════════ PRICING PAGE ═══════════════════ */
 function Pricing({go}){
   useEffect(()=>{window.scrollTo({top:0,behavior:"instant"});},[]); 
+  const[basicDur,setBasicDur]=useState("3m");
+  const[examDur,setExamDur]=useState("3m");
+
+  const DURATIONS={
+    "1m":{label:"شهر",badge:null},
+    "3m":{label:"3 أشهر",badge:"الأكثر اختياراً"},
+    "6m":{label:"6 أشهر",badge:"أفضل قيمة"},
+  };
+  const BASIC_PRICES={"1m":{price:59,monthly:59,save:null},"3m":{price:149,monthly:50,save:"وفّر 28 ريال"},"6m":{price:249,monthly:42,save:"وفّر 105 ريال"}};
+  const EXAM_PRICES={"1m":{price:99,monthly:99,save:null},"3m":{price:249,monthly:83,save:"وفّر 48 ريال"},"6m":{price:399,monthly:67,save:"وفّر 195 ريال"}};
+
+  const DurTabs=({value,onChange,prices})=>(
+    <div style={{display:"flex",gap:5,background:"rgba(255,255,255,.05)",borderRadius:10,padding:4,marginBottom:16}}>
+      {Object.entries(DURATIONS).map(([k,{label,badge}])=>{
+        const active=value===k;
+        return(
+          <button key={k} onClick={()=>onChange(k)} style={{
+            flex:1,padding:"7px 4px",borderRadius:7,border:"none",cursor:"pointer",
+            background:active?"rgba(255,255,255,.12)":"transparent",
+            color:active?"#fff":"#64748b",fontSize:".68rem",fontWeight:active?700:400,
+            transition:"all .2s",position:"relative",
+          }}>
+            {label}
+            {badge&&<span style={{
+              display:"block",fontSize:".52rem",
+              color:active?"#fbbf24":"#475569",fontWeight:700,marginTop:1,
+            }}>{badge}</span>}
+          </button>
+        );
+      })}
+    </div>
+  );
+
+  const PriceDisplay=({priceData,color})=>(
+    <div style={{marginBottom:14,minHeight:70}}>
+      <div style={{display:"flex",alignItems:"baseline",gap:6}}>
+        <span style={{fontSize:"clamp(2rem,4vw,2.6rem)",fontWeight:900,color,transition:"all .3s",lineHeight:1}}>
+          {priceData.price}
+        </span>
+        <span style={{fontSize:".8rem",color:"#64748b"}}>ريال</span>
+      </div>
+      {priceData.monthly!==priceData.price&&(
+        <p style={{fontSize:".7rem",color:"#94a3b8",marginTop:3}}>
+          يعادل <span style={{color,fontWeight:700}}>{priceData.monthly} ريال/شهر</span>
+        </p>
+      )}
+      {priceData.save&&(
+        <div style={{display:"inline-flex",alignItems:"center",gap:4,marginTop:6,
+          padding:"3px 10px",borderRadius:99,background:"rgba(74,222,128,.1)",
+          border:"1px solid rgba(74,222,128,.2)"}}>
+          <span style={{fontSize:".62rem",color:"#4ade80",fontWeight:700}}>✓ {priceData.save}</span>
+        </div>
+      )}
+    </div>
+  );
+
   const PLANS=[
     {
       id:"free",name:"مجاني",price:0,per:"",color:"#22d3ee",
@@ -1732,17 +1793,16 @@ function Pricing({go}){
       id:"month",name:"الأساسي",price:49,per:"شهر",color:"#f97316",
       badge:"الأكثر شيوعاً ⭐",badgeBg:"rgba(249,115,22,.12)",
       features:["أسئلة AI غير محدودة","شرح مفصّل لكل سؤال","وضع المحاكاة الكامل ⚡","تتبع التقدم والدقة","بنك الأسئلة 18 باب","تايمر 90 ثانية ⏱","وضع المراجعة 📋","بطاقة النتيجة"],
-      locked:[],
-      btn:"اشترك الآن ←",isPaid:true,highlight:true,
+      locked:[],btn:"اشترك الآن ←",isPaid:true,highlight:true,
     },
     {
       id:"exam",name:"المميز",price:99,per:"شهر",color:"#a78bfa",
       badge:"⭐ الأكثر اختياراً",badgeBg:"rgba(167,139,250,.12)",
       features:["كل مميزات الأساسي","AI مساعد شخصي متقدم","تحليل نقاط الضعف التفصيلي","خطة مذاكرة ذكية مخصصة","اختبارات غير محدودة","أولوية في الدعم 24/7","أفضل قيمة مقارنة بالشهري 💜"],
-      locked:[],
-      btn:"اختر المميز ←",isPaid:true,highlight:false,isBest:true,
+      locked:[],btn:"اختر المميز ←",isPaid:true,highlight:false,isBest:true,
     },
   ];
+
   return(
     <div style={{display:"grid",gap:16,maxWidth:900,margin:"0 auto",width:"100%"}}>
 
@@ -1755,11 +1815,21 @@ function Pricing({go}){
         <p style={{color:"#64748b",lineHeight:1.9,fontSize:".88rem"}}>
           جرّب مجاناً · اشترك لو ناسبك · ألغِ في أي وقت
         </p>
+        <div style={{display:"inline-flex",alignItems:"center",gap:8,marginTop:12,
+          padding:"8px 18px",borderRadius:99,background:"rgba(251,191,36,.08)",
+          border:"1px solid rgba(251,191,36,.2)"}}>
+          <span style={{fontSize:".65rem",color:"#fbbf24",fontWeight:700}}>
+            🔒 الاشتراكات ستتوفر قريباً بعد تفعيل بوابة الدفع
+          </span>
+        </div>
       </div>
 
       {/* Cards */}
-      <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(230px,1fr))",gap:14}}>
-        {PLANS.map((p,i)=>(
+      <div className="pricing-grid" style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(230px,1fr))",gap:14}}>
+        {PLANS.map((p,i)=>{
+          const basicPriceData=BASIC_PRICES[basicDur];
+          const examPriceData=EXAM_PRICES[examDur];
+          return(
           <div key={p.id} className={`gl au d${i+1}`} style={{
             padding:"clamp(20px,3vw,28px) clamp(16px,2.5vw,22px)",
             position:"relative",
@@ -1767,182 +1837,148 @@ function Pricing({go}){
             display:"flex",flexDirection:"column",gap:0,
             background:p.isBest?"linear-gradient(160deg,rgba(167,139,250,.07),rgba(5,9,26,.98))":"",
             boxShadow:p.isBest?`0 12px 40px rgba(167,139,250,.18)`:p.highlight?`0 8px 28px rgba(249,115,22,.12)`:"",
-            marginTop:p.isBest?0:0,
+            opacity:p.isPaid?.85:1,
           }}>
             {/* Best badge */}
             {p.isBest&&(
               <div style={{position:"absolute",top:-13,left:"50%",transform:"translateX(-50%)",
                 whiteSpace:"nowrap",padding:"5px 16px",borderRadius:99,
                 background:"linear-gradient(135deg,#a78bfa,#8b5cf6)",
-                fontSize:".65rem",fontWeight:900,color:"#fff",
-                boxShadow:"0 4px 14px rgba(139,92,246,.4)"}}>
-                ⭐ الأكثر اختياراً
+                fontSize:".65rem",fontWeight:900,color:"#fff",letterSpacing:.3,zIndex:2}}>
+                ✦ الأكثر اختياراً
               </div>
             )}
 
-            {/* Plan badge */}
-            <div style={{marginBottom:14,marginTop:p.isBest?8:0}}>
-              <span style={{
-                display:"inline-block",padding:"4px 12px",borderRadius:99,
-                background:p.badgeBg,border:`1px solid ${p.color}35`,
-                fontSize:".63rem",fontWeight:700,color:p.color
-              }}>{p.isBest?"المميز 👑":p.badge}</span>
-            </div>
-
-            {/* Name */}
-            <p style={{fontSize:"1rem",fontWeight:800,color:"#fff",marginBottom:8}}>{p.name}</p>
-
-            {/* Price */}
-            <div style={{display:"flex",alignItems:"baseline",gap:6,marginBottom:20}}>
-              {p.price===0?(
-                <span style={{fontSize:"1.9rem",fontWeight:900,color:p.color}}>مجاني</span>
-              ):(
-                <>
-                  <span style={{fontSize:"2.5rem",fontWeight:900,color:p.color,lineHeight:1}}>{p.price}</span>
-                  <div>
-                    <p style={{fontSize:".72rem",fontWeight:700,color:"#94a3b8"}}>ريال</p>
-                    <p style={{fontSize:".63rem",color:"#475569"}}>/ {p.per}</p>
-                  </div>
-                  {p.id==="exam"&&(
-                    <span style={{fontSize:".65rem",padding:"2px 8px",borderRadius:99,
-                      background:"rgba(74,222,128,.1)",border:"1px solid rgba(74,222,128,.2)",
-                      color:"#4ade80",marginRight:"auto",marginTop:4}}>وفّر 18 ريال</span>
-                  )}
-                </>
+            {/* Plan name */}
+            <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:14}}>
+              <div>
+                <p style={{fontSize:"1.1rem",fontWeight:900,color:"#fff",marginBottom:3}}>{p.name}</p>
+                <span style={{display:"inline-block",padding:"3px 10px",borderRadius:99,
+                  background:p.badgeBg,fontSize:".62rem",fontWeight:700,color:p.color}}>
+                  {p.isBest?"المميز 👑":p.badge}
+                </span>
+              </div>
+              {p.isPaid&&(
+                <div style={{padding:"4px 8px",borderRadius:8,
+                  background:"rgba(251,191,36,.1)",border:"1px solid rgba(251,191,36,.2)"}}>
+                  <span style={{fontSize:".55rem",color:"#fbbf24",fontWeight:700}}>🔒 قريباً</span>
+                </div>
               )}
             </div>
 
+            {/* Duration tabs for paid plans */}
+            {p.id==="month"&&<DurTabs value={basicDur} onChange={setBasicDur} prices={BASIC_PRICES}/>}
+            {p.id==="exam"&&<DurTabs value={examDur} onChange={setExamDur} prices={EXAM_PRICES}/>}
+
+            {/* Price */}
+            {p.isPaid?(
+              p.id==="month"
+                ?<PriceDisplay priceData={basicPriceData} color={p.color}/>
+                :<PriceDisplay priceData={examPriceData} color={p.color}/>
+            ):(
+              <div style={{marginBottom:14}}>
+                <div style={{display:"flex",alignItems:"baseline",gap:6}}>
+                  <span style={{fontSize:"clamp(2rem,4vw,2.6rem)",fontWeight:900,color:p.color,lineHeight:1}}>مجاني</span>
+                </div>
+                <p style={{fontSize:".7rem",color:"#64748b",marginTop:3}}>لا يحتاج بطاقة</p>
+              </div>
+            )}
+
             {/* Features */}
-            <div style={{display:"flex",flexDirection:"column",gap:8,marginBottom:20,flex:1}}>
-              {p.features.map((f,fi)=>(
-                <div key={fi} style={{display:"flex",alignItems:"flex-start",gap:8}}>
-                  <span style={{color:p.color,fontWeight:900,fontSize:".78rem",flexShrink:0,marginTop:1}}>✓</span>
-                  <span style={{fontSize:".8rem",color:"#cbd5e1",lineHeight:1.5}}>{f}</span>
+            <div style={{display:"flex",flexDirection:"column",gap:7,flex:1,marginBottom:20}}>
+              {p.features.map((f,j)=>(
+                <div key={j} style={{display:"flex",alignItems:"center",gap:8}}>
+                  <span style={{color:"#4ade80",fontSize:".7rem",flexShrink:0}}>✓</span>
+                  <span style={{fontSize:".78rem",color:"#cbd5e1"}}>{f}</span>
                 </div>
               ))}
-              {p.locked.map((f,fi)=>(
-                <div key={`l${fi}`} style={{display:"flex",alignItems:"flex-start",gap:8,opacity:.35}}>
-                  <span style={{color:"#475569",fontWeight:900,fontSize:".78rem",flexShrink:0,marginTop:1}}>✕</span>
-                  <span style={{fontSize:".8rem",color:"#475569",lineHeight:1.5}}>{f}</span>
+              {p.locked.map((f,j)=>(
+                <div key={j} style={{display:"flex",alignItems:"center",gap:8,opacity:.4}}>
+                  <span style={{color:"#475569",fontSize:".7rem",flexShrink:0}}>✕</span>
+                  <span style={{fontSize:".78rem",color:"#475569"}}>{f}</span>
                 </div>
               ))}
             </div>
 
-            {/* CTA */}
+            {/* CTA Button */}
             {p.isPaid?(
-              <div style={{display:"flex",flexDirection:"column",gap:6}}>
-                <button style={{
+              <div>
+                <button disabled style={{
                   width:"100%",padding:"13px",borderRadius:12,
-                  cursor:"not-allowed",opacity:.55,
-                  background:p.isBest?"linear-gradient(135deg,rgba(167,139,250,.3),rgba(139,92,246,.2))":
-                    p.highlight?"linear-gradient(135deg,#f97316,#fb923c)":"transparent",
-                  border:`1.5px solid ${p.color}50`,
-                  color:p.highlight&&!p.isBest?"#0a0f1e":p.color,
-                  fontSize:".87rem",fontWeight:800,fontFamily:"Cairo,sans-serif"
-                }}>🔒 الدفع قريباً</button>
-                <p style={{fontSize:".63rem",color:"#334155",textAlign:"center"}}>
-                  Moyasar · مدى · Apple Pay
+                  background:"rgba(255,255,255,.05)",
+                  border:"1px solid rgba(255,255,255,.1)",
+                  color:"#475569",fontSize:".82rem",fontWeight:700,
+                  cursor:"not-allowed",letterSpacing:.3,
+                }}>
+                  🔒 الدفع سيتوفر قريباً
+                </button>
+                <p style={{textAlign:"center",fontSize:".6rem",color:"#334155",marginTop:8}}>
+                  سيتاح الاشتراك بعد تفعيل بوابة الدفع
                 </p>
               </div>
             ):(
-              <button className="btn"
-                style={{width:"100%",justifyContent:"center",padding:"13px",borderRadius:12,
-                  background:`linear-gradient(135deg,${p.color}18,${p.color}0a)`,
-                  border:`1.5px solid ${p.color}50`,color:p.color,
-                  cursor:"pointer",fontSize:".88rem",fontWeight:800,
-                  transition:"all .2s",fontFamily:"Cairo,sans-serif"}}
-                onClick={()=>go("signup")}>
+              <button className="btn btn-p" style={{width:"100%",padding:"13px",borderRadius:12,fontWeight:700,fontSize:".82rem"}}
+                onClick={()=>go("auth")}>
                 {p.btn}
               </button>
             )}
+
           </div>
-        ))}
+        );})}
       </div>
 
-      {/* مقارنة سريعة */}
-      <div className="gl" style={{padding:"22px 24px"}}>
-        <p style={{fontSize:".68rem",color:"#f97316",fontWeight:700,letterSpacing:".08em",marginBottom:14}}>مقارنة سريعة</p>
-        <div style={{overflowX:"auto"}}>
-          <table style={{width:"100%",borderCollapse:"collapse",fontSize:".8rem"}}>
-            <thead>
-              <tr>
-                {["الميزة","مجاني","49 ريال","99 ريال"].map((h,i)=>(
-                  <th key={i} style={{padding:"8px 12px",textAlign:i===0?"right":"center",
-                    color:i===3?"#a78bfa":i===2?"#f97316":i===1?"#22d3ee":"#64748b",
-                    fontWeight:700,borderBottom:"1px solid rgba(255,255,255,.06)"}}>
-                    {h}
-                  </th>
+      {/* Comparison table */}
+      <div className="gl" style={{padding:"20px clamp(14px,3vw,28px)",overflowX:"auto"}}>
+        <p style={{fontWeight:800,color:"#fff",marginBottom:14,fontSize:".9rem"}}>⚖️ مقارنة الباقات</p>
+        <table style={{width:"100%",borderCollapse:"collapse",fontSize:".75rem"}}>
+          <thead>
+            <tr>
+              {["الميزة","مجاني","الأساسي","المميز"].map((h,i)=>(
+                <th key={i} style={{padding:"8px 10px",textAlign:"center",color:i===0?"#94a3b8":["#22d3ee","#f97316","#a78bfa"][i-1],fontWeight:700,borderBottom:"1px solid rgba(255,255,255,.06)"}}>{h}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {[
+              ["أسئلة AI","10 فقط","غير محدودة ✓","غير محدودة ✓"],
+              ["وضع المحاكاة","✕","✓","✓"],
+              ["شرح تفصيلي","✕","✓","✓"],
+              ["تحليل AI متقدم","✕","✕","✓"],
+              ["خطة مذاكرة ذكية","✕","✕","✓"],
+              ["الدعم","✕","عادي","24/7 أولوية"],
+            ].map((row,i)=>(
+              <tr key={i} style={{background:i%2===0?"rgba(255,255,255,.02)":"transparent"}}>
+                {row.map((cell,j)=>(
+                  <td key={j} style={{padding:"9px 10px",textAlign:"center",
+                    color:j===0?"#94a3b8":cell==="✓"||cell.includes("✓")?"#4ade80":cell==="✕"?"#475569":"#cbd5e1",
+                    fontWeight:j===0?600:400,fontSize:j===0?".72rem":".73rem"}}>
+                    {cell}
+                  </td>
                 ))}
               </tr>
-            </thead>
-            <tbody>
-              {[
-                ["عدد الأسئلة","20","غير محدود ♾️","غير محدود ♾️"],
-                ["شرح AI","✗","✓","✓"],
-                ["وضع المحاكاة","✗","✓","✓"],
-                ["تتبع التقدم","✗","✓","✓"],
-                ["تحليل الضعف","✗","✗","✓"],
-                ["خطة مذاكرة","✗","✗","✓"],
-              ].map((row,ri)=>(
-                <tr key={ri} style={{borderBottom:"1px solid rgba(255,255,255,.04)"}}>
-                  {row.map((cell,ci)=>(
-                    <td key={ci} style={{
-                      padding:"10px 12px",textAlign:ci===0?"right":"center",
-                      color:cell==="✓"?"#4ade80":cell==="✗"?"#ef4444":cell.includes("♾️")?"#f97316":"#e2e8f0",
-                      fontWeight:ci===0?600:cell==="✓"||cell==="✗"?700:400
-                    }}>{cell}</td>
-                  ))}
-                </tr>
-              ))}
-            </tbody>
-          </table>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {/* FAQ */}
+      <div className="gl" style={{padding:"20px clamp(14px,3vw,28px)"}}>
+        <p style={{fontWeight:800,color:"#fff",marginBottom:14,fontSize:".9rem"}}>❓ أسئلة شائعة</p>
+        <div style={{display:"flex",flexDirection:"column",gap:12}}>
+          {[
+            ["هل يمكنني الإلغاء في أي وقت؟","نعم، يمكنك إلغاء اشتراكك في أي وقت دون أي رسوم إضافية."],
+            ["متى ستتوفر الاشتراكات المدفوعة؟","قريباً بعد تفعيل بوابة الدفع، ستتلقى إشعاراً فور الإطلاق."],
+            ["هل هناك فرق بين الأساسي والمميز؟","الأساسي يغطي كل ما تحتاجه للتدريب. المميز يضيف AI شخصي وتحليل متقدم لنقاط ضعفك."],
+          ].map(([q,a],i)=>(
+            <div key={i} style={{borderBottom:"1px solid rgba(255,255,255,.05)",paddingBottom:10}}>
+              <p style={{fontSize:".8rem",fontWeight:700,color:"#e2e8f0",marginBottom:4}}>◆ {q}</p>
+              <p style={{fontSize:".75rem",color:"#64748b",lineHeight:1.7}}>{a}</p>
+            </div>
+          ))}
         </div>
       </div>
 
-      {/* Security */}
-      <div className="gl-c" style={{padding:"15px 22px",display:"flex",alignItems:"center",gap:12,flexWrap:"wrap"}}>
-        <span style={{fontSize:"1.1rem"}}>🔒</span>
-        <p style={{fontSize:".8rem",color:"#64748b",lineHeight:1.8,flex:1}}>
-          الدفع الآمن عبر <strong style={{color:"#67e8f9"}}>Moyasar</strong> المرخصة من ساما ·
-          مدى · Visa · Mastercard · Apple Pay · إلغاء في أي وقت
-        </p>
-      </div>
-
-      <button className="btn btn-g" style={{justifyContent:"center"}} onClick={()=>go("landing")}>
-        ← العودة للرئيسية
-      </button>
     </div>
-  );
-}
-
-function NextCountdown({onNext,seconds=5}){
-  const[left,setLeft]=useState(seconds);
-  const pct=Math.round((left/seconds)*100);
-  const r=14,c=2*Math.PI*r;
-  useEffect(()=>{
-    if(left<=0){onNext();return;}
-    const id=setTimeout(()=>setLeft(p=>p-1),1000);
-    return()=>clearTimeout(id);
-  },[left]);
-  return(
-    <button onClick={onNext} style={{
-      display:"flex",alignItems:"center",gap:10,padding:"11px 20px",
-      borderRadius:13,background:"linear-gradient(135deg,#f97316,#fb923c)",
-      border:"none",cursor:"pointer",color:"#0a0f1e",fontWeight:800,
-      fontSize:".88rem",fontFamily:"Cairo,sans-serif",
-      boxShadow:"0 4px 18px rgba(249,115,22,.4)",transition:"transform .15s"
-    }}>
-      <svg width={34} height={34} style={{transform:"rotate(-90deg)",flexShrink:0}}>
-        <circle cx={17} cy={17} r={r} fill="none" stroke="rgba(0,0,0,.18)" strokeWidth={3}/>
-        <circle cx={17} cy={17} r={r} fill="none" stroke="rgba(255,255,255,.7)" strokeWidth={3}
-          strokeDasharray={c} strokeDashoffset={c*(1-pct/100)} strokeLinecap="round"
-          style={{transition:"stroke-dashoffset 1s linear"}}/>
-        <text x={17} y={17} textAnchor="middle" dominantBaseline="middle"
-          fill="#0a0f1e" fontSize={9} fontWeight={900} fontFamily="Cairo"
-          transform="rotate(90,17,17)">{left}</text>
-      </svg>
-      السؤال التالي
-    </button>
   );
 }
 
@@ -1978,7 +2014,7 @@ function Session({settings,go,updateUser,trial,setTrial,addMistake,plan="free",s
   const correct=history.filter(h=>h.ok).length;
   const acc=history.length?Math.round((correct/history.length)*100):0;
   const isCorrect=checked&&sel===qData?.correct;
-  const TEACHER_TRIGGER=5;
+  const TEACHER_TRIGGER=30;
   const avgT=qTimes.length?Math.round(qTimes.reduce((a,b)=>a+b,0)/qTimes.length):0;
 
   const fetchQ=useCallback(async()=>{
@@ -3095,6 +3131,9 @@ function Bank({settings,setSettings,go,trial={}}){  useEffect(()=>{window.scroll
 
 /* ═══════════════════ TOPIC LESSON PANEL ═══════════════════ */
 async function genTopicLesson(topic){
+  /* Cache lesson in memory — avoid repeated API calls */
+  if(!genTopicLesson._cache) genTopicLesson._cache={};
+  if(genTopicLesson._cache[topic]) return genTopicLesson._cache[topic];
   const sec=deriveSec(topic);
   const prompt=`أنت مدرس خبير في اختبار القدرات (قياس). اشرح باب "${topic}" للطالب السعودي.
 
@@ -3111,7 +3150,7 @@ async function genTopicLesson(topic){
   "common_mistakes": ["خطأ شائع 1","خطأ شائع 2","خطأ شائع 3"],
   "speed_tip": "نصيحة لحل الأسئلة بسرعة في الاختبار"
 }`;
-  const raw=await callClaude(prompt,1500);
+  const raw=await callClaude(prompt,600);
   const clean=raw.replace(/```json|```/g,"").trim();
   const start=clean.indexOf("{"),end=clean.lastIndexOf("}");
   if(start===-1||end===-1) throw new Error("no JSON in response");
