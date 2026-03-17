@@ -4202,31 +4202,23 @@ export default function Fahmni(){
       setUser({name:sess.name,totalSolved:prog.totalSolved,correct:prog.correct,streak:prog.streak});
       setMistakes(prog.mistakes||[]);
       if(!sess.isGuest){
-        // Admin always has full access
         if(sess.email===ADMIN_EMAIL){
-          setTrial({isSubscribed:true,used:0,limit:99999,plan:'exam',
-            status:'active',freeTrialUsed:false,
-            expiresAt:new Date(Date.now()+365*24*60*60*1000)});
-          return;
+          setTrial({isSubscribed:true,used:0,limit:99999,plan:'exam',status:'active',freeTrialUsed:false,expiresAt:new Date(Date.now()+365*24*60*60*1000)});
+        } else if(prog) {
+          const now=new Date();
+          const expiresAt=prog.subscribed_until?new Date(prog.subscribed_until):null;
+          const plan=prog.plan||'free';
+          const freeTrialUsed=!!(prog?.free_trial_used||false);
+          let status='inactive';
+          if(['month','exam'].includes(plan)&&expiresAt&&expiresAt>now) status='active';
+          else if(['month','exam'].includes(plan)&&expiresAt&&expiresAt<=now) status='expired';
+          else if(plan==='free'&&!freeTrialUsed&&(prog.trialUsed||0)<(prog.trialLimit||15)) status='free_trial';
+          setTrial({isSubscribed:status==='active',used:prog.trialUsed||0,limit:prog.trialLimit||15,plan,status,freeTrialUsed,expiresAt});
+        } else {
+          setTrial({isSubscribed:false,used:0,limit:15,plan:'free',status:'inactive',freeTrialUsed:false,expiresAt:null});
         }
-        const now=new Date();
-        const expiresAt=prog.subscribed_until?new Date(prog.subscribed_until):null;
-        const plan=prog.plan||'free';
-        const freeTrialUsed=!!(prog?.free_trial_used||false);
-        let status='inactive';
-        if(['month','exam'].includes(plan)&&expiresAt&&expiresAt>now) status='active';
-        else if(['month','exam'].includes(plan)&&expiresAt&&expiresAt<=now) status='expired';
-        else if(plan==='free'&&!freeTrialUsed&&(prog.trialUsed||0)<(prog.trialLimit||15)) status='free_trial';
-        else if(plan==='free' && (freeTrialUsed||(prog.trialUsed||0)>=(prog.trialLimit||15))) status='expired';
-        const isSubscribed=status==='active';
-        setTrial({
-          isSubscribed, used:prog.trialUsed||0, limit:prog.trialLimit||15,
-          plan, status, freeTrialUsed, expiresAt,
-        });
       }
-    }else{
-      setTrial({isSubscribed:false,used:0,limit:sess.trialLimit||15,plan:'free',status:'inactive',freeTrialUsed:false,expiresAt:null});
-    }
+    } // end if(prog)
     // تحميل حالة تحديد المستوى
     if(prog?.placementDone){placementDoneRef.current=true;setPlacementDone(true);}
     // توجيه ذكي:
