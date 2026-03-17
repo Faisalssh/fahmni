@@ -2817,7 +2817,7 @@ const sbLoadProgress=async(userId,token)=>{
   if(IS_ARTIFACT) return null;
   try{
     const[pRes,mRes]=await Promise.all([
-      fetch(`${SUPABASE_URL}/rest/v1/profiles?id=eq.${userId}&select=total_solved,total_correct,current_streak,trial_used,trial_limit,plan,subscribed_until,placement_done,placement_level,free_trial_used,subscription_status`,{headers:sbH(token)}),
+      fetch(`${SUPABASE_URL}/rest/v1/profiles?id=eq.${userId}&select=total_solved,total_correct,current_streak,trial_used,trial_limit,plan,subscribed_until,placement_done,placement_level`,{headers:sbH(token)}),
       fetch(`${SUPABASE_URL}/rest/v1/saved_mistakes?user_id=eq.${userId}&select=question_snapshot,is_reviewed&order=created_at.desc&limit=50`,{headers:sbH(token)})
     ]);
     const[profiles,mistakes]=await Promise.all([pRes.json(),mRes.json()]);
@@ -4135,7 +4135,7 @@ export default function Fahmni(){
             const now=new Date();
             const expiresAt=prog.subscribed_until?new Date(prog.subscribed_until):null;
             const plan=prog.plan||'free';
-            const freeTrialUsed=!!(prog.free_trial_used||prog.subscription_status==='expired');
+            const freeTrialUsed=!!(prog?.free_trial_used||false);
             let status='inactive';
             if(['month','exam'].includes(plan)&&expiresAt&&expiresAt>now) status='active';
             else if(['month','exam'].includes(plan)&&expiresAt&&expiresAt<=now) status='expired';
@@ -4212,7 +4212,7 @@ export default function Fahmni(){
         const now=new Date();
         const expiresAt=prog.subscribed_until?new Date(prog.subscribed_until):null;
         const plan=prog.plan||'free';
-        const freeTrialUsed=!!(prog.free_trial_used||prog.subscription_status==='expired');
+        const freeTrialUsed=!!(prog?.free_trial_used||false);
         let status='inactive';
         if(['month','exam'].includes(plan)&&expiresAt&&expiresAt>now) status='active';
         else if(['month','exam'].includes(plan)&&expiresAt&&expiresAt<=now) status='expired';
