@@ -3684,6 +3684,44 @@ function Roadmap({go,setSettings,openLesson,trial={}}){
   );
 }
 
+
+function UpgradePrompt({feature,go}){
+  return(
+    <div style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",
+      minHeight:"55vh",textAlign:"center",padding:"40px 20px",gap:20}}>
+      <div style={{width:68,height:68,borderRadius:18,
+        background:"linear-gradient(135deg,rgba(249,115,22,.15),rgba(167,139,250,.15))",
+        border:"1px solid rgba(249,115,22,.3)",
+        display:"flex",alignItems:"center",justifyContent:"center",fontSize:"2rem"}}>🔒</div>
+      <div>
+        <h2 style={{fontSize:"1.3rem",fontWeight:900,color:"#fff",marginBottom:8}}>
+          {feature} — للمشتركين فقط
+        </h2>
+        <p style={{color:"#64748b",fontSize:".88rem",lineHeight:1.8,maxWidth:360}}>
+          هذه الميزة متاحة ضمن الباقة الأساسية والمميزة.<br/>
+          اشترك الآن للوصول إلى كامل المنصة.
+        </p>
+      </div>
+      <div style={{display:"flex",gap:10,flexWrap:"wrap",justifyContent:"center"}}>
+        <button className="btn btn-p" style={{padding:"12px 28px",borderRadius:12,fontWeight:700}}
+          onClick={()=>go("pricing")}>
+          عرض الباقات ←
+        </button>
+        <button className="btn" style={{padding:"12px 18px",borderRadius:12,color:"#64748b"}}
+          onClick={()=>go("dashboard")}>
+          العودة للرئيسية
+        </button>
+      </div>
+      <div style={{padding:"10px 20px",borderRadius:99,
+        background:"rgba(251,191,36,.08)",border:"1px solid rgba(251,191,36,.15)"}}>
+        <p style={{fontSize:".68rem",color:"#fbbf24",fontWeight:600}}>
+          🔒 الدفع سيتوفر قريباً — ترقّب الإطلاق
+        </p>
+      </div>
+    </div>
+  );
+}
+
 function ExpiredWall({trial,go}){
   const isExpiredPaid=trial?.plan&&['month','exam'].includes(trial.plan);
   return(
@@ -4312,20 +4350,24 @@ export default function Fahmni(){
     if(sessionLoading) return <div style={{display:"flex",alignItems:"center",justifyContent:"center",height:"60vh"}}><div className="spin spin-lg"/></div>;
     // 1) مو مسجّل → landing
     if(PROTECTED.includes(page)&&!session){go("landing");return null;}
+    // Expired users stay logged in but get shown upgrade screen for paid pages
     if(session&&!session.isGuest&&(trial.status==='expired'||trial.status==='cancelled')){
-      if(!PUB.includes(page)&&page!=='expired'){go('expired');return null;}
+      if(PAID_ONLY.includes(page)){go('paywall');return null;}
+      if(page==='session'&&trial.used>=trial.limit){go('paywall');return null;}
+    }
+    // Logged-in user on landing/login/signup → send to dashboard
+    if(session&&!session.isGuest&&['landing','login','signup'].includes(page)){
+      if(placementDoneRef.current){go('dashboard');return null;}
     }
     // 2) مسجّل لكن ما أكمل placement → أجبره على placement
     const NEEDS_PLACEMENT=["dashboard","session","bank","sim","review","roadmap","lesson","diagnostic"];
     if(session&&!session.isGuest&&NEEDS_PLACEMENT.includes(page)&&!placementDoneRef.current){
-      go("placement");return null;
+      if(session.email===ADMIN_EMAIL){/* admin skips placement */}
+      else{go("placement");return null;}
     }
-    // 3) PAID_ONLY — يحتاج اشتراك
-    if(PAID_ONLY.includes(page)){
-      if(!trial.isSubscribed){
-        if(page==="session"&&trial.used<trial.limit){/* مسموح */}
-        else{go("paywall");return null;}
-      }
+    // 3) Session limit check for free trial
+    if(page==="session"&&!trial.isSubscribed&&trial.used>=trial.limit){
+      go("paywall");return null;
     }
     const plan=trial.plan||'free';
     switch(page){
@@ -4342,7 +4384,7 @@ export default function Fahmni(){
     case"dashboard":return <Dashboard go={go} user={user} trial={trial} mistakes={mistakes}/>;
     case"roadmap":return <Roadmap go={go} setSettings={setSettings} openLesson={openLesson} trial={trial}/>;
     case"lesson":
-      if(!trial.isSubscribed){go("paywall");return null;}
+      if(!trial.isSubscribed) return <UpgradePrompt feature="شرح الأبواب" go={go}/>;
       return lessonTopic
       ? <TopicLesson
           topic={lessonTopic}
@@ -4353,15 +4395,23 @@ export default function Fahmni(){
           }}/>
       : <Roadmap go={go} setSettings={setSettings} openLesson={openLesson} trial={trial}/>;
     case"diagnostic":return <DiagnosticQ topic={settings.topic} section={settings.section} onResult={level=>{setSettings(p=>({...p,difficulty:level==="متقدم"?"صعب":"سهل"}));go("session");}} onSkip={()=>go("session")}/>;
-    case"bank":return <Bank settings={settings} setSettings={setSettings} go={go} trial={trial}/>;
+    case"bank":
+      if(!trial.isSubscribed) return <UpgradePrompt feature="بنك الأسئلة" go={go}/>;
+      return <Bank settings={settings} setSettings={setSettings} go={go} trial={trial}/>;
     case"session":return <Session settings={settings} go={go} updateUser={updateUser} trial={trial} setTrial={setTrial} addMistake={addMistake} plan={trial.plan||"free"} session={session} user={user}/>;
-    case"sim":return <SimMode settings={settings} go={go} updateUser={updateUser} addMistake={addMistake} trial={trial}/>;
-    case"review":return <ReviewMode mistakes={mistakes} go={go} onRedo={()=>go("session")}/>;
+    case"sim":
+      if(!trial.isSubscribed) return <UpgradePrompt feature="وضع المحاكاة" go={go}/>;
+      return <SimMode settings={settings} go={go} updateUser={updateUser} addMistake={addMistake} trial={trial}/>;
+    case"review":
+      if(!trial.isSubscribed) return <UpgradePrompt feature="وضع المراجعة" go={go}/>;
+      return <ReviewMode mistakes={mistakes} go={go} onRedo={()=>go("session")}/>;
     case"pricing":return <Pricing go={go}/>;
     case"paywall":return <Paywall trial={trial} go={go} subscribe={()=>{/* Moyasar coming soon */}} back={()=>go("pricing")}/>;
     case"privacy":return <Privacy go={go}/>;
     case"terms":return <Terms go={go}/>;
     case"contact":return <Contact go={go}/>;
+    case"refund":return <Refund go={go}/>;
+    case"expired":return <ExpiredWall trial={trial} go={go}/>;
     default:return <Landing go={go}/>;
   }};
 
