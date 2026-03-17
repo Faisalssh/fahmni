@@ -1802,7 +1802,7 @@ function Pricing({go}){
       btn:"ابدأ مجانًا ←",isPaid:false,highlight:false,
     },
     {
-      id:"month",name:"الأساسي",price:49,per:"شهر",color:"#f97316",
+      id:"month",name:"الأساسي",price:59,per:"شهر",color:"#f97316",
       badge:"الأكثر شيوعاً ⭐",badgeBg:"rgba(249,115,22,.12)",
       features:["أسئلة AI غير محدودة","شرح مفصّل لكل سؤال","وضع المحاكاة الكامل ⚡","تتبع التقدم والدقة","بنك الأسئلة 18 باب","تايمر 90 ثانية ⏱","وضع المراجعة 📋","بطاقة النتيجة"],
       locked:[],btn:"اشترك الآن ←",isPaid:true,highlight:true,
@@ -1992,7 +1992,7 @@ function Pricing({go}){
           ))}
         </div>
       </div>
-
+      <SiteFooter go={go}/>
     </div>
   );
 }
@@ -2397,6 +2397,28 @@ function TestimonialsBar(){
     </div>
   );
 }
+function SiteFooter({go}){
+  return(
+    <div style={{textAlign:"center",padding:"20px 16px 28px",borderTop:"1px solid rgba(255,255,255,.04)",marginTop:32}}>
+      <div style={{display:"flex",gap:6,flexWrap:"wrap",justifyContent:"center",marginBottom:8}}>
+        {[["privacy","سياسة الخصوصية"],["terms","الشروط والأحكام"],["refund","سياسة الاسترداد"],["contact","تواصل معنا"]].map(([p,l])=>(
+          <button key={p} onClick={()=>go(p)} style={{
+            background:"none",border:"none",cursor:"pointer",
+            fontSize:".76rem",color:"#334155",fontFamily:"Cairo,sans-serif",
+            padding:"5px 10px",borderRadius:8,transition:"color .15s"
+          }}
+          onMouseEnter={e=>e.target.style.color="#f97316"}
+          onMouseLeave={e=>e.target.style.color="#334155"}>
+            {l}
+          </button>
+        ))}
+      </div>
+      <p style={{fontSize:".65rem",color:"#1e293b",marginBottom:4}}>© {new Date().getFullYear()} فهمني+ · FahmniPlus — المملكة العربية السعودية 🇸🇦</p>
+      <p style={{fontSize:".6rem",color:"#1e293b"}}>للتواصل والدعم: <a href="mailto:fahmnipluss@gmail.com" style={{color:"#334155",textDecoration:"none"}}>fahmnipluss@gmail.com</a></p>
+    </div>
+  );
+}
+
 function Landing({go}){
   const[bannerClosed,setBannerClosed]=useState(false);
   const[activeFeature,setActiveFeature]=useState(0);
@@ -2470,7 +2492,7 @@ function Landing({go}){
           display:"flex",alignItems:"center",justifyContent:"center",gap:16,flexWrap:"wrap",marginBottom:0}}>
           <div style={{position:"absolute",inset:0,background:"linear-gradient(90deg,transparent,rgba(249,115,22,.05),transparent)",animation:"gridAnim 3s ease-in-out infinite",pointerEvents:"none"}}/>
           <p style={{fontSize:".83rem",fontWeight:700,color:"#fff",position:"relative"}}>
-            🔥 عرض محدود — اشترك بـ <span style={{color:"#fde047",fontWeight:900}}>49 ريال/شهر</span> وافتح كل المميزات
+            🔥 عرض محدود — اشترك الآن بـ <span style={{color:"#fde047",fontWeight:900}}>59 ريال/شهر</span> وافتح جميع المميزات
           </p>
           <div style={{display:"flex",gap:8,position:"relative"}}>
             <button className="btn btn-p" style={{fontSize:".75rem",padding:"7px 16px"}} onClick={()=>go("pricing")}>اشترك الآن ←</button>
@@ -2525,7 +2547,7 @@ function Landing({go}){
 
       {/* ── إحصائيات ── */}
       <div className="landing-stats-bar" style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:1,borderTop:"1px solid rgba(255,255,255,.06)",borderBottom:"1px solid rgba(255,255,255,.06)",background:"rgba(255,255,255,.03)",marginBottom:40}}>
-        {[["+ أسئلة مولّدة",50000,""],["باب كمي ولفظي",17,""],["% دقة الـ AI",99,""],["ريال/شهر فقط",49,""]].map(([l,v,s],i)=>(
+        {[["+ أسئلة مولّدة",50000,""],["باب كمي ولفظي",17,""],["% دقة الـ AI",99,""],["ريال/شهر فقط",59,""]].map(([l,v,s],i)=>(
           <div key={i} style={{padding:"22px 16px",textAlign:"center",borderLeft:i>0?"1px solid rgba(255,255,255,.06)":"none"}}>
             <p style={{fontSize:"clamp(1.4rem,3vw,1.9rem)",fontWeight:900,color:["#f97316","#22d3ee","#4ade80","#a78bfa"][i],lineHeight:1}}>
               <AnimCounter target={v} suffix={s}/>
@@ -2743,23 +2765,9 @@ function Landing({go}){
         borderTop:"1px solid rgba(255,255,255,.05)",
         display:"flex",flexDirection:"column",alignItems:"center",gap:12
       }}>
-        <div style={{display:"flex",gap:6,flexWrap:"wrap",justifyContent:"center"}}>
-          {[["privacy","سياسة الخصوصية"],["terms","الشروط والأحكام"],["contact","تواصل معنا"]].map(([p,l])=>(
-            <button key={p} onClick={()=>go(p)} style={{
-              background:"none",border:"none",cursor:"pointer",
-              fontSize:".76rem",color:"#334155",fontFamily:"Cairo,sans-serif",
-              padding:"5px 10px",borderRadius:8,transition:"color .15s"
-            }}
-            onMouseEnter={e=>e.target.style.color="#f97316"}
-            onMouseLeave={e=>e.target.style.color="#334155"}>
-              {l}
-            </button>
-          ))}
-        </div>
-        <p style={{fontSize:".65rem",color:"#1e293b"}}>© {new Date().getFullYear()} فهمني+ · FahmniPlus — المملكة العربية السعودية 🇸🇦</p>
-      </div>
-
+      <SiteFooter go={go}/>
     </div>
+  </div>
   );
 }
 
@@ -3111,7 +3119,8 @@ function Onboarding({finish}){
   <div className="gl" style={{padding:"20px",position:"sticky",top:20,alignSelf:"start"}}><span className="badge b-c" style={{marginBottom:12}}>الخطوة التالية</span><h2 style={{fontSize:"1.2rem",fontWeight:900,color:"#fff",marginBottom:8}}>اختبار تحديد المستوى</h2><p style={{fontSize:".78rem",lineHeight:1.8,color:"#64748b",marginBottom:14}}>6 أسئلة سريعة — نبني خطتك منها.</p>{[["الهدف",goal],["المستوى",conf],["القسم",sec],["الوقت",`${mins} دقيقة`]].map(([k,v])=>(<div key={k} className="gl2" style={{padding:"9px 12px",display:"flex",justifyContent:"space-between",marginBottom:7}}><span style={{fontSize:".76rem",fontWeight:700,color:"#f97316"}}>{v}</span><span style={{fontSize:".73rem",color:"#64748b"}}>{k}</span></div>))}<button className="btn btn-p" style={{width:"100%",justifyContent:"center",padding:"12px",marginTop:14}} onClick={()=>finish({goal,confidence:conf,section:sec,minutes:mins})}>ابدأ اختبار التحديد ←</button></div>
   </div>);}
 
-function PlacementResult({rec,score,onFinish}){if(!rec)return null;return(<div style={{display:"grid",gap:14}}><div className="gl gl-pad-lg" style={{padding:"38px 32px"}}><span className="badge b-g" style={{marginBottom:12}}>✓ تم تحليل بدايتك</span><h1 style={{fontSize:"1.85rem",fontWeight:900,color:"#fff",marginBottom:8}}>هذه أفضل بداية لك الآن</h1><div className="placement-stats rg-4" style={{gap:12,marginTop:20}}>{[["النتيجة",`${score}/${PLACEMENT_Q.length}`,"#f97316"],["المستوى",rec.level,"#22d3ee"],["الخطة",rec.plan,"#a78bfa"],["البداية",rec.topic,"#4ade80"]].map(([l,v,c],i)=>(<div key={i} className={`gl2 stat au d${i+1}`}><p style={{fontSize:".68rem",color:"#64748b"}}>{l}</p><p style={{marginTop:6,fontSize:"1.1rem",fontWeight:900,color:c,lineHeight:1.3}}>{v}</p></div>))}</div></div><div className="rg-2" style={{display:"grid",gap:14}}><div className="gl" style={{padding:"24px"}}><p style={{fontSize:".68rem",color:"#f97316",fontWeight:700,letterSpacing:".08em",marginBottom:10}}>التوصية الذكية</p><div className="gl2" style={{padding:"14px",marginBottom:12}}><p style={{fontSize:".85rem",lineHeight:1.9,color:"#94a3b8"}}>{rec.msg}</p></div></div><div className="gl" style={{padding:"20px"}}><div style={{display:"flex",justifyContent:"center",marginBottom:14}}><Ring pct={Math.round((score/PLACEMENT_Q.length)*100)} size={90}/></div><button className="btn btn-p" style={{width:"100%",justifyContent:"center",padding:"11px"}} onClick={onFinish}>اعتمد هذه البداية ←</button></div></div></div>);}
+function PlacementResult({rec,score,onFinish}){if(!rec)return null;return(<div style={{display:"grid",gap:14}}><div className="gl gl-pad-lg" style={{padding:"38px 32px"}}><span className="badge b-g" style={{marginBottom:12}}>✓ تم تحليل بدايتك</span><h1 style={{fontSize:"1.85rem",fontWeight:900,color:"#fff",marginBottom:8}}>هذه أفضل بداية لك الآن</h1><div className="placement-stats rg-4" style={{gap:12,marginTop:20}}>{[["النتيجة",`${score}/${PLACEMENT_Q.length}`,"#f97316"],["المستوى",rec.level,"#22d3ee"],["الخطة",rec.plan,"#a78bfa"],["البداية",rec.topic,"#4ade80"]].map(([l,v,c],i)=>(<div key={i} className={`gl2 stat au d${i+1}`}><p style={{fontSize:".68rem",color:"#64748b"}}>{l}</p><p style={{marginTop:6,fontSize:"1.1rem",fontWeight:900,color:c,lineHeight:1.3}}>{v}</p></div>))}</div></div><div className="rg-2" style={{display:"grid",gap:14}}><div className="gl" style={{padding:"24px"}}><p style={{fontSize:".68rem",color:"#f97316",fontWeight:700,letterSpacing:".08em",marginBottom:10}}>التوصية الذكية</p><div className="gl2" style={{padding:"14px",marginBottom:12}}><p style={{fontSize:".85rem",lineHeight:1.9,color:"#94a3b8"}}>{rec.msg}</p></div></div><div className="gl" style={{padding:"20px"}}><div style={{display:"flex",justifyContent:"center",marginBottom:14}}><Ring pct={Math.round((score/PLACEMENT_Q.length)*100)} size={90}/></div><button className="btn btn-p" style={{width:"100%",justifyContent:"center",padding:"11px"}} onClick={onFinish}>اعتمد هذه البداية ←</button></div></div></div>
+      );}
 
 function Dashboard({go,user,trial,mistakes}){
   useEffect(()=>{window.scrollTo({top:0,behavior:"instant"});},[]); 
@@ -3465,6 +3474,7 @@ function TopicLesson({topic,onClose,onStartPractice}){
           </button>
         </div>
       </div>
+      <SiteFooter go={go}/>
     </div>
   );
 }
@@ -3669,6 +3679,7 @@ function Roadmap({go,setSettings,openLesson,trial={}}){
         </div>
       </div>
 
+      <SiteFooter go={go}/>
     </div>
   );
 }
@@ -3700,7 +3711,7 @@ function ExpiredWall({trial,go}){
         </button>
       </div>
       <p style={{fontSize:".7rem",color:"#334155",marginTop:20}}>
-        بياناتك وتقدمك محفوظة · ستعود عند التجديد
+        بياناتك وتقدمك محفوظة · ستعود عند التجديد · support: fahmnipluss@gmail.com
       </p>
     </div>
   );
@@ -3740,18 +3751,34 @@ function Paywall({trial,subscribe,back,go}){
       {/* مقارنة الباقتين */}
       <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
 
-        {/* 49 ريال */}
+        {/* الأساسي مع المدد */}
         <div className="gl" style={{padding:"22px 18px",border:"1.5px solid rgba(249,115,22,.35)",
-          display:"flex",flexDirection:"column",gap:12}}>
-          <div>
-            <span style={{fontSize:".62rem",fontWeight:700,color:"#f97316",
-              background:"rgba(249,115,22,.12)",padding:"3px 10px",borderRadius:99,
-              border:"1px solid rgba(249,115,22,.25)"}}>الأساسي</span>
+          display:"flex",flexDirection:"column",gap:10}}>
+          <span style={{fontSize:".62rem",fontWeight:700,color:"#f97316",
+            background:"rgba(249,115,22,.12)",padding:"3px 10px",borderRadius:99,
+            border:"1px solid rgba(249,115,22,.25)",alignSelf:"flex-start"}}>الأساسي</span>
+          <div style={{display:"flex",gap:4,background:"rgba(255,255,255,.04)",borderRadius:8,padding:3}}>
+            {[["1m","59",null],["3m","149","الأوفر"],["6m","249",null]].map(([k,pr,badge])=>(
+              <button key={k} onClick={()=>setPwBasic(k)} style={{
+                flex:1,padding:"5px 2px",borderRadius:6,border:"none",cursor:"pointer",fontFamily:"Cairo,sans-serif",
+                background:pwBasic===k?"rgba(249,115,22,.2)":"transparent",
+                color:pwBasic===k?"#f97316":"#64748b",fontSize:".62rem",fontWeight:pwBasic===k?700:400,
+                transition:"all .2s",
+              }}>
+                {k==="1m"?"شهر":k==="3m"?"3 أشهر":"6 أشهر"}
+                {badge&&<span style={{display:"block",fontSize:".5rem",color:"#4ade80"}}>⭐</span>}
+              </button>
+            ))}
           </div>
           <div style={{display:"flex",alignItems:"baseline",gap:5}}>
-            <span style={{fontSize:"2rem",fontWeight:900,color:"#f97316",lineHeight:1}}>49</span>
-            <span style={{fontSize:".72rem",color:"#64748b"}}>ريال / شهر</span>
+            <span style={{fontSize:"2rem",fontWeight:900,color:"#f97316",lineHeight:1}}>
+              {{"1m":"59","3m":"149","6m":"249"}[pwBasic]}
+            </span>
+            <span style={{fontSize:".7rem",color:"#64748b"}}>ريال</span>
           </div>
+          {pwBasic!=="1m"&&<p style={{fontSize:".62rem",color:"#4ade80",marginTop:-6}}>
+            يعادل {{"3m":"50","6m":"42"}[pwBasic]} ريال/شهر
+          </p>}
           <div style={{display:"flex",flexDirection:"column",gap:7,flex:1}}>
             {["أسئلة AI غير محدودة","شرح كل سؤال","وضع المحاكاة","تتبع التقدم","بنك الأسئلة"].map((f,i)=>(
               <div key={i} style={{display:"flex",alignItems:"center",gap:7}}>
@@ -3767,11 +3794,11 @@ function Paywall({trial,subscribe,back,go}){
           }}>🔒 قريباً</button>
         </div>
 
-        {/* 99 ريال — مميز */}
+        {/* المميز مع المدد */}
         <div className="gl" style={{padding:"22px 18px",
           border:"1.5px solid rgba(167,139,250,.5)",position:"relative",
           background:"linear-gradient(160deg,rgba(167,139,250,.08),rgba(5,9,26,.95))",
-          display:"flex",flexDirection:"column",gap:12,
+          display:"flex",flexDirection:"column",gap:10,
           boxShadow:"0 8px 32px rgba(167,139,250,.15)"}}>
           <div style={{position:"absolute",top:-11,left:"50%",transform:"translateX(-50%)",
             whiteSpace:"nowrap",padding:"4px 14px",borderRadius:99,
@@ -3779,15 +3806,31 @@ function Paywall({trial,subscribe,back,go}){
             fontSize:".62rem",fontWeight:900,color:"#fff"}}>
             ⭐ الأكثر اختياراً
           </div>
-          <div>
-            <span style={{fontSize:".62rem",fontWeight:700,color:"#a78bfa",
-              background:"rgba(167,139,250,.12)",padding:"3px 10px",borderRadius:99,
-              border:"1px solid rgba(167,139,250,.25)"}}>المميز</span>
+          <span style={{fontSize:".62rem",fontWeight:700,color:"#a78bfa",
+            background:"rgba(167,139,250,.12)",padding:"3px 10px",borderRadius:99,
+            border:"1px solid rgba(167,139,250,.25)",alignSelf:"flex-start"}}>المميز</span>
+          <div style={{display:"flex",gap:4,background:"rgba(255,255,255,.04)",borderRadius:8,padding:3}}>
+            {[["1m","99",null],["3m","249","الأوفر"],["6m","399",null]].map(([k,pr,badge])=>(
+              <button key={k} onClick={()=>setPwExam(k)} style={{
+                flex:1,padding:"5px 2px",borderRadius:6,border:"none",cursor:"pointer",fontFamily:"Cairo,sans-serif",
+                background:pwExam===k?"rgba(167,139,250,.2)":"transparent",
+                color:pwExam===k?"#a78bfa":"#64748b",fontSize:".62rem",fontWeight:pwExam===k?700:400,
+                transition:"all .2s",
+              }}>
+                {k==="1m"?"شهر":k==="3m"?"3 أشهر":"6 أشهر"}
+                {badge&&<span style={{display:"block",fontSize:".5rem",color:"#4ade80"}}>⭐</span>}
+              </button>
+            ))}
           </div>
           <div style={{display:"flex",alignItems:"baseline",gap:5}}>
-            <span style={{fontSize:"2rem",fontWeight:900,color:"#a78bfa",lineHeight:1}}>99</span>
-            <span style={{fontSize:".72rem",color:"#64748b"}}>ريال / شهر</span>
+            <span style={{fontSize:"2rem",fontWeight:900,color:"#a78bfa",lineHeight:1}}>
+              {{"1m":"99","3m":"249","6m":"399"}[pwExam]}
+            </span>
+            <span style={{fontSize:".7rem",color:"#64748b"}}>ريال</span>
           </div>
+          {pwExam!=="1m"&&<p style={{fontSize:".62rem",color:"#4ade80",marginTop:-6}}>
+            يعادل {{"3m":"83","6m":"67"}[pwExam]} ريال/شهر
+          </p>}
           <div style={{display:"flex",flexDirection:"column",gap:7,flex:1}}>
             {["كل مميزات الأساسي","AI مساعد شخصي","تحليل نقاط الضعف","خطة مذاكرة ذكية","الأفضل قيمةً 💜"].map((f,i)=>(
               <div key={i} style={{display:"flex",alignItems:"center",gap:7}}>
@@ -3886,7 +3929,7 @@ function Privacy({go}){
     {title:"حقوقك",items:[
       "يحق لك طلب نسخة من بياناتك المحفوظة في أي وقت.",
       "يمكنك حذف حسابك وجميع بياناتك نهائياً — مع العلم أن بيانات الاشتراكات المنتهية قد تُحتفظ بها لأغراض قانونية.",
-      "للاستفسار أو طلب الحذف: support@fahmniplus.com",
+      "للاستفسار أو طلب الحذف: fahmnipluss@gmail.com",
       "آخر تحديث لهذه السياسة: مارس 2026"
     ]}
   ]}/>;
@@ -3910,7 +3953,7 @@ function Terms({go}){
       "🚫 لا يتم استرداد رسوم الاشتراك بعد إتمام الدفع تحت أي ظرف.",
       "ننصح باستخدام التجربة المجانية (15 سؤال) قبل الاشتراك للتأكد من ملاءمة المنصة.",
       "في حال حدوث خلل تقني من جانبنا يمنع الوصول لأكثر من 72 ساعة متواصلة، يمكن دراسة تعويض بتمديد مدة الاشتراك فقط.",
-      "للتواصل بشأن أي مشكلة في الدفع: support@fahmniplus.com"
+      "للتواصل بشأن أي مشكلة في الدفع: fahmnipluss@gmail.com"
     ]},
     {title:"انتهاء الاشتراك",items:[
       "عند انتهاء مدة الاشتراك يُقفل الوصول تلقائياً لجميع المحتويات.",
@@ -3944,12 +3987,12 @@ function Refund({go}){
     {title:"الاستثناء الوحيد",items:[
       "في حال حدوث خلل تقني موثَّق من جانب المنصة يمنع الوصول الكامل لأكثر من 72 ساعة متواصلة،",
       "يمكن دراسة تعويض على شكل تمديد مدة الاشتراك بما يعادل فترة الانقطاع فقط — وليس استرداداً مالياً.",
-      "يُشترط الإبلاغ عن المشكلة خلال مدة الاشتراك على: support@fahmniplus.com"
+      "يُشترط الإبلاغ عن المشكلة خلال مدة الاشتراك على: fahmnipluss@gmail.com"
     ]},
     {title:"توصيتنا قبل الاشتراك",items:[
       "استخدم التجربة المجانية (15 سؤال) لتتعرف على أسلوب المنصة وطريقة التدريب.",
       "اقرأ وصف كل باقة بعناية وتأكد من اختيار المدة المناسبة لك.",
-      "للاستفسار قبل الاشتراك: support@fahmniplus.com — نرد خلال 24 ساعة."
+      "للاستفسار قبل الاشتراك: fahmnipluss@gmail.com — نرد خلال 24 ساعة."
     ]}
   ]}/>;
 }
@@ -4043,15 +4086,17 @@ export default function Fahmni(){
   const[profile,setProfile]=useState({goal:"أرفع درجتي",confidence:"متوسط",section:"كمي",minutes:"40"});
   const[pAnswers,setPAnswers]=useState([]);
   const[rec,setRec]=useState(null);
-  const[session,setSession]=useState(null); // {token, userId, name, email}
+  const[session,setSession]=useState(()=>{
+    try{
+      const s=localStorage.getItem('fm_session');
+      return s?JSON.parse(s):null;
+    }catch(e){return null;}
+  }); // {token, userId, name, email}
   const[user,setUser]=useState({name:"",streak:0,totalSolved:0,correct:0});
   const[settings,setSettings]=useState({section:"كمي",difficulty:"متوسط",topic:"النسبة والتناسب"});
-  const[trial,setTrial]=useState({
-    isSubscribed:false, used:0, limit:15, plan:'free',
-    status:'inactive',        // inactive|free_trial|active|expired|cancelled
-    freeTrialUsed:false,
-    expiresAt:null,
-  });
+  const ADMIN_EMAIL='sirfaisalalshehri@gmail.com';
+  const[sessionLoading,setSessionLoading]=useState(true);
+  const[trial,setTrial]=useState({isSubscribed:false,used:0,limit:15,plan:'free',status:'inactive',freeTrialUsed:false,expiresAt:null});
   const[mistakes,setMistakes]=useState([]);
   const[placementDone,setPlacementDone]=useState(false);
   const placementDoneRef=useRef(false);
@@ -4062,7 +4107,50 @@ export default function Fahmni(){
   // ── قراءة token من URL بعد تأكيد البريد ──
   // ─── Browser back/forward navigation ───
   useEffect(()=>{
-    // Set initial state
+    // Restore session from localStorage on mount
+    const restoreSession=async()=>{
+      try{
+        const stored=localStorage.getItem('fm_session');
+        if(!stored) return;
+        const sess=JSON.parse(stored);
+        if(!sess?.token||!sess?.userId) return;
+        // Verify token is still valid
+        const r=await fetch(`${SUPABASE_URL}/auth/v1/user`,{
+          headers:{"apikey":SUPABASE_ANON,"Authorization":`Bearer ${sess.token}`}
+        });
+        if(!r.ok){localStorage.removeItem('fm_session');return;}
+        const u=await r.json();
+        if(!u.id){localStorage.removeItem('fm_session');return;}
+        // Token valid — restore session
+        setSession(sess);
+        setUser(u2=>({...u2,name:sess.name}));
+        const prog=await sbLoadProgress(sess.userId,sess.token);
+        if(prog){
+          setUser({name:sess.name,totalSolved:prog.totalSolved,correct:prog.correct,streak:prog.streak});
+          setMistakes(prog.mistakes||[]);
+          if(prog.placementDone){placementDoneRef.current=true;setPlacementDone(true);}
+          if(sess.email===ADMIN_EMAIL){
+            setTrial({isSubscribed:true,used:0,limit:99999,plan:'exam',status:'active',freeTrialUsed:false,expiresAt:new Date(Date.now()+365*24*60*60*1000)});
+          } else {
+            const now=new Date();
+            const expiresAt=prog.subscribed_until?new Date(prog.subscribed_until):null;
+            const plan=prog.plan||'free';
+            const freeTrialUsed=!!(prog.free_trial_used||prog.subscription_status==='expired');
+            let status='inactive';
+            if(['month','exam'].includes(plan)&&expiresAt&&expiresAt>now) status='active';
+            else if(['month','exam'].includes(plan)&&expiresAt&&expiresAt<=now) status='expired';
+            else if(plan==='free'&&!freeTrialUsed&&(prog.trialUsed||0)<(prog.trialLimit||15)) status='free_trial';
+            setTrial({isSubscribed:status==='active',used:prog.trialUsed||0,limit:prog.trialLimit||15,plan,status,freeTrialUsed,expiresAt});
+          }
+        }
+      }catch(e){console.warn('Session restore failed:',e);}
+      finally{setSessionLoading(false);}
+    };
+    restoreSession();
+  },[]);
+
+  useEffect(()=>{
+    // Set initial page from URL hash
     const initialPage=window.location.hash.replace("#","");
     if(initialPage&&initialPage.length>1&&!initialPage.includes("access_token")){
       setPage(initialPage);
@@ -4105,6 +4193,7 @@ export default function Fahmni(){
 
   const handleLogin=async(sess)=>{
     setSession(sess);
+    if(!sess.isGuest) try{localStorage.setItem('fm_session',JSON.stringify(sess));}catch(e){}
     setUser(u=>({...u,name:sess.name}));
     if(!sess.isGuest) await sbCreateProfile(sess.userId,sess.token,sess.name);
     const prog=await sbLoadProgress(sess.userId,sess.token);
@@ -4113,15 +4202,21 @@ export default function Fahmni(){
       setUser({name:sess.name,totalSolved:prog.totalSolved,correct:prog.correct,streak:prog.streak});
       setMistakes(prog.mistakes||[]);
       if(!sess.isGuest){
+        // Admin always has full access
+        if(sess.email===ADMIN_EMAIL){
+          setTrial({isSubscribed:true,used:0,limit:99999,plan:'exam',
+            status:'active',freeTrialUsed:false,
+            expiresAt:new Date(Date.now()+365*24*60*60*1000)});
+          return;
+        }
         const now=new Date();
         const expiresAt=prog.subscribed_until?new Date(prog.subscribed_until):null;
         const plan=prog.plan||'free';
         const freeTrialUsed=!!(prog.free_trial_used||prog.subscription_status==='expired');
-        // Determine status
         let status='inactive';
-        if(['month','exam'].includes(plan) && expiresAt && expiresAt>now) status='active';
-        else if(['month','exam'].includes(plan) && expiresAt && expiresAt<=now) status='expired';
-        else if(plan==='free' && !freeTrialUsed && (prog.trialUsed||0)<(prog.trialLimit||15)) status='free_trial';
+        if(['month','exam'].includes(plan)&&expiresAt&&expiresAt>now) status='active';
+        else if(['month','exam'].includes(plan)&&expiresAt&&expiresAt<=now) status='expired';
+        else if(plan==='free'&&!freeTrialUsed&&(prog.trialUsed||0)<(prog.trialLimit||15)) status='free_trial';
         else if(plan==='free' && (freeTrialUsed||(prog.trialUsed||0)>=(prog.trialLimit||15))) status='expired';
         const isSubscribed=status==='active';
         setTrial({
@@ -4142,6 +4237,12 @@ export default function Fahmni(){
     // لو ما في profile → onboarding (مستخدم جديد)
     // لو في profile ولكن ما أكمل placement → placement
     // لو أكمل placement → dashboard
+    // Admin override — full access
+    if(sess.email===ADMIN_EMAIL){
+      setTrial({isSubscribed:true,used:0,limit:99999,plan:'exam',
+        status:'active',freeTrialUsed:false,
+        expiresAt:new Date(Date.now()+365*24*60*60*1000)});
+    }
     if(!prog){
       go("onboarding");
     } else if(!prog.placementDone){
@@ -4153,6 +4254,7 @@ export default function Fahmni(){
 
   const handleLogout=async()=>{
     if(session?.token) await sbLogout(session.token);
+    try{localStorage.removeItem('fm_session');}catch(e){}
     setSession(null);
     setUser({name:"",streak:0,totalSolved:0,correct:0});
     placementDoneRef.current=false;setPlacementDone(false);
@@ -4214,11 +4316,12 @@ export default function Fahmni(){
   const PROTECTED=["dashboard","roadmap","session","bank","sim","review","lesson","diagnostic","placement","placementResult","onboarding"];
   const PAID_ONLY=["sim","bank","review","roadmap","lesson"]; // require subscription
   const R=()=>{
+    // Wait for session restore
+    if(sessionLoading) return <div style={{display:"flex",alignItems:"center",justifyContent:"center",height:"60vh"}}><div className="spin spin-lg"/></div>;
     // 1) مو مسجّل → landing
     if(PROTECTED.includes(page)&&!session){go("landing");return null;}
-    // 0) Expired/cancelled — show wall
-    if(session&&!session.isGuest&&trial.status==='expired'||trial.status==='cancelled'){
-      if(!PUB.includes(page)&&page!=='expired') {go('expired');return null;}
+    if(session&&!session.isGuest&&(trial.status==='expired'||trial.status==='cancelled')){
+      if(!PUB.includes(page)&&page!=='expired'){go('expired');return null;}
     }
     // 2) مسجّل لكن ما أكمل placement → أجبره على placement
     const NEEDS_PLACEMENT=["dashboard","session","bank","sim","review","roadmap","lesson","diagnostic"];
