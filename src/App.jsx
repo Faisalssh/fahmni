@@ -759,11 +759,22 @@ const PLAN_ACCESS={
 };
 const canAccess=(trial,feature)=>{
   if(!trial) return false;
-  if(trial.isSubscribed){
+  // Active paid subscriber
+  if(trial.status==='active'){
     const access=PLAN_ACCESS[trial.plan]||PLAN_ACCESS.month;
     return access[feature]??true;
   }
+  // Free trial — limited access
+  if(trial.status==='free_trial'){
+    const freeAccess={unlimitedQ:false,deepAnalysis:false,studyPlan:false,simulation:false};
+    return freeAccess[feature]??false;
+  }
+  // Expired, cancelled, inactive — no access
   return false;
+};
+const getAccessStatus=(trial)=>{
+  if(!trial||!trial.status) return 'inactive';
+  return trial.status;
 };
 const SUPABASE_ANON="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVzZHJhbHJ4ZXNzbGF4dnB5eXBhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMxNzE0NTgsImV4cCI6MjA4ODc0NzQ1OH0.WiHlteyRHs8SUch4Q9msuZb5pWwLi9IWx9L_f5Fp_Ho";
 
@@ -1294,7 +1305,8 @@ function buildTopicPlan(track){
   return plan;
 }
 
-function SimMode({settings,go,updateUser,addMistake,trial={}}){  useEffect(()=>{window.scrollTo({top:0,behavior:"instant"});if(!trial.isSubscribed&&trial.used>=trial.limit){go("paywall");}},[]); 
+function SimMode({settings,go,updateUser,addMistake,trial={}}){  useEffect(()=>{window.scrollTo({top:0,behavior:"instant"});if(trial.status==='expired'||trial.status==='cancelled'){go("expired");}
+      else if(!trial.isSubscribed&&trial.used>=trial.limit){go("paywall");}},[]); 
   const[phase,setPhase]=useState("setup");
   const[difficulty,setDifficulty]=useState("متوسط");
   const[track,setTrack]=useState("علمي");
@@ -1813,7 +1825,7 @@ function Pricing({go}){
           بسيط وواضح — بدون مفاجآت
         </h1>
         <p style={{color:"#64748b",lineHeight:1.9,fontSize:".88rem"}}>
-          جرّب مجاناً · اشترك لو ناسبك · ألغِ في أي وقت
+          جرّب مجاناً · لا استرداد بعد الاشتراك · شروط الاستخدام تنطبق
         </p>
         <div style={{display:"inline-flex",alignItems:"center",gap:8,marginTop:12,
           padding:"8px 18px",borderRadius:99,background:"rgba(251,191,36,.08)",
@@ -1913,7 +1925,7 @@ function Pricing({go}){
                   🔒 الدفع سيتوفر قريباً
                 </button>
                 <p style={{textAlign:"center",fontSize:".6rem",color:"#334155",marginTop:8}}>
-                  سيتاح الاشتراك بعد تفعيل بوابة الدفع
+                  سيتاح الاشتراك بعد تفعيل بوابة الدفع · لا استرداد بعد الدفع
                 </p>
               </div>
             ):(
@@ -1940,7 +1952,7 @@ function Pricing({go}){
           </thead>
           <tbody>
             {[
-              ["أسئلة AI","10 فقط","غير محدودة ✓","غير محدودة ✓"],
+              ["أسئلة AI","15 فقط","غير محدودة ✓","غير محدودة ✓"],
               ["وضع المحاكاة","✕","✓","✓"],
               ["شرح تفصيلي","✕","✓","✓"],
               ["تحليل AI متقدم","✕","✕","✓"],
@@ -1971,6 +1983,7 @@ function Pricing({go}){
             ["كيف تساعدني المنصة على رفع درجتي؟","توفر فهمني+ اختبارات محاكاة وتحليل أداء وتدريب على جميع الأبواب مما يساعدك على معرفة نقاط ضعفك والتدرب عليها حتى تتحسن درجتك."],
             ["هل يمكنني تجربة المنصة قبل الاشتراك؟","نعم، يمكنك تجربة المنصة من خلال الباقة المجانية التي تحتوي على 15 سؤالاً للتعرف على طريقة التدريب قبل الاشتراك."],
             ["لماذا التدريب عبر فهمني+ أفضل من الحل العشوائي؟","لأن المنصة تقدم تدريباً منظماً يشمل بنك أسئلة ومحاكاة للاختبار وتحليل للأداء مما يساعدك على الاستعداد بشكل أكثر فعالية."],
+            ["ما سياسة الاسترداد؟","لا يتم استرداد رسوم الاشتراك بعد الدفع. ننصح باستخدام التجربة المجانية أولاً للتأكد من ملاءمة المنصة لاحتياجاتك."],
           ].map(([q,a],i)=>(
             <div key={i} style={{borderBottom:"1px solid rgba(255,255,255,.05)",paddingBottom:10}}>
               <p style={{fontSize:".8rem",fontWeight:700,color:"#e2e8f0",marginBottom:4}}>◆ {q}</p>
@@ -2796,7 +2809,7 @@ const sbLoadProgress=async(userId,token)=>{
   if(IS_ARTIFACT) return null;
   try{
     const[pRes,mRes]=await Promise.all([
-      fetch(`${SUPABASE_URL}/rest/v1/profiles?id=eq.${userId}&select=total_solved,total_correct,current_streak,trial_used,trial_limit,plan,subscribed_until,placement_done,placement_level`,{headers:sbH(token)}),
+      fetch(`${SUPABASE_URL}/rest/v1/profiles?id=eq.${userId}&select=total_solved,total_correct,current_streak,trial_used,trial_limit,plan,subscribed_until,placement_done,placement_level,free_trial_used,subscription_status`,{headers:sbH(token)}),
       fetch(`${SUPABASE_URL}/rest/v1/saved_mistakes?user_id=eq.${userId}&select=question_snapshot,is_reviewed&order=created_at.desc&limit=50`,{headers:sbH(token)})
     ]);
     const[profiles,mistakes]=await Promise.all([pRes.json(),mRes.json()]);
@@ -2937,11 +2950,22 @@ const PLAN_ACCESS={
 };
 const canAccess=(trial,feature)=>{
   if(!trial) return false;
-  if(trial.isSubscribed){
+  // Active paid subscriber
+  if(trial.status==='active'){
     const access=PLAN_ACCESS[trial.plan]||PLAN_ACCESS.month;
     return access[feature]??true;
   }
+  // Free trial — limited access
+  if(trial.status==='free_trial'){
+    const freeAccess={unlimitedQ:false,deepAnalysis:false,studyPlan:false,simulation:false};
+    return freeAccess[feature]??false;
+  }
+  // Expired, cancelled, inactive — no access
   return false;
+};
+const getAccessStatus=(trial)=>{
+  if(!trial||!trial.status) return 'inactive';
+  return trial.status;
 };
 
   const guestLogin=()=>{
@@ -3127,7 +3151,8 @@ function Dashboard({go,user,trial,mistakes}){
     {!trial.isSubscribed&&(<div style={{padding:"18px 22px",borderRadius:18,background:"linear-gradient(135deg,rgba(249,115,22,.1),rgba(34,211,238,.06))",border:"1px solid rgba(249,115,22,.18)",display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:12}}><div><p style={{fontWeight:700,color:"#fdba74"}}>التجربة المجانية — {trial.limit-trial.used} سؤال متبقي</p></div><div className="pt" style={{width:110}}><div className="pf" style={{width:`${(trial.used/trial.limit)*100}%`}}/></div></div>)}
   </div>);}
 
-function Bank({settings,setSettings,go,trial={}}){  useEffect(()=>{window.scrollTo({top:0,behavior:"instant"});if(!trial.isSubscribed&&trial.used>=trial.limit){go("paywall");}},[]); return(<div style={{display:"grid",gap:14}}><div className="gl" style={{padding:"30px"}}><span className="badge b-o" style={{marginBottom:11}}>بنك الأسئلة</span><h1 style={{fontSize:"1.75rem",fontWeight:900,color:"#fff",marginBottom:7}}>اختر مسارك ثم ابدأ</h1></div><div className="rg-3 bank-grid" style={{gap:14}}><div className="gl" style={{padding:"18px"}}><p style={{fontSize:".68rem",color:"#f97316",fontWeight:700,letterSpacing:".08em",marginBottom:11}}>القسم</p>{["كمي","لفظي"].map(s=>(<button key={s} className={`sc ${settings.section===s?"on":""}`} style={{marginBottom:8}} onClick={()=>setSettings(p=>({...p,section:s,topic:TOPICS[s][0]}))}><p style={{fontWeight:800,color:"#fff"}}>{s}</p></button>))}</div><div className="gl" style={{padding:"18px"}}><p style={{fontSize:".68rem",color:"#f97316",fontWeight:700,letterSpacing:".08em",marginBottom:11}}>الصعوبة</p>{[{v:"سهل",d:"بداية هادئة"},{v:"متوسط",d:"تثبيت"},{v:"صعب",d:"تحدٍّ"}].map(d=>(<button key={d.v} className={`sc ${settings.difficulty===d.v?"on":""}`} style={{marginBottom:8}} onClick={()=>setSettings(p=>({...p,difficulty:d.v}))}><p style={{fontWeight:800,color:"#fff"}}>{d.v}</p><p style={{marginTop:3,fontSize:".76rem",color:"#64748b"}}>{d.d}</p></button>))}</div><div className="gl" style={{padding:"18px"}}><p style={{fontSize:".68rem",color:"#f97316",fontWeight:700,letterSpacing:".08em",marginBottom:11}}>الباب</p><div style={{maxHeight:260,overflowY:"auto",display:"flex",flexDirection:"column",gap:6}}>{TOPICS[settings.section].map(t=>(<button key={t} className={`sc ${settings.topic===t?"on":""}`} style={{padding:"10px 13px"}} onClick={()=>setSettings(p=>({...p,topic:t}))}><div style={{display:"flex",alignItems:"center",gap:7}}>{GEO.includes(t)&&<span style={{fontSize:".6rem",padding:"1px 6px",borderRadius:99,background:"rgba(167,139,250,.12)",border:"1px solid rgba(167,139,250,.2)",color:"#c4b5fd"}}>📐</span>}<p style={{fontWeight:700,color:"#fff",fontSize:".84rem"}}>{t}</p></div></button>))}</div></div></div>
+function Bank({settings,setSettings,go,trial={}}){  useEffect(()=>{window.scrollTo({top:0,behavior:"instant"});if(trial.status==='expired'||trial.status==='cancelled'){go("expired");}
+      else if(!trial.isSubscribed&&trial.used>=trial.limit){go("paywall");}},[]); return(<div style={{display:"grid",gap:14}}><div className="gl" style={{padding:"30px"}}><span className="badge b-o" style={{marginBottom:11}}>بنك الأسئلة</span><h1 style={{fontSize:"1.75rem",fontWeight:900,color:"#fff",marginBottom:7}}>اختر مسارك ثم ابدأ</h1></div><div className="rg-3 bank-grid" style={{gap:14}}><div className="gl" style={{padding:"18px"}}><p style={{fontSize:".68rem",color:"#f97316",fontWeight:700,letterSpacing:".08em",marginBottom:11}}>القسم</p>{["كمي","لفظي"].map(s=>(<button key={s} className={`sc ${settings.section===s?"on":""}`} style={{marginBottom:8}} onClick={()=>setSettings(p=>({...p,section:s,topic:TOPICS[s][0]}))}><p style={{fontWeight:800,color:"#fff"}}>{s}</p></button>))}</div><div className="gl" style={{padding:"18px"}}><p style={{fontSize:".68rem",color:"#f97316",fontWeight:700,letterSpacing:".08em",marginBottom:11}}>الصعوبة</p>{[{v:"سهل",d:"بداية هادئة"},{v:"متوسط",d:"تثبيت"},{v:"صعب",d:"تحدٍّ"}].map(d=>(<button key={d.v} className={`sc ${settings.difficulty===d.v?"on":""}`} style={{marginBottom:8}} onClick={()=>setSettings(p=>({...p,difficulty:d.v}))}><p style={{fontWeight:800,color:"#fff"}}>{d.v}</p><p style={{marginTop:3,fontSize:".76rem",color:"#64748b"}}>{d.d}</p></button>))}</div><div className="gl" style={{padding:"18px"}}><p style={{fontSize:".68rem",color:"#f97316",fontWeight:700,letterSpacing:".08em",marginBottom:11}}>الباب</p><div style={{maxHeight:260,overflowY:"auto",display:"flex",flexDirection:"column",gap:6}}>{TOPICS[settings.section].map(t=>(<button key={t} className={`sc ${settings.topic===t?"on":""}`} style={{padding:"10px 13px"}} onClick={()=>setSettings(p=>({...p,topic:t}))}><div style={{display:"flex",alignItems:"center",gap:7}}>{GEO.includes(t)&&<span style={{fontSize:".6rem",padding:"1px 6px",borderRadius:99,background:"rgba(167,139,250,.12)",border:"1px solid rgba(167,139,250,.2)",color:"#c4b5fd"}}>📐</span>}<p style={{fontWeight:700,color:"#fff",fontSize:".84rem"}}>{t}</p></div></button>))}</div></div></div>
 <div style={{padding:"22px 26px",borderRadius:18,background:"linear-gradient(135deg,rgba(34,211,238,.08),rgba(249,115,22,.06))",border:"1px solid rgba(34,211,238,.16)",display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:12}}><div><p style={{fontSize:".68rem",color:"#67e8f9",fontWeight:700,marginBottom:5}}>جاهز</p><p style={{fontSize:"1.3rem",fontWeight:900,color:"#fff"}}>{settings.topic} · {settings.difficulty}</p></div><div style={{display:"flex",gap:9}}><button className="btn btn-out" style={{fontSize:".8rem"}} onClick={()=>go("diagnostic")}>🧪 تشخيص أولاً</button><button className="btn btn-p" style={{padding:"11px 22px"}} onClick={()=>go("session")}>ابدأ مباشرة ←</button></div></div>
 </div>);}
 
@@ -3648,6 +3673,39 @@ function Roadmap({go,setSettings,openLesson,trial={}}){
   );
 }
 
+function ExpiredWall({trial,go}){
+  const isExpiredPaid=trial?.plan&&['month','exam'].includes(trial.plan);
+  return(
+    <div style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",
+      minHeight:"60vh",textAlign:"center",padding:"40px 20px"}}>
+      <div style={{width:72,height:72,borderRadius:20,background:"rgba(239,68,68,.1)",
+        display:"flex",alignItems:"center",justifyContent:"center",
+        fontSize:"2rem",marginBottom:20}}>🔒</div>
+      <h2 style={{fontSize:"1.4rem",fontWeight:900,color:"#fff",marginBottom:10}}>
+        {isExpiredPaid?"انتهى اشتراكك":"انتهت تجربتك المجانية"}
+      </h2>
+      <p style={{color:"#64748b",lineHeight:1.9,maxWidth:360,marginBottom:24,fontSize:".88rem"}}>
+        {isExpiredPaid
+          ?"انتهى وصولك إلى المنصة. جدّد اشتراكك للاستمرار في التدريب والحصول على كل المميزات."
+          :"لقد استخدمت جميع أسئلة تجربتك المجانية. اشترك للوصول إلى أسئلة غير محدودة وجميع مميزات المنصة."}
+      </p>
+      <div style={{display:"flex",gap:12,flexWrap:"wrap",justifyContent:"center"}}>
+        <button className="btn btn-p" style={{padding:"12px 28px",borderRadius:12,fontWeight:700}}
+          onClick={()=>go("pricing")}>
+          {isExpiredPaid?"جدّد الاشتراك":"اشترك الآن"}
+        </button>
+        <button className="btn" style={{padding:"12px 20px",borderRadius:12,color:"#64748b"}}
+          onClick={()=>go("landing")}>
+          الرئيسية
+        </button>
+      </div>
+      <p style={{fontSize:".7rem",color:"#334155",marginTop:20}}>
+        بياناتك وتقدمك محفوظة · ستعود عند التجديد
+      </p>
+    </div>
+  );
+}
+
 function Paywall({trial,subscribe,back,go}){
   useEffect(()=>{window.scrollTo({top:0,behavior:"instant"});},[]); 
   const solved = trial?.used||0;
@@ -3801,25 +3859,35 @@ function Privacy({go}){
   return <LegalPage go={go} title="سياسة الخصوصية" badge="🔒 الخصوصية" badgeClass="b-c" sections={[
     {title:"ما المعلومات التي نجمعها؟",items:[
       "الاسم والبريد الإلكتروني عند إنشاء الحساب.",
-      "بيانات الأداء: عدد الأسئلة المحلولة، الإجابات الصحيحة والخاطئة، الأبواب المدروسة.",
-      "معلومات الاشتراك وبيانات الدفع (تُعالَج عبر Moyasar ولا نحتفظ بأرقام البطاقات).",
-      "بيانات الاستخدام العامة مثل وقت الجلسة والصفحات المزارة."
+      "بيانات الأداء: عدد الأسئلة المحلولة، الإجابات الصحيحة والخاطئة، الأبواب المدروسة، ونقاط الضعف.",
+      "معلومات الاشتراك: نوع الباقة (مجاني / أساسي / مميز)، مدة الاشتراك، وحالته.",
+      "بيانات الدفع تُعالَج حصراً عبر بوابة Moyasar المرخصة — لا نحتفظ بأي بيانات بطاقات.",
+      "بيانات الاستخدام العامة مثل وقت الجلسات والأبواب المدروسة لتحسين تجربتك."
     ]},
     {title:"كيف نستخدم معلوماتك؟",items:[
-      "تخصيص مسار التعلم وتوليد أسئلة مناسبة لمستواك.",
+      "تخصيص مسار التعلم وتوليد أسئلة ملائمة لمستواك وأهدافك.",
+      "تحليل أدائك وتحديد نقاط الضعف لتقديم تدريب أكثر فاعلية.",
       "تحسين أداء المنصة وتطوير ميزات جديدة.",
-      "إرسال إشعارات تتعلق بحسابك أو اشتراكك (لا نرسل إعلانات بريدية غير مطلوبة).",
+      "إرسال إشعارات متعلقة بحسابك أو اشتراكك فقط — لا نرسل إعلانات غير مطلوبة.",
       "الامتثال للمتطلبات القانونية والتنظيمية في المملكة العربية السعودية."
     ]},
     {title:"مشاركة البيانات",items:[
-      "لا نبيع بياناتك لأي طرف ثالث تحت أي ظرف.",
-      "نستخدم Supabase لتخزين البيانات وAnthropic لتوليد الأسئلة — وكلاهما يلتزمان بمعايير خصوصية عالية.",
-      "قد نشارك بيانات مجهولة الهوية وإحصائية لأغراض بحثية فقط.",
+      "لا نبيع بياناتك الشخصية لأي طرف ثالث تحت أي ظرف.",
+      "نستخدم Supabase لتخزين البيانات — ويلتزم بمعايير خصوصية دولية عالية.",
+      "نستخدم Anthropic API لتوليد الأسئلة التعليمية فقط — ولا تُستخدم بياناتك لتدريب النماذج.",
+      "تتم معالجة المدفوعات عبر Moyasar المرخصة من البنك المركزي السعودي (ساما).",
+      "قد نشارك بيانات مجهولة الهوية وإحصائية لأغراض تحسين المنصة فقط."
+    ]},
+    {title:"أمان البيانات",items:[
+      "تُشفَّر جميع البيانات المنقولة باستخدام بروتوكول HTTPS/TLS.",
+      "بيانات الدفع محمية بمعايير PCI-DSS عبر Moyasar.",
+      "نراجع ممارسات الأمان بشكل دوري لضمان حماية بياناتك."
     ]},
     {title:"حقوقك",items:[
       "يحق لك طلب نسخة من بياناتك المحفوظة في أي وقت.",
-      "يمكنك حذف حسابك وجميع بياناتك نهائياً من إعدادات الحساب.",
-      "للاستفسار أو طلب الحذف: support@fahmniplus.com"
+      "يمكنك حذف حسابك وجميع بياناتك نهائياً — مع العلم أن بيانات الاشتراكات المنتهية قد تُحتفظ بها لأغراض قانونية.",
+      "للاستفسار أو طلب الحذف: support@fahmniplus.com",
+      "آخر تحديث لهذه السياسة: مارس 2026"
     ]}
   ]}/>;
 }
@@ -3827,45 +3895,61 @@ function Privacy({go}){
 function Terms({go}){
   return <LegalPage go={go} title="الشروط والأحكام" badge="📋 الشروط" badgeClass="b-o" sections={[
     {title:"قبول الشروط",items:[
-      "باستخدام فهمني+ فأنت توافق على هذه الشروط. إذا كنت دون سن 18 فيجب الحصول على موافقة ولي الأمر.",
-      "نحتفظ بحق تعديل هذه الشروط مع إشعار مسبق عبر البريد الإلكتروني.",
+      "باستخدام فهمني+ فأنت توافق على هذه الشروط والأحكام بالكامل.",
+      "إذا كنت دون سن 18 فيجب الحصول على موافقة صريحة من ولي الأمر.",
+      "نحتفظ بحق تعديل هذه الشروط في أي وقت مع إشعار مسبق عبر البريد الإلكتروني أو داخل المنصة."
     ]},
-    {title:"الاشتراكات والمدفوعات",items:[
-      "الاشتراك الشهري: 49 ريال سعودي شاملاً ضريبة القيمة المضافة.",
-      "باقة الاختبار: 99 ريال سعودي شهرياً شاملاً ضريبة القيمة المضافة.",
-      "يتجدد الاشتراك تلقائياً ما لم تلغِه قبل 24 ساعة من موعد التجديد.",
-      "تُعالَج جميع المدفوعات بشكل آمن عبر بوابة Moyasar المرخصة من البنك المركزي السعودي (ساما).",
+    {title:"الباقات والأسعار",items:[
+      "الباقة المجانية: 15 سؤال تجربة — تُستخدم مرة واحدة فقط ولا يمكن تجديدها.",
+      "الباقة الأساسية: 59 ريال/شهر — أو 149 ريال/3 أشهر — أو 249 ريال/6 أشهر.",
+      "الباقة المميزة: 99 ريال/شهر — أو 249 ريال/3 أشهر — أو 399 ريال/6 أشهر.",
+      "جميع الأسعار شاملة ضريبة القيمة المضافة (15%) ما لم يُذكر غير ذلك.",
+      "تُعالَج المدفوعات عبر Moyasar المرخصة من البنك المركزي السعودي (ساما)."
+    ]},
+    {title:"سياسة الاسترداد — مهم",items:[
+      "🚫 لا يتم استرداد رسوم الاشتراك بعد إتمام الدفع تحت أي ظرف.",
+      "ننصح باستخدام التجربة المجانية (15 سؤال) قبل الاشتراك للتأكد من ملاءمة المنصة.",
+      "في حال حدوث خلل تقني من جانبنا يمنع الوصول لأكثر من 72 ساعة متواصلة، يمكن دراسة تعويض بتمديد مدة الاشتراك فقط.",
+      "للتواصل بشأن أي مشكلة في الدفع: support@fahmniplus.com"
+    ]},
+    {title:"انتهاء الاشتراك",items:[
+      "عند انتهاء مدة الاشتراك يُقفل الوصول تلقائياً لجميع المحتويات.",
+      "انتهاء الاشتراك المدفوع لا يُعيد تفعيل التجربة المجانية.",
+      "تبقى بياناتك وتقدمك محفوظاً في حسابك لمدة سنة بعد انتهاء الاشتراك.",
+      "لا يوجد تجديد تلقائي في الوقت الحالي — يجب الاشتراك يدوياً عند الرغبة في التجديد."
     ]},
     {title:"الاستخدام المقبول",items:[
       "المنصة مخصصة للاستخدام الشخصي التعليمي فقط.",
-      "يُحظر مشاركة الحساب مع أشخاص آخرين أو بيع بيانات الاشتراك.",
-      "يُحظر نسخ الأسئلة أو المحتوى المولّد لأغراض تجارية.",
-      "نحتفظ بحق إيقاف الحسابات التي تنتهك هذه الشروط دون استرداد."
+      "يُحظر مشاركة بيانات الحساب مع أشخاص آخرين.",
+      "يُحظر نسخ الأسئلة أو المحتوى التعليمي أو إعادة نشره لأغراض تجارية.",
+      "يُحظر محاولة تجاوز نظام الاشتراك أو الوصول لمحتوى مدفوع دون ترخيص.",
+      "نحتفظ بحق إيقاف الحسابات المخالفة دون أي استرداد."
     ]},
     {title:"إخلاء المسؤولية",items:[
-      "فهمني+ منصة تعليمية مساعدة وليست بديلاً عن الدراسة الرسمية.",
-      "لا نضمن نتائج معينة في الاختبارات، لكننا نبذل قصارى جهدنا لتقديم محتوى دقيق.",
-      "المحتوى مولّد بالذكاء الاصطناعي وقد يحتوي على أخطاء — نرحب بالإبلاغ عنها."
+      "فهمني+ منصة تعليمية مساعدة وليست بديلاً عن الدراسة الرسمية أو الكتب المعتمدة.",
+      "لا نضمن نتائج محددة في اختبار القدرات، لكن محتوانا مصمم لتحسين فرصك بشكل معتمد.",
+      "بعض الأسئلة مولَّدة بالذكاء الاصطناعي — نرحب دائماً بالإبلاغ عن أي خطأ.",
+      "آخر تحديث لهذه الشروط: مارس 2026"
     ]}
   ]}/>;
 }
 
 function Refund({go}){
   return <LegalPage go={go} title="سياسة الاسترداد" badge="💳 الاسترداد" badgeClass="b-g" sections={[
-    {title:"حق الاسترداد",items:[
-      "يحق لك الاسترداد الكامل خلال 7 أيام من أول اشتراك إذا لم تستخدم المنصة (أقل من 10 أسئلة).",
-      "بعد 7 أيام أو عند الاستخدام الفعلي لا يحق الاسترداد إلا في حالات استثنائية.",
-      "في حالة وجود خلل تقني من جانبنا يمنعك من الوصول للمنصة لأكثر من 48 ساعة، يحق لك استرداد نسبي.",
+    {title:"سياسة عدم الاسترداد",items:[
+      "🚫 لا يتم استرداد رسوم الاشتراك بعد إتمام عملية الدفع تحت أي ظرف.",
+      "قبل الاشتراك، نوفر لك 15 سؤال تجربة مجانية للتأكد من ملاءمة المنصة لاحتياجاتك.",
+      "نحرص على توفير وصف دقيق وشامل لكل باقة حتى تتخذ قرارك بوضوح تام."
     ]},
-    {title:"كيف تطلب الاسترداد؟",items:[
-      "أرسل طلبك على support@fahmniplus.com مع ذكر سبب الطلب ورقم الطلب.",
-      "سنرد خلال 3 أيام عمل ونُعالج المبلغ خلال 5-7 أيام عمل.",
-      "يُعاد المبلغ لنفس وسيلة الدفع المستخدمة."
+    {title:"الاستثناء الوحيد",items:[
+      "في حال حدوث خلل تقني موثَّق من جانب المنصة يمنع الوصول الكامل لأكثر من 72 ساعة متواصلة،",
+      "يمكن دراسة تعويض على شكل تمديد مدة الاشتراك بما يعادل فترة الانقطاع فقط — وليس استرداداً مالياً.",
+      "يُشترط الإبلاغ عن المشكلة خلال مدة الاشتراك على: support@fahmniplus.com"
     ]},
-    {title:"حالات لا يُقبل فيها الاسترداد",items:[
-      "بعد مرور 7 أيام من تاريخ الاشتراك.",
-      "عند استخدام المنصة بشكل فعلي (أكثر من 10 أسئلة أو جلسات متعددة).",
-      "في حالة انتهاك شروط الاستخدام."
+    {title:"توصيتنا قبل الاشتراك",items:[
+      "استخدم التجربة المجانية (15 سؤال) لتتعرف على أسلوب المنصة وطريقة التدريب.",
+      "اقرأ وصف كل باقة بعناية وتأكد من اختيار المدة المناسبة لك.",
+      "للاستفسار قبل الاشتراك: support@fahmniplus.com — نرد خلال 24 ساعة."
     ]}
   ]}/>;
 }
@@ -3962,7 +4046,12 @@ export default function Fahmni(){
   const[session,setSession]=useState(null); // {token, userId, name, email}
   const[user,setUser]=useState({name:"",streak:0,totalSolved:0,correct:0});
   const[settings,setSettings]=useState({section:"كمي",difficulty:"متوسط",topic:"النسبة والتناسب"});
-  const[trial,setTrial]=useState({isSubscribed:false,used:0,limit:10,plan:'free'});
+  const[trial,setTrial]=useState({
+    isSubscribed:false, used:0, limit:15, plan:'free',
+    status:'inactive',        // inactive|free_trial|active|expired|cancelled
+    freeTrialUsed:false,
+    expiresAt:null,
+  });
   const[mistakes,setMistakes]=useState([]);
   const[placementDone,setPlacementDone]=useState(false);
   const placementDoneRef=useRef(false);
@@ -4023,9 +4112,25 @@ export default function Fahmni(){
     if(prog){
       setUser({name:sess.name,totalSolved:prog.totalSolved,correct:prog.correct,streak:prog.streak});
       setMistakes(prog.mistakes||[]);
-      if(!sess.isGuest) setTrial(t=>({...t,used:prog.trialUsed||0,limit:prog.trialLimit||10,plan:prog.plan||'free',isSubscribed:['month','exam'].includes(prog.plan)}));
+      if(!sess.isGuest){
+        const now=new Date();
+        const expiresAt=prog.subscribed_until?new Date(prog.subscribed_until):null;
+        const plan=prog.plan||'free';
+        const freeTrialUsed=!!(prog.free_trial_used||prog.subscription_status==='expired');
+        // Determine status
+        let status='inactive';
+        if(['month','exam'].includes(plan) && expiresAt && expiresAt>now) status='active';
+        else if(['month','exam'].includes(plan) && expiresAt && expiresAt<=now) status='expired';
+        else if(plan==='free' && !freeTrialUsed && (prog.trialUsed||0)<(prog.trialLimit||15)) status='free_trial';
+        else if(plan==='free' && (freeTrialUsed||(prog.trialUsed||0)>=(prog.trialLimit||15))) status='expired';
+        const isSubscribed=status==='active';
+        setTrial({
+          isSubscribed, used:prog.trialUsed||0, limit:prog.trialLimit||15,
+          plan, status, freeTrialUsed, expiresAt,
+        });
+      }
     }else{
-      setTrial({isSubscribed:false,used:0,limit:sess.trialLimit||5});
+      setTrial({isSubscribed:false,used:0,limit:sess.trialLimit||15,plan:'free',status:'inactive',freeTrialUsed:false,expiresAt:null});
     }
     // تحميل حالة تحديد المستوى
     if(prog?.placementDone){placementDoneRef.current=true;setPlacementDone(true);}
@@ -4052,7 +4157,7 @@ export default function Fahmni(){
     setUser({name:"",streak:0,totalSolved:0,correct:0});
     placementDoneRef.current=false;setPlacementDone(false);
     setMistakes([]);
-    setTrial({isSubscribed:false,used:0,limit:10});
+    setTrial({isSubscribed:false,used:0,limit:15,plan:'free',status:'inactive',freeTrialUsed:false,expiresAt:null});
     go("landing");
   };
 
@@ -4111,6 +4216,10 @@ export default function Fahmni(){
   const R=()=>{
     // 1) مو مسجّل → landing
     if(PROTECTED.includes(page)&&!session){go("landing");return null;}
+    // 0) Expired/cancelled — show wall
+    if(session&&!session.isGuest&&trial.status==='expired'||trial.status==='cancelled'){
+      if(!PUB.includes(page)&&page!=='expired') {go('expired');return null;}
+    }
     // 2) مسجّل لكن ما أكمل placement → أجبره على placement
     const NEEDS_PLACEMENT=["dashboard","session","bank","sim","review","roadmap","lesson","diagnostic"];
     if(session&&!session.isGuest&&NEEDS_PLACEMENT.includes(page)&&!placementDoneRef.current){
