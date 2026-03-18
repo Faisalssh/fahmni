@@ -1735,7 +1735,7 @@ function SimMode({settings,go,updateUser,addMistake,trial={}}){  useEffect(()=>{
 }
 
 /* ═══════════════════ PRICING PAGE ═══════════════════ */
-function Pricing({go}){
+function Pricing({go,setCheckoutPlan,setCheckoutPeriod}){
   useEffect(()=>{window.scrollTo({top:0,behavior:"instant"});},[]); 
   const[basicDur,setBasicDur]=useState("3m");
   const[examDur,setExamDur]=useState("3m");
@@ -1825,7 +1825,7 @@ function Pricing({go}){
           بسيط وواضح — بدون مفاجآت
         </h1>
         <p style={{color:"#64748b",lineHeight:1.9,fontSize:".88rem"}}>
-          جرّب مجاناً · لا استرداد بعد الاشتراك · شروط الاستخدام تنطبق
+          جرّب مجاناً · لا استرداد بعد الاشتراك · سياسة الاستخدام العادل
         </p>
         <div style={{display:"inline-flex",alignItems:"center",gap:8,marginTop:12,
           padding:"8px 18px",borderRadius:99,background:"rgba(251,191,36,.08)",
@@ -1915,17 +1915,28 @@ function Pricing({go}){
             {/* CTA Button */}
             {p.isPaid?(
               <div>
-                <button disabled style={{
-                  width:"100%",padding:"13px",borderRadius:12,
-                  background:"rgba(255,255,255,.05)",
-                  border:"1px solid rgba(255,255,255,.1)",
-                  color:"#475569",fontSize:".82rem",fontWeight:700,
-                  cursor:"not-allowed",letterSpacing:.3,
-                }}>
-                  🔒 الدفع سيتوفر قريباً
+                <button
+                  onClick={()=>{
+                    const plan=p.id==="month"?"basic":"premium";
+                    const period=p.id==="month"?basicDur:examDur;
+                    setCheckoutPlan&&setCheckoutPlan(plan);
+                    setCheckoutPeriod&&setCheckoutPeriod(period);
+                    go("checkout");
+                  }}
+                  style={{
+                    width:"100%",padding:"13px",borderRadius:12,
+                    background:`linear-gradient(135deg,${p.color}22,${p.color}11)`,
+                    border:`1px solid ${p.color}44`,
+                    color:p.color,fontSize:".82rem",fontWeight:700,
+                    cursor:"pointer",letterSpacing:.3,fontFamily:"Cairo,sans-serif",
+                    transition:"all .2s",
+                  }}
+                  onMouseEnter={e=>e.currentTarget.style.opacity=".8"}
+                  onMouseLeave={e=>e.currentTarget.style.opacity="1"}>
+                  اشترك الآن ← (قريباً)
                 </button>
                 <p style={{textAlign:"center",fontSize:".6rem",color:"#334155",marginTop:8}}>
-                  سيتاح الاشتراك بعد تفعيل بوابة الدفع · لا استرداد بعد الدفع
+                  سيتم تحويلك إلى بوابة دفع آمنة عند التفعيل · لا استرداد بعد إتمام الدفع
                 </p>
               </div>
             ):(
@@ -2411,8 +2422,8 @@ function TestimonialsBar(){
 }
 function SiteFooter({go}){
   return(
-    <div style={{textAlign:"center",padding:"20px 16px 28px",borderTop:"1px solid rgba(255,255,255,.04)",marginTop:32}}>
-      <div style={{display:"flex",gap:6,flexWrap:"wrap",justifyContent:"center",marginBottom:8}}>
+    <div style={{textAlign:"center",padding:"20px 16px 28px",borderTop:"1px solid rgba(255,255,255,.06)",marginTop:32}}>
+      <div style={{display:"flex",gap:6,flexWrap:"wrap",justifyContent:"center",marginBottom:10}}>
         {[["privacy","سياسة الخصوصية"],["terms","الشروط والأحكام"],["refund","سياسة الاسترداد"],["contact","تواصل معنا"]].map(([p,l])=>(
           <button key={p} onClick={()=>go(p)} style={{
             background:"none",border:"none",cursor:"pointer",
@@ -2425,8 +2436,16 @@ function SiteFooter({go}){
           </button>
         ))}
       </div>
-      <p style={{fontSize:".65rem",color:"#1e293b",marginBottom:4}}>© {new Date().getFullYear()} فهمني+ · FahmniPlus — المملكة العربية السعودية 🇸🇦</p>
-      <p style={{fontSize:".6rem",color:"#1e293b"}}>للتواصل والدعم: <a href="mailto:fahmnipluss@gmail.com" style={{color:"#334155",textDecoration:"none"}}>fahmnipluss@gmail.com</a></p>
+      <div style={{display:"flex",gap:16,justifyContent:"center",flexWrap:"wrap",marginBottom:8}}>
+        <a href="tel:0581414801" style={{fontSize:".68rem",color:"#475569",textDecoration:"none",fontFamily:"Cairo,sans-serif"}}>
+          📞 0581414801
+        </a>
+        <a href="mailto:support@fahmniplus.com" style={{fontSize:".68rem",color:"#475569",textDecoration:"none",fontFamily:"Cairo,sans-serif"}}>
+          📧 support@fahmniplus.com
+        </a>
+      </div>
+      <p style={{fontSize:".62rem",color:"#1e293b",marginBottom:2}}>© {new Date().getFullYear()} فهمني+ · FahmniPlus — المملكة العربية السعودية 🇸🇦</p>
+      <p style={{fontSize:".58rem",color:"#1e293b",opacity:.7}}>منصة تعليمية لاختبار القدرات · جميع الحقوق محفوظة</p>
     </div>
   );
 }
@@ -2766,7 +2785,7 @@ function Landing({go}){
             </button>
           </div>
           <p style={{marginTop:18,fontSize:".72rem",color:"#334155"}}>
-            ✓ بدون إعلانات · ✓ بدون حفظ بيانات · ✓ إلغاء في أي وقت
+            فهمني+ منصة تعليمية تساعد طلاب المملكة على الاستعداد لاختبار القدرات من خلال التدريب المكثف، بنك الأسئلة، والمحاكاة الواقعية.
           </p>
         </div>
       </div>
@@ -3716,8 +3735,12 @@ function UpgradePrompt({feature,go}){
       </div>
       <div style={{display:"flex",gap:10,flexWrap:"wrap",justifyContent:"center"}}>
         <button className="btn btn-p" style={{padding:"12px 28px",borderRadius:12,fontWeight:700}}
+          onClick={()=>go("checkout")}>
+          اشترك الآن ←
+        </button>
+        <button className="btn" style={{padding:"12px 18px",borderRadius:12,color:"#64748b"}}
           onClick={()=>go("pricing")}>
-          عرض الباقات ←
+          عرض الباقات
         </button>
         <button className="btn" style={{padding:"12px 18px",borderRadius:12,color:"#64748b"}}
           onClick={()=>go("dashboard")}>
@@ -3727,7 +3750,7 @@ function UpgradePrompt({feature,go}){
       <div style={{padding:"10px 20px",borderRadius:99,
         background:"rgba(251,191,36,.08)",border:"1px solid rgba(251,191,36,.15)"}}>
         <p style={{fontSize:".68rem",color:"#fbbf24",fontWeight:600}}>
-          🔒 الدفع سيتوفر قريباً — ترقّب الإطلاق
+          🔒 سيتم تفعيل الدفع قريباً — ترقّب الإطلاق
         </p>
       </div>
     </div>
@@ -3761,8 +3784,98 @@ function ExpiredWall({trial,go}){
         </button>
       </div>
       <p style={{fontSize:".7rem",color:"#334155",marginTop:20}}>
-        بياناتك وتقدمك محفوظة · ستعود عند التجديد · support: fahmnipluss@gmail.com
+        بياناتك وتقدمك محفوظة · للاستفسار: support@fahmniplus.com · 📞 0581414801
       </p>
+    </div>
+  );
+}
+
+
+function Checkout({go,trial,selectedPlan,selectedPeriod}){
+  useEffect(()=>{window.scrollTo({top:0,behavior:"instant"});},[]);
+
+  const PLANS={
+    basic:{name:"الأساسي",color:"#f97316",prices:{"1m":59,"3m":149,"6m":249}},
+    premium:{name:"المميز",color:"#a78bfa",prices:{"1m":99,"3m":249,"6m":399}},
+  };
+  const PERIODS={"1m":"شهر واحد","3m":"3 أشهر","6m":"6 أشهر"};
+  const MONTHLY={"1m":null,"3m":{"basic":50,"premium":83},"6m":{"basic":42,"premium":67}};
+
+  const plan = PLANS[selectedPlan||'basic'];
+  const period = selectedPeriod||'3m';
+  const price = plan.prices[period];
+  const monthly = MONTHLY[period]?.[selectedPlan||'basic'];
+
+  return(
+    <div style={{display:"grid",gap:14,maxWidth:560,margin:"0 auto",width:"100%"}}>
+
+      {/* Header */}
+      <div className="gl" style={{padding:"28px 24px",textAlign:"center"}}>
+        <span className="badge b-o" style={{marginBottom:12}}>🛒 إتمام الاشتراك</span>
+        <h1 style={{fontSize:"1.5rem",fontWeight:900,color:"#fff",marginBottom:6}}>
+          ملخص طلبك
+        </h1>
+        <p style={{color:"#64748b",fontSize:".85rem"}}>راجع تفاصيل اشتراكك قبل الدفع</p>
+      </div>
+
+      {/* Order Summary */}
+      <div className="gl" style={{padding:"24px"}}>
+        <p style={{fontSize:".7rem",color:"#f97316",fontWeight:700,letterSpacing:".08em",marginBottom:14}}>
+          تفاصيل الباقة
+        </p>
+        {[
+          ["الباقة",    <span style={{color:plan.color,fontWeight:800}}>{plan.name}</span>],
+          ["مدة الاشتراك", PERIODS[period]],
+          ["الإجمالي",  <span style={{color:"#fff",fontWeight:900,fontSize:"1.1rem"}}>{price} ريال</span>],
+        ].map(([label,val],i)=>(
+          <div key={i} style={{display:"flex",justifyContent:"space-between",alignItems:"center",
+            padding:"11px 0",borderBottom:i<2?"1px solid rgba(255,255,255,.05)":"none"}}>
+            <span style={{fontSize:".82rem",color:"#64748b"}}>{label}</span>
+            <span style={{fontSize:".85rem",color:"#e2e8f0"}}>{val}</span>
+          </div>
+        ))}
+        {monthly&&(
+          <p style={{fontSize:".68rem",color:"#4ade80",marginTop:10,textAlign:"center"}}>
+            ✓ يعادل {monthly} ريال/شهر فقط
+          </p>
+        )}
+      </div>
+
+      {/* Secure payment notice */}
+      <div className="gl-c" style={{padding:"16px 20px",display:"flex",alignItems:"center",gap:12}}>
+        <span style={{fontSize:"1.3rem"}}>🔒</span>
+        <div>
+          <p style={{fontSize:".82rem",color:"#e2e8f0",fontWeight:700}}>سيتم تحويلك إلى بوابة دفع آمنة</p>
+          <p style={{fontSize:".7rem",color:"#64748b",marginTop:3}}>
+            الدفع عبر Moyasar · يدعم مدى · Visa · Apple Pay
+          </p>
+        </div>
+      </div>
+
+      {/* CTA */}
+      <div style={{display:"grid",gap:10}}>
+        <button className="btn btn-p" disabled style={{
+          justifyContent:"center",padding:"15px",
+          borderRadius:14,fontSize:".95rem",fontWeight:800,
+          opacity:.5,cursor:"not-allowed",
+        }}>
+          🔒 إتمام الدفع — سيتوفر قريباً
+        </button>
+        <p style={{textAlign:"center",fontSize:".65rem",color:"#334155"}}>
+          لا استرداد بعد إتمام الدفع · الأسعار شاملة ضريبة القيمة المضافة
+        </p>
+        <button className="btn" style={{justifyContent:"center",color:"#64748b",fontSize:".82rem"}}
+          onClick={()=>go("pricing")}>
+          ← العودة للباقات
+        </button>
+      </div>
+
+      {/* Contact */}
+      <p style={{textAlign:"center",fontSize:".68rem",color:"#334155"}}>
+        للاستفسار: <a href="mailto:support@fahmniplus.com" style={{color:"#f97316",textDecoration:"none"}}>support@fahmniplus.com</a>
+        {" · "}<a href="tel:0581414801" style={{color:"#f97316",textDecoration:"none"}}>0581414801</a>
+      </p>
+
     </div>
   );
 }
@@ -3979,7 +4092,7 @@ function Privacy({go}){
     {title:"حقوقك",items:[
       "يحق لك طلب نسخة من بياناتك المحفوظة في أي وقت.",
       "يمكنك حذف حسابك وجميع بياناتك نهائياً — مع العلم أن بيانات الاشتراكات المنتهية قد تُحتفظ بها لأغراض قانونية.",
-      "للاستفسار أو طلب الحذف: fahmnipluss@gmail.com",
+      "للاستفسار أو طلب الحذف: support@fahmniplus.com",
       "آخر تحديث لهذه السياسة: مارس 2026"
     ]}
   ]}/>;
@@ -4003,7 +4116,7 @@ function Terms({go}){
       "🚫 لا يتم استرداد رسوم الاشتراك بعد إتمام الدفع تحت أي ظرف.",
       "ننصح باستخدام التجربة المجانية (15 سؤال) قبل الاشتراك للتأكد من ملاءمة المنصة.",
       "في حال حدوث خلل تقني من جانبنا يمنع الوصول لأكثر من 72 ساعة متواصلة، يمكن دراسة تعويض بتمديد مدة الاشتراك فقط.",
-      "للتواصل بشأن أي مشكلة في الدفع: fahmnipluss@gmail.com"
+      "للتواصل بشأن أي مشكلة في الدفع: support@fahmniplus.com أو 📞 0581414801"
     ]},
     {title:"انتهاء الاشتراك",items:[
       "عند انتهاء مدة الاشتراك يُقفل الوصول تلقائياً لجميع المحتويات.",
@@ -4037,12 +4150,12 @@ function Refund({go}){
     {title:"الاستثناء الوحيد",items:[
       "في حال حدوث خلل تقني موثَّق من جانب المنصة يمنع الوصول الكامل لأكثر من 72 ساعة متواصلة،",
       "يمكن دراسة تعويض على شكل تمديد مدة الاشتراك بما يعادل فترة الانقطاع فقط — وليس استرداداً مالياً.",
-      "يُشترط الإبلاغ عن المشكلة خلال مدة الاشتراك على: fahmnipluss@gmail.com"
+      "يُشترط الإبلاغ عن المشكلة خلال مدة الاشتراك على: support@fahmniplus.com"
     ]},
     {title:"توصيتنا قبل الاشتراك",items:[
       "استخدم التجربة المجانية (15 سؤال) لتتعرف على أسلوب المنصة وطريقة التدريب.",
       "اقرأ وصف كل باقة بعناية وتأكد من اختيار المدة المناسبة لك.",
-      "للاستفسار قبل الاشتراك: fahmnipluss@gmail.com — نرد خلال 24 ساعة."
+      "للاستفسار قبل الاشتراك: support@fahmniplus.com — نرد خلال 24 ساعة."
     ]}
   ]}/>;
 }
@@ -4074,6 +4187,20 @@ function Contact({go}){
         <span className="badge b-v" style={{marginBottom:12}}>💬 تواصل معنا</span>
         <h1 style={{fontSize:"1.8rem",fontWeight:900,color:"#fff",marginBottom:8}}>نحب نسمع منك</h1>
         <p style={{fontSize:".85rem",color:"#64748b",lineHeight:1.8}}>سواء عندك سؤال، اقتراح، أو مشكلة — فريقنا يرد خلال 24 ساعة.</p>
+        <div style={{display:"flex",gap:12,flexWrap:"wrap",marginTop:16}}>
+          <a href="tel:0581414801" style={{display:"inline-flex",alignItems:"center",gap:8,
+            padding:"10px 18px",borderRadius:12,background:"rgba(249,115,22,.08)",
+            border:"1px solid rgba(249,115,22,.25)",textDecoration:"none",
+            color:"#f97316",fontSize:".85rem",fontWeight:700,fontFamily:"Cairo,sans-serif"}}>
+            📞 رقم الجوال: 0581414801
+          </a>
+          <a href="mailto:support@fahmniplus.com" style={{display:"inline-flex",alignItems:"center",gap:8,
+            padding:"10px 18px",borderRadius:12,background:"rgba(34,211,238,.08)",
+            border:"1px solid rgba(34,211,238,.25)",textDecoration:"none",
+            color:"#22d3ee",fontSize:".85rem",fontWeight:700,fontFamily:"Cairo,sans-serif"}}>
+            📧 support@fahmniplus.com
+          </a>
+        </div>
       </div>
 
       {sent?(
@@ -4144,6 +4271,8 @@ export default function Fahmni(){
   }); // {token, userId, name, email}
   const[user,setUser]=useState({name:"",streak:0,totalSolved:0,correct:0});
   const[settings,setSettings]=useState({section:"كمي",difficulty:"متوسط",topic:"النسبة والتناسب"});
+  const[checkoutPlan,setCheckoutPlan]=useState("basic");
+  const[checkoutPeriod,setCheckoutPeriod]=useState("3m");
   const ADMIN_EMAIL='sirfaisalalshehri@gmail.com';
   const[sessionLoading,setSessionLoading]=useState(true);
   const[trial,setTrial]=useState({isSubscribed:false,used:0,limit:15,plan:'free',status:'inactive',freeTrialUsed:false,expiresAt:null});
@@ -4438,8 +4567,9 @@ export default function Fahmni(){
     case"review":
       if(!trial.isSubscribed) return <UpgradePrompt feature="وضع المراجعة" go={go}/>;
       return <ReviewMode mistakes={mistakes} go={go} onRedo={()=>go("session")}/>;
-    case"pricing":return <Pricing go={go}/>;
-    case"paywall":return <Paywall trial={trial} go={go} subscribe={()=>{/* Moyasar coming soon */}} back={()=>go("pricing")}/>;
+    case"pricing":return <Pricing go={go} setCheckoutPlan={setCheckoutPlan} setCheckoutPeriod={setCheckoutPeriod}/>;
+    case"checkout":return <Checkout go={go} trial={trial} selectedPlan={checkoutPlan} selectedPeriod={checkoutPeriod}/>;
+    case"paywall":return <Paywall trial={trial} go={go} subscribe={(plan,period)=>{setCheckoutPlan(plan||"basic");setCheckoutPeriod(period||"3m");go("checkout");}} back={()=>go("pricing")}/>;
     case"privacy":return <Privacy go={go}/>;
     case"terms":return <Terms go={go}/>;
     case"contact":return <Contact go={go}/>;
