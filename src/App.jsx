@@ -4166,18 +4166,28 @@ function Contact({go}){
   const[msg,setMsg]=useState("");
   const[sent,setSent]=useState(false);
   const[loading,setLoading]=useState(false);
+  const[err,setErr]=useState("");
 
-  const send=async()=>{
+  const send=async(e)=>{
+    e.preventDefault();
     if(!name||!email||!msg) return;
     setLoading(true);
+    setErr("");
     try{
-      await fetch(`${SUPABASE_URL}/rest/v1/contact_leads`,{
+      const res=await fetch("https://formspree.io/f/xgonrbkb",{
         method:"POST",
-        headers:{"Content-Type":"application/json","apikey":SUPABASE_ANON,"Authorization":`Bearer ${SUPABASE_ANON}`},
-        body:JSON.stringify({name,email,message:msg,source:"contact_page"})
+        headers:{"Accept":"application/json","Content-Type":"application/json"},
+        body:JSON.stringify({name,email,message:msg,_subject:`رسالة من ${name} — فهمني+`})
       });
-      setSent(true);
-    }catch(e){setSent(true);}
+      if(res.ok){
+        setSent(true);
+        setName("");setEmail("");setMsg("");
+      } else {
+        setErr("حدث خطأ أثناء الإرسال. حاول مرة أخرى أو تواصل معنا مباشرة.");
+      }
+    }catch(e){
+      setErr("تعذّر الاتصال. تحقق من اتصالك بالإنترنت وحاول مرة أخرى.");
+    }
     finally{setLoading(false);}
   };
 
@@ -4211,27 +4221,31 @@ function Contact({go}){
           <button className="btn btn-p" style={{justifyContent:"center"}} onClick={()=>go("landing")}>العودة للرئيسية ←</button>
         </div>
       ):(
+        <form onSubmit={send} style={{display:"contents"}}>
         <div className="gl" style={{padding:"28px",display:"flex",flexDirection:"column",gap:13}}>
+          {/* Honeypot — spam protection */}
+          <input type="text" name="_gotcha" style={{display:"none"}} tabIndex={-1} autoComplete="off"/>
           <div className="rg-2" style={{display:"grid",gap:12}}>
             <div>
               <p style={{fontSize:".72rem",color:"#f97316",fontWeight:700,marginBottom:7}}>الاسم</p>
-              <input className="inp" placeholder="اسمك الكامل" value={name} onChange={e=>setName(e.target.value)}/>
+              <input className="inp" name="name" placeholder="اسمك الكامل" value={name} onChange={e=>setName(e.target.value)} required/>
             </div>
             <div>
               <p style={{fontSize:".72rem",color:"#f97316",fontWeight:700,marginBottom:7}}>البريد الإلكتروني</p>
-              <input className="inp" placeholder="email@example.com" type="email" value={email} onChange={e=>setEmail(e.target.value)}/>
+              <input className="inp" name="email" placeholder="email@example.com" type="email" value={email} onChange={e=>setEmail(e.target.value)} required/>
             </div>
           </div>
           <div>
             <p style={{fontSize:".72rem",color:"#f97316",fontWeight:700,marginBottom:7}}>رسالتك</p>
-            <textarea className="inp" placeholder="اكتب رسالتك هنا..." value={msg} onChange={e=>setMsg(e.target.value)}
-              style={{minHeight:130,resize:"vertical",lineHeight:1.8}}/>
+            <textarea className="inp" name="message" placeholder="اكتب رسالتك هنا..." value={msg} onChange={e=>setMsg(e.target.value)}
+              style={{minHeight:130,resize:"vertical",lineHeight:1.8}} required/>
           </div>
-
-          <button className="btn btn-p" style={{justifyContent:"center",padding:"13px"}} disabled={loading||!name||!email||!msg} onClick={send}>
-            {loading?<><div className="spin"/> يرسل...</>:"إرسال الرسالة ←"}
+          {err&&<p style={{fontSize:".78rem",color:"#f87171",padding:"10px 14px",background:"rgba(239,68,68,.08)",borderRadius:10,border:"1px solid rgba(239,68,68,.2)"}}>{err}</p>}
+          <button type="submit" className="btn btn-p" style={{justifyContent:"center",padding:"13px"}} disabled={loading||!name||!email||!msg}>
+            {loading?<><div className="spin"/> جاري الإرسال...</>:"إرسال الرسالة ←"}
           </button>
         </div>
+        </form>
       )}
       <button className="btn btn-g" style={{justifyContent:"center"}} onClick={()=>go("landing")}>← العودة للرئيسية</button>
     </div>
