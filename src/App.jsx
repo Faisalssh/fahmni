@@ -1999,7 +1999,19 @@ function Pricing({go}){
 
 /* ═══════════════════ AI SESSION ═══════════════════ */
 function Session({settings,go,updateUser,trial,setTrial,addMistake,plan="free",session=null,user={name:"",streak:0,totalSolved:0,correct:0}}){
-  useEffect(()=>{window.scrollTo({top:0,behavior:"instant"});},[]);
+  useEffect(()=>{
+    window.scrollTo({top:0,behavior:"instant"});
+    // Server-side re-validate on session start if user has token
+    if(session?.token&&session?.userId&&!session.isGuest&&!IS_ARTIFACT){
+      fetch(`${SUPABASE_URL}/rest/v1/rpc/get_my_access`,{
+        method:'POST',headers:{...sbH(session.token),'Content-Type':'application/json'},body:'{}'
+      }).then(r=>r.ok?r.json():null).then(access=>{
+        if(access&&!access.isSubscribed&&!access.isAdmin){
+          if(trial.used>=(access.trialLimit||15)){go('paywall');}
+        }
+      }).catch(()=>{});
+    }
+  },[]);
   const[qData,setQData]=useState(null);
   const[loading,setLoading]=useState(false);
   const[err,setErr]=useState("");
@@ -4231,7 +4243,11 @@ export default function Fahmni(){
 
   const handleLogin=async(sess)=>{
     setSession(sess);
-    if(!sess.isGuest) try{localStorage.setItem('fm_session',JSON.stringify(sess));}catch(e){}
+    if(!sess.isGuest) try{
+      // Store minimal session data — token verified server-side on restore
+      const minimal={userId:sess.userId,name:sess.name,email:sess.email,token:sess.token};
+      localStorage.setItem('fm_session',JSON.stringify(minimal));
+    }catch(e){}
     setUser(u=>({...u,name:sess.name}));
     if(!sess.isGuest) await sbCreateProfile(sess.userId,sess.token,sess.name);
     const prog=await sbLoadProgress(sess.userId,sess.token);
@@ -4240,20 +4256,37 @@ export default function Fahmni(){
       setUser({name:sess.name,totalSolved:prog.totalSolved,correct:prog.correct,streak:prog.streak});
       setMistakes(prog.mistakes||[]);
       if(!sess.isGuest){
-        if(sess.email===ADMIN_EMAIL){
-          setTrial({isSubscribed:true,used:0,limit:99999,plan:'exam',status:'active',freeTrialUsed:false,expiresAt:new Date(Date.now()+365*24*60*60*1000)});
-        } else if(prog) {
-          const now=new Date();
-          const expiresAt=prog.subscribed_until?new Date(prog.subscribed_until):null;
-          const plan=prog.plan||'free';
-          const freeTrialUsed=!!(prog?.free_trial_used||false);
-          let status='inactive';
-          if(['month','exam'].includes(plan)&&expiresAt&&expiresAt>now) status='active';
-          else if(['month','exam'].includes(plan)&&expiresAt&&expiresAt<=now) status='expired';
-          else if(plan==='free'&&!freeTrialUsed&&(prog.trialUsed||0)<(prog.trialLimit||15)) status='free_trial';
-          setTrial({isSubscribed:status==='active',used:prog.trialUsed||0,limit:prog.trialLimit||15,plan,status,freeTrialUsed,expiresAt});
-        } else {
-          setTrial({isSubscribed:false,used:0,limit:15,plan:'free',status:'inactive',freeTrialUsed:false,expiresAt:null});
+        // Validate server-side
+        try{
+          const rpcR=await fetch(`${SUPABASE_URL}/rest/v1/rpc/get_my_access`,{
+            method:'POST',headers:{...sbH(sess.token),'Content-Type':'application/json'},body:'{}'
+          });
+          if(rpcR.ok){
+            const access=await rpcR.json();
+            setTrial({
+              isSubscribed:access.isSubscribed||access.isAdmin,
+              used:access.trialUsed||0,limit:access.trialLimit||15,
+              plan:access.isAdmin?'exam':access.plan||'free',
+              status:access.isAdmin?'active':access.status||'inactive',
+              freeTrialUsed:access.status==='expired'&&access.plan==='free',
+              expiresAt:access.expiresAt?new Date(access.expiresAt):null,
+            });
+          }
+        }catch(e){
+          // Fallback to client-side
+          if(sess.email===ADMIN_EMAIL){
+            setTrial({isSubscribed:true,used:0,limit:99999,plan:'exam',status:'active',freeTrialUsed:false,expiresAt:new Date(Date.now()+365*24*60*60*1000)});
+          } else if(prog){
+            const now=new Date();
+            const expiresAt=prog.subscribed_until?new Date(prog.subscribed_until):null;
+            const plan=prog.plan||'free';
+            const freeTrialUsed=!!(prog?.free_trial_used||false);
+            let status='inactive';
+            if(['month','exam'].includes(plan)&&expiresAt&&expiresAt>now) status='active';
+            else if(['month','exam'].includes(plan)&&expiresAt&&expiresAt<=now) status='expired';
+            else if(plan==='free'&&!freeTrialUsed&&(prog.trialUsed||0)<(prog.trialLimit||15)) status='free_trial';
+            setTrial({isSubscribed:status==='active',used:prog.trialUsed||0,limit:prog.trialLimit||15,plan,status,freeTrialUsed,expiresAt});
+          }
         }
       }
     } // end if(prog)
