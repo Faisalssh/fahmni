@@ -967,6 +967,10 @@ JSON فقط — لا نص خارجه:
   return parsed;
 }
 
+function tryTemplate(topic, difficulty) {
+  return null;
+}
+
 async function genDiagnostic({section,topic}){
   /* Try template first — zero cost */
   const tmpl=tryTemplate(topic,"متوسط");
@@ -2935,6 +2939,7 @@ const sbSaveQuestion=async(token,q,{topic,section,difficulty})=>{
          tip           : q.tip||"",
          shape         : q.shape||null,
          question_hash : hash,
+         active        : true,
          ai_generated  : true
        })}
     );
@@ -3908,6 +3913,8 @@ function Checkout({go,trial,selectedPlan,selectedPeriod}){
 
 function Paywall({trial,subscribe,back,go}){
   useEffect(()=>{window.scrollTo({top:0,behavior:"instant"});},[]); 
+  const [pwBasic, setPwBasic] = useState("3m");
+  const [pwExam,  setPwExam]  = useState("3m");
   const solved = trial?.used||0;
   const acc = trial?.correct ? Math.round((trial.correct/solved)*100) : 0;
   return(
