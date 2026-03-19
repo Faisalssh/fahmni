@@ -744,7 +744,7 @@ function getRec({goal,confidence,minutes,section,score,answers}){
 }
 
 /* ═══════════════════ AI HELPERS ═══════════════════ */
-const SUPABASE_URL=(typeof import.meta!=="undefined"&&import.meta.env?.VITE_SUPABASE_URL)||"https://esdralrxesslaxvpyypa.supabase.co";
+const SUPABASE_URL=import.meta.env.VITE_SUPABASE_URL;
 const IS_ARTIFACT=typeof window!=="undefined"&&(window.location.hostname.includes("claude.ai")||window.location.hostname==="localhost");
 
 /* ═══ PLAN HELPERS ═══════════════════════════════════════════
@@ -4341,15 +4341,14 @@ export default function Fahmni(){
         const u=await r.json();
         if(!u.id){localStorage.removeItem('fm_session');return;}
         // Token valid — restore session
-        setSession(sess);
+        setSession({...sess,isAdmin:false}); // isAdmin updated after RPC
         setUser(u2=>({...u2,name:sess.name}));
         const prog=await sbLoadProgress(sess.userId,sess.token);
         if(prog){
           setUser({name:sess.name,totalSolved:prog.totalSolved,correct:prog.correct,streak:prog.streak});
           setMistakes(prog.mistakes||[]);
           if(prog.placementDone){placementDoneRef.current=true;setPlacementDone(true);}
-          // Admin and subscription come ONLY from RPC — no client-side override
-          // (RPC block above already handled this — this fallback is DB-only)
+          // Subscription fallback — DB only, no client-side override
           const now=new Date();
           const expiresAt=prog.subscribed_until?new Date(prog.subscribed_until):null;
           const plan=prog.plan||'free';
