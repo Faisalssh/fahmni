@@ -947,7 +947,7 @@ JSON فقط — لا نص خارجه:
     parsed = JSON.parse(raw2.slice(s,e+1));
   }catch(err){ throw new Error("ردّ غير صالح من AI — أعد المحاولة"); }
   if(typeof parsed.correct!=="number"||parsed.correct<0||parsed.correct>3) parsed.correct=0;
-  if(!Array.isArray(parsed.options)||parsed.options.length!==4) throw new Error("invalid options");
+  if(!Array.isArray(parsed.options)||parsed.options.length<3) throw new Error("invalid options");
   if(!parsed.question||parsed.question.length<5) throw new Error("empty question");
   parsed.steps=Array.isArray(parsed.steps)?parsed.steps:[];
   parsed.tip=parsed.tip||"";
@@ -985,7 +985,7 @@ JSON فقط: {"question":"...","options":["...","...","...","..."],"correct":0,"
     const s=clean.indexOf("{"),e=clean.lastIndexOf("}");
     if(s===-1||e===-1) throw new Error("no JSON");
     const p=JSON.parse(clean.slice(s,e+1));
-    if(!p.question||!Array.isArray(p.options)||p.options.length!==4) throw new Error("invalid shape");
+    if(!p.question||!Array.isArray(p.options)||p.options.length<3) throw new Error("invalid shape");
     if(typeof p.correct!=="number"||p.correct<0||p.correct>3) p.correct=0;
     p.levelIfCorrect=p.levelIfCorrect||"متقدم";
     p.levelIfWrong=p.levelIfWrong||"تأسيس";
@@ -1118,7 +1118,7 @@ function Nav({isPub,go,userName,title,onLogout}){
   );
 }
 
-function PlacementQuiz({profile,onFinish}){
+function PlacementQuiz({profile,onFinish,go}){
   const[idx,setIdx]=useState(0);
   const[sel,setSel]=useState(null);
   const[revealed,setRevealed]=useState(false);
@@ -1172,8 +1172,8 @@ function DiagnosticQ({topic,section,onResult,onSkip}){
         <div><div className="diag-badge">🧪 سؤال التشخيص</div><p style={{marginTop:8,fontSize:".8rem",color:"#64748b"}}>سؤال واحد يحدد من أين تبدأ في <strong style={{color:"#c4b5fd"}}>{topic}</strong></p></div>
         <button className="btn btn-g" style={{fontSize:".78rem"}} onClick={onSkip}>تخطى</button>
       </div>
-      <h2 style={{fontSize:"1.1rem",fontWeight:800,color:"#fff",lineHeight:1.8,marginBottom:22}}>{q.question}</h2>
-      <div style={{display:"flex",flexDirection:"column",gap:9}}>{q.options.map((opt,i)=>{const chosen=sel===i,showOk=revealed&&i===q.correct,showBad=revealed&&chosen&&i!==q.correct;return(<button key={i} className={`ans ${showOk?"ok":showBad?"bad":chosen?"sel":""} ${revealed?"lk":""}`} onClick={()=>{if(!revealed)setSel(i);}}><span>{opt}</span><div className="opt-l">{String.fromCharCode(0x0627+i)}</div></button>);})}</div>
+      <h2 style={{fontSize:"1.1rem",fontWeight:800,color:"#fff",lineHeight:1.8,marginBottom:22}}>{q.question||q.question_text||""}</h2>
+      <div style={{display:"flex",flexDirection:"column",gap:9}}>{(q.options||[]).filter(Boolean).map((opt,i)=>{const chosen=sel===i,showOk=revealed&&i===q.correct,showBad=revealed&&chosen&&i!==q.correct;return(<button key={i} className={`ans ${showOk?"ok":showBad?"bad":chosen?"sel":""} ${revealed?"lk":""}`} onClick={()=>{if(!revealed)setSel(i);}}><span>{opt}</span><div className="opt-l">{String.fromCharCode(0x0627+i)}</div></button>);})}</div>
       {revealed&&(<div className="au" style={{marginTop:14,padding:"14px 18px",borderRadius:14,background:ok?"rgba(74,222,128,.07)":"rgba(248,113,113,.06)",border:`1px solid ${ok?"rgba(74,222,128,.2)":"rgba(248,113,113,.2)"}`}}>
         <p style={{fontSize:".8rem",lineHeight:1.8,color:"#94a3b8",marginBottom:12}}>{q.explanation}</p>
         <div style={{display:"flex",gap:10,flexWrap:"wrap",alignItems:"center"}}>
@@ -1562,10 +1562,10 @@ function SimMode({settings,go,updateUser,addMistake,trial={}}){  useEffect(()=>{
                 سؤال {idx+1} من {totalQ}
               </p>
               <h2 style={{fontSize:"1.12rem",fontWeight:800,color:"#fff",lineHeight:1.9,marginBottom:22}}>
-                {curQ?.question}
+                {curQ?.question||curQ?.question_text||""}
               </h2>
               <div style={{display:"flex",flexDirection:"column",gap:9}}>
-                {curQ?.options?.map((opt,i)=>(
+                {(curQ?.options||[]).filter(Boolean).map((opt,i)=>(
                   <button key={i} className={`ans ${sel===i?"sel":""}`}
                     onClick={()=>setSel(i)}
                     style={{transition:"all .15s"}}>
@@ -2224,11 +2224,11 @@ function Session({settings,go,updateUser,trial,setTrial,addMistake,plan="free",s
           <p style={{color:"#fca5a5",fontWeight:700,fontSize:".84rem"}}>⏱ انتهى الوقت! الإجابة الصحيحة أسفله</p>
         </div>}
         {qData.shape&&<ShapeRender shape={qData.shape}/>}
-        <h2 style={{fontSize:"clamp(.95rem,3vw,1.12rem)",fontWeight:800,color:"#fff",lineHeight:1.85,marginBottom:18}}>{qData.question}</h2>
+        <h2 style={{fontSize:"clamp(.95rem,3vw,1.12rem)",fontWeight:800,color:"#fff",lineHeight:1.85,marginBottom:18}}>{qData.question||qData.question_text||""}</h2>
 
         {/* Options — click = answer immediately */}
         <div style={{display:"flex",flexDirection:"column",gap:9}}>
-          {(qData.options||[]).map((opt,i)=>{
+          {(qData.options||[]).filter(Boolean).map((opt,i)=>{
             const showOk=checked&&i===qData.correct;
             const showBad=checked&&sel===i&&i!==qData.correct;
             return(
@@ -4574,7 +4574,7 @@ export default function Fahmni(){
     case"onboarding":return <Onboarding finish={d=>{setProfile(d);go("placement");}}/>;
     case"placement":
       if(placementDone){go("dashboard");return null;}
-      return <PlacementQuiz profile={profile} onFinish={ans=>{setPAnswers(ans);const r=getRec({...profile,score:ans.filter(a=>a.ok).length,answers:ans});setRec(r);setSettings(p=>({...p,section:profile.section,topic:r.topic}));go("placementResult");}}/>;
+      return <PlacementQuiz profile={profile} go={go} onFinish={ans=>{setPAnswers(ans);const r=getRec({...profile,score:ans.filter(a=>a.ok).length,answers:ans});setRec(r);setSettings(p=>({...p,section:profile.section,topic:r.topic}));go("placementResult");}}/>;
     case"placementResult":return <PlacementResult rec={rec} score={pAnswers.filter(a=>a.ok).length} onFinish={()=>{
       placementDoneRef.current=true;setPlacementDone(true);
       if(session&&!session.isGuest) sbSavePlacement(session.userId,session.token,rec?.level||"متوسط");
