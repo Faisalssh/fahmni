@@ -763,6 +763,11 @@ const VIDEO_LESSONS={
     {id:"Chr_TKNZOCI",title:"معادلات الجذر والأسس الكسرية",order:4},
     {id:"Y-XVUHgpAtU",title:"قوانين الأسس ومعادلاتها",order:5},
     {id:"RQBI98AkmFk",title:"الأسس المتقدمة — أس مرفوع لأس وأسس سالبة",order:6},
+    {id:"bIVdvrMX2bA",title:"المربع الكامل والفرق بين مربعين — تأسيس",order:7},
+    {id:"XpZNJHTr--I",title:"الفرق بين مربعين — مسائل متقدمة",order:8},
+  ],
+  "تحليل البيانات والإحصاء":[
+    {id:"UPTSFzQS8jU",title:"الوسيط والمنوال والمدى + الاحتمال والتوافيق والتباديل",order:1},
   ],
 };
 const getTopicVideos=(topic)=>VIDEO_LESSONS[topic]||[];
