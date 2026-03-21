@@ -3482,7 +3482,7 @@ function TopicLesson({topic,onClose,onStartPractice,go,watchedVideos=[],onWatchV
                         display:"flex",alignItems:"center",gap:6,
                         padding:"6px 11px",borderRadius:8,cursor:"pointer",
                         background:active?"rgba(249,115,22,.18)":"rgba(255,255,255,.03)",
-                        border:,
+                        border:`1px solid ${active?"rgba(249,115,22,.45)":"rgba(255,255,255,.08)"}`,
                         color:active?"#fdba74":"#94a3b8",
                         fontSize:".72rem",fontWeight:active?700:400,fontFamily:"Cairo,sans-serif",
                         transition:"all .15s"
