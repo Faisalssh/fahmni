@@ -127,6 +127,7 @@ const GS = () => (<style>{`
       grid-template-columns:1fr !important;
     }
     .rg-4{grid-template-columns:1fr 1fr !important;}
+    .dash-quick-grid{grid-template-columns:1fr !important;}
     .pricing-grid,.bank-grid,.sim-running,.lesson-cols,.sim-tracks,.teacher-grid{
       grid-template-columns:1fr !important;
     }
@@ -3324,41 +3325,190 @@ function Dashboard({go,user,trial,mistakes}){
   useEffect(()=>{window.scrollTo({top:0,behavior:"instant"});},[]); 
   const acc=user.totalSolved?Math.round((user.correct/user.totalSolved)*100):0;
   const wrongCount=mistakes.length;
-  return(<div style={{display:"grid",gap:14}}>
-    <div className="gl gl-pad-lg" style={{padding:"34px 30px"}}>
-      <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",flexWrap:"wrap",gap:16}}>
-        <div><h1 style={{fontSize:"1.8rem",fontWeight:900,color:"#fff",marginTop:12}}>أهلًا {user.name}، <span style={{color:"#f97316"}}>{acc>=80?"ممتاز 🏆":acc>=60?"جيد جدًا ⭐":acc>0?"فيه تقدم 📈":"ابدأ الآن 💪"}</span></h1></div>
-        <Ring pct={acc} size={96} color={acc>=70?"#4ade80":acc>=50?"#f97316":"#f87171"}/>
-      </div>
-      <div className="rg-4" style={{gap:11,marginTop:20}}>{[["الدقة",`${acc}%`,"#f97316"],["الأسئلة",user.totalSolved,"#22d3ee"],["الصحيح",user.correct,"#4ade80"],["أطول سلسلة",`${user.streak}🔥`,"#f97316"]].map(([l,v,c],i)=>(<div key={i} className={`gl2 stat au d${i+1}`}><p style={{fontSize:".68rem",color:"#64748b"}}>{l}</p><p key={String(v)} style={{marginTop:5,fontSize:"1.35rem",fontWeight:900,color:c,animation:"numPop .4s cubic-bezier(.34,1.56,.64,1) both"}}>{v}</p></div>))}</div>
-    </div>
-    <div className="gl" style={{padding:"24px"}}>
-      <p style={{fontSize:".68rem",color:"#f97316",fontWeight:700,letterSpacing:".1em",marginBottom:13}}>ابدأ بسرعة</p>
-      <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:11}}>
-        {[
-          {ic:"🤖",t:"جلسة AI",d:"سؤال + شرح فوري",p:"session",c:"#f97316",paid:false},
-          {ic:"📋",t:"المراجعة",d:wrongCount+" سؤال",p:"review",c:"#f87171",paid:true},
-          {ic:"⚡",t:"المحاكاة",d:"اختبار كامل",p:"sim",c:"#a78bfa",paid:true},
-          {ic:"🗺️",t:"خريطة المسار",d:"18 باب منظم",p:"roadmap",c:"#22d3ee",paid:true}
-        ].map(function(m,i){
-          var isLocked=m.paid&&!trial.isSubscribed&&!trial.isAdmin;
-          return(
-            <div key={i} className={"gl2 au d"+(i+1)} style={{padding:"18px 15px",position:"relative",opacity:isLocked?0.75:1}}>
-              {isLocked&&<span style={{position:"absolute",top:8,left:8,fontSize:".6rem",padding:"2px 7px",borderRadius:99,background:"rgba(249,115,22,.15)",border:"1px solid rgba(249,115,22,.25)",color:"#f97316"}}>🔒</span>}
-              <div style={{fontSize:"1.5rem",marginBottom:8}}>{m.ic}</div>
-              <h3 style={{fontWeight:800,color:"#fff",fontSize:".88rem",marginBottom:5}}>{m.t}</h3>
-              <p style={{fontSize:".74rem",lineHeight:1.7,color:"#64748b",marginBottom:11}}>{m.d}</p>
-              <button className="btn btn-g" style={{width:"100%",justifyContent:"center",fontSize:".77rem",padding:"8px 10px"}} onClick={function(){go(m.p);}}>افتح</button>
+  const isNew=user.totalSolved===0;
+  const statusLabel=acc>=80?"ممتاز 🏆":acc>=60?"جيد جدًا ⭐":acc>0?"في تقدم 📈":"ابدأ رحلتك 💪";
+  const accColor=acc>=70?"#4ade80":acc>=50?"#f97316":"#f87171";
+  const isSubscribed=trial.isSubscribed||trial.isAdmin;
+  const trialPct=Math.min(100,Math.round((trial.used/trial.limit)*100));
+  const trialLeft=trial.limit-trial.used;
+
+  return(
+    <div style={{display:"flex",flexDirection:"column",gap:16}}>
+
+      {/* ── Hero Banner ── */}
+      <div className="gl" style={{
+        padding:"32px 28px",
+        background:"linear-gradient(145deg,rgba(10,18,40,.95) 0%,rgba(15,25,55,.9) 100%)",
+        borderColor:"rgba(249,115,22,.15)",
+        position:"relative",overflow:"hidden"
+      }}>
+        {/* Background glow */}
+        <div style={{position:"absolute",top:-60,left:-60,width:220,height:220,borderRadius:"50%",
+          background:"rgba(249,115,22,.06)",filter:"blur(60px)",pointerEvents:"none"}}/>
+        <div style={{position:"absolute",bottom:-40,right:-40,width:160,height:160,borderRadius:"50%",
+          background:"rgba(34,211,238,.05)",filter:"blur(50px)",pointerEvents:"none"}}/>
+
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",flexWrap:"wrap",gap:16,position:"relative"}}>
+          {/* Left: Greeting */}
+          <div style={{flex:1,minWidth:200}}>
+            <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:8}}>
+              <span className="badge b-o" style={{fontSize:".67rem"}}>{statusLabel}</span>
+              {user.streak>0&&(
+                <span className="badge b-y" style={{fontSize:".67rem"}}>🔥 {user.streak} يوم متواصل</span>
+              )}
             </div>
-          );
-        })}
+            <h1 className="au d1" style={{fontSize:"1.75rem",fontWeight:900,color:"#fff",lineHeight:1.3,marginBottom:6}}>
+              أهلًا، <span style={{color:"#f97316"}}>{user.name||"طالب"}</span>
+            </h1>
+            <p className="au d2" style={{fontSize:".85rem",color:"#64748b",lineHeight:1.7}}>
+              {isNew
+                ?"ابدأ جلستك الأولى واكسر الحاجز 🚀"
+                :`حللت ${user.totalSolved} سؤالاً — دقتك ${acc}% · استمر!`}
+            </p>
+
+            {/* Progress bar */}
+            {!isNew&&(
+              <div className="au d3" style={{marginTop:18}}>
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
+                  <span style={{fontSize:".72rem",color:"#94a3b8",fontWeight:600}}>دقة الإجابات</span>
+                  <span style={{fontSize:".78rem",color:accColor,fontWeight:800}}>{acc}%</span>
+                </div>
+                <div className="pt8">
+                  <div className="pf" style={{width:`${acc}%`,
+                    background:`linear-gradient(90deg,${accColor},${acc>=70?"#22d3ee":"#fb923c"})`}}/>
+                </div>
+              </div>
+            )}
+
+            {/* CTA buttons */}
+            <div className="au d4" style={{display:"flex",gap:10,marginTop:20,flexWrap:"wrap"}}>
+              <button className="btn btn-p" style={{padding:"12px 24px",fontSize:".88rem"}}
+                onClick={()=>go("session")}>
+                {isNew?"ابدأ جلستك الأولى ←":"كمّل التدريب ←"}
+              </button>
+              <button className="btn btn-g" style={{padding:"12px 18px",fontSize:".84rem"}}
+                onClick={()=>go("roadmap")}>
+                🗺️ خريطة المسار
+              </button>
+            </div>
+          </div>
+
+          {/* Right: Ring */}
+          {!isNew&&(
+            <div className="au d2" style={{display:"flex",flexDirection:"column",alignItems:"center",gap:10}}>
+              <Ring pct={acc} size={100} color={accColor}/>
+              <span style={{fontSize:".7rem",color:"#475569",fontWeight:600,textAlign:"center"}}>دقة الإجابات</span>
+            </div>
+          )}
+        </div>
       </div>
-    </div>
-    {wrongCount>0&&(<div style={{padding:"18px 22px",borderRadius:18,background:"rgba(248,113,113,.08)",border:"1px solid rgba(248,113,113,.2)",display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:12}}><div><p style={{fontWeight:800,color:"#fca5a5"}}>📋 {wrongCount} سؤال في قائمة المراجعة</p><p style={{marginTop:4,fontSize:".79rem",color:"#64748b"}}>راجع أخطاءك الآن وثبّت الفهم.</p></div><button className="btn btn-p" style={{fontSize:".82rem"}} onClick={()=>go("review")}>ابدأ المراجعة ←</button></div>)}
-    {!trial.isSubscribed&&!trial.isAdmin&&(<div style={{padding:"18px 22px",borderRadius:18,background:"linear-gradient(135deg,rgba(249,115,22,.1),rgba(34,211,238,.06))",border:"1px solid rgba(249,115,22,.18)",display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:12}}><div><p style={{fontWeight:700,color:"#fdba74"}}>التجربة المجانية — {trial.limit-trial.used} سؤال متبقي</p></div><div className="pt" style={{width:110}}><div className="pf" style={{width:`${(trial.used/trial.limit)*100}%`}}/></div></div>)}
+
+      {/* ── Stats Row ── */}
+      {!isNew&&(
+        <div className="rg-4" style={{gap:10}}>
+          {[
+            {l:"الأسئلة",v:user.totalSolved,c:"#22d3ee",ic:"📝"},
+            {l:"الصحيح",v:user.correct,c:"#4ade80",ic:"✅"},
+            {l:"الدقة",v:`${acc}%`,c:accColor,ic:"🎯"},
+            {l:"أطول سلسلة",v:`${user.streak}🔥`,c:"#f97316",ic:"⚡"},
+          ].map(({l,v,c,ic},i)=>(
+            <div key={i} className={`gl2 stat au d${i+1}`}
+              style={{padding:"16px 14px",textAlign:"center",display:"flex",flexDirection:"column",alignItems:"center",gap:6}}>
+              <span style={{fontSize:"1.1rem"}}>{ic}</span>
+              <p key={String(v)} style={{fontSize:"1.4rem",fontWeight:900,color:c,
+                animation:"numPop .4s cubic-bezier(.34,1.56,.64,1) both"}}>{v}</p>
+              <p style={{fontSize:".67rem",color:"#475569",fontWeight:600}}>{l}</p>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* ── Review Alert ── */}
+      {wrongCount>0&&(
+        <div className="au d2" style={{
+          padding:"18px 22px",borderRadius:18,
+          background:"rgba(248,113,113,.07)",
+          border:"1px solid rgba(248,113,113,.22)",
+          display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:12
+        }}>
+          <div>
+            <p style={{fontWeight:800,color:"#fca5a5",fontSize:".9rem"}}>📋 {wrongCount} سؤال تحتاج مراجعة</p>
+            <p style={{marginTop:4,fontSize:".77rem",color:"#64748b"}}>راجع أخطاءك وثبّت الفهم قبل التقدم.</p>
+          </div>
+          <button className="btn" style={{
+            background:"rgba(248,113,113,.15)",border:"1.5px solid rgba(248,113,113,.35) !important",
+            color:"#fca5a5",fontSize:".82rem",padding:"10px 20px",borderRadius:12
+          }} onClick={()=>go("review")}>ابدأ المراجعة ←</button>
+        </div>
+      )}
+
+      {/* ── Quick Access ── */}
+      <div className="gl" style={{padding:"22px"}}>
+        <p style={{fontSize:".68rem",color:"#f97316",fontWeight:700,letterSpacing:".1em",marginBottom:14}}>
+          ابدأ بسرعة
+        </p>
+        <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:11}}>
+          {[
+            {ic:"🤖",t:"جلسة AI",d:"سؤال + شرح فوري من الذكاء الاصطناعي",p:"session",grad:"rgba(249,115,22,.12)",border:"rgba(249,115,22,.25)",paid:false},
+            {ic:"📋",t:"مراجعة الأخطاء",d:`${wrongCount} سؤال بانتظارك`,p:"review",grad:"rgba(248,113,113,.08)",border:"rgba(248,113,113,.2)",paid:true},
+            {ic:"⚡",t:"محاكاة الاختبار",d:"اختبار كامل بظروف حقيقية",p:"sim",grad:"rgba(167,139,250,.08)",border:"rgba(167,139,250,.2)",paid:true},
+          ].map((m,i)=>{
+            const isLocked=m.paid&&!isSubscribed;
+            return(
+              <div key={i} className={`gl2 au d${i+1}`} style={{
+                padding:"20px 16px",position:"relative",
+                background:m.grad,border:`1px solid ${m.border}`,
+                borderRadius:18,
+                opacity:isLocked?0.7:1,
+                transition:"transform .2s,box-shadow .2s",
+                cursor:"pointer"
+              }}
+              onClick={()=>go(m.p)}
+              onMouseEnter={e=>{if(!isLocked){e.currentTarget.style.transform="translateY(-3px)";e.currentTarget.style.boxShadow="0 8px 24px rgba(0,0,0,.3)";}}}
+              onMouseLeave={e=>{e.currentTarget.style.transform="";e.currentTarget.style.boxShadow="";}}>
+                {isLocked&&(
+                  <span style={{position:"absolute",top:10,left:10,fontSize:".6rem",
+                    padding:"2px 7px",borderRadius:99,
+                    background:"rgba(249,115,22,.15)",border:"1px solid rgba(249,115,22,.25)",
+                    color:"#f97316"}}>🔒 مدفوع</span>
+                )}
+                <div style={{fontSize:"1.6rem",marginBottom:10}}>{m.ic}</div>
+                <h3 style={{fontWeight:800,color:"#fff",fontSize:".88rem",marginBottom:5}}>{m.t}</h3>
+                <p style={{fontSize:".74rem",color:"#64748b",lineHeight:1.6}}>{m.d}</p>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* ── Trial Banner ── */}
+      {!isSubscribed&&(
+        <div className="au d3" style={{
+          padding:"16px 22px",borderRadius:18,
+          background:"linear-gradient(135deg,rgba(249,115,22,.08),rgba(34,211,238,.05))",
+          border:"1px solid rgba(249,115,22,.15)",
+          display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:12
+        }}>
+          <div style={{flex:1,minWidth:180}}>
+            <p style={{fontWeight:700,color:"#fdba74",fontSize:".84rem",marginBottom:6}}>
+              التجربة المجانية — {trialLeft} سؤال متبقي
+            </p>
+            <div className="pt" style={{height:4}}>
+              <div className="pf" style={{width:`${trialPct}%`,
+                background:`linear-gradient(90deg,#f97316,${trialPct>80?"#f87171":"#22d3ee"})`}}/>
+            </div>
+          </div>
+          <button className="btn btn-p" style={{fontSize:".8rem",padding:"9px 18px"}}
+            onClick={()=>go("paywall")}>
+            اشترك الآن ←
+          </button>
+        </div>
+      )}
+
       <SiteFooter go={go}/>
-  </div>
-);}
+    </div>
+  );
+}
 
 function Bank({settings,setSettings,go,trial={}}){  useEffect(()=>{window.scrollTo({top:0,behavior:"instant"});if(trial.status==='expired'||trial.status==='cancelled'){go("expired");}
       else if(!trial.isSubscribed&&trial.used>=trial.limit){go("paywall");}},[]); return(<div style={{display:"grid",gap:14}}><div className="gl" style={{padding:"30px"}}><span className="badge b-o" style={{marginBottom:11}}>بنك الأسئلة</span><h1 style={{fontSize:"1.75rem",fontWeight:900,color:"#fff",marginBottom:7}}>اختر مسارك ثم ابدأ</h1></div><div className="rg-3 bank-grid" style={{gap:14}}><div className="gl" style={{padding:"18px"}}><p style={{fontSize:".68rem",color:"#f97316",fontWeight:700,letterSpacing:".08em",marginBottom:11}}>القسم</p>{["كمي","لفظي"].map(s=>(<button key={s} className={`sc ${settings.section===s?"on":""}`} style={{marginBottom:8}} onClick={()=>setSettings(p=>({...p,section:s,topic:TOPICS[s][0]}))}><p style={{fontWeight:800,color:"#fff"}}>{s}</p></button>))}</div><div className="gl" style={{padding:"18px"}}><p style={{fontSize:".68rem",color:"#f97316",fontWeight:700,letterSpacing:".08em",marginBottom:11}}>الصعوبة</p>{[{v:"سهل",d:"بداية هادئة"},{v:"متوسط",d:"تثبيت"},{v:"صعب",d:"تحدٍّ"}].map(d=>(<button key={d.v} className={`sc ${settings.difficulty===d.v?"on":""}`} style={{marginBottom:8}} onClick={()=>setSettings(p=>({...p,difficulty:d.v}))}><p style={{fontWeight:800,color:"#fff"}}>{d.v}</p><p style={{marginTop:3,fontSize:".76rem",color:"#64748b"}}>{d.d}</p></button>))}</div><div className="gl" style={{padding:"18px"}}><p style={{fontSize:".68rem",color:"#f97316",fontWeight:700,letterSpacing:".08em",marginBottom:11}}>الباب</p><div style={{maxHeight:260,overflowY:"auto",display:"flex",flexDirection:"column",gap:6}}>{TOPICS[settings.section].map(t=>(<button key={t} className={`sc ${settings.topic===t?"on":""}`} style={{padding:"10px 13px"}} onClick={()=>setSettings(p=>({...p,topic:t}))}><div style={{display:"flex",alignItems:"center",gap:7}}>{GEO.includes(t)&&<span style={{fontSize:".6rem",padding:"1px 6px",borderRadius:99,background:"rgba(167,139,250,.12)",border:"1px solid rgba(167,139,250,.2)",color:"#c4b5fd"}}>📐</span>}<p style={{fontWeight:700,color:"#fff",fontSize:".84rem"}}>{t}</p></div></button>))}</div></div></div>
