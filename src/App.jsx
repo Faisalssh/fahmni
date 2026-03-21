@@ -3321,187 +3321,272 @@ function Onboarding({finish}){
 function PlacementResult({rec,score,onFinish}){if(!rec)return null;return(<div style={{display:"grid",gap:14}}><div className="gl gl-pad-lg" style={{padding:"38px 32px"}}><span className="badge b-g" style={{marginBottom:12}}>✓ تم تحليل بدايتك</span><h1 style={{fontSize:"1.85rem",fontWeight:900,color:"#fff",marginBottom:8}}>هذه أفضل بداية لك الآن</h1><div className="placement-stats rg-4" style={{gap:12,marginTop:20}}>{[["النتيجة",`${score}/${PLACEMENT_Q.length}`,"#f97316"],["المستوى",rec.level,"#22d3ee"],["الخطة",rec.plan,"#a78bfa"],["البداية",rec.topic,"#4ade80"]].map(([l,v,c],i)=>(<div key={i} className={`gl2 stat au d${i+1}`}><p style={{fontSize:".68rem",color:"#64748b"}}>{l}</p><p style={{marginTop:6,fontSize:"1.1rem",fontWeight:900,color:c,lineHeight:1.3}}>{v}</p></div>))}</div></div><div className="rg-2" style={{display:"grid",gap:14}}><div className="gl" style={{padding:"24px"}}><p style={{fontSize:".68rem",color:"#f97316",fontWeight:700,letterSpacing:".08em",marginBottom:10}}>التوصية الذكية</p><div className="gl2" style={{padding:"14px",marginBottom:12}}><p style={{fontSize:".85rem",lineHeight:1.9,color:"#94a3b8"}}>{rec.msg}</p></div></div><div className="gl" style={{padding:"20px"}}><div style={{display:"flex",justifyContent:"center",marginBottom:14}}><Ring pct={Math.round((score/PLACEMENT_Q.length)*100)} size={90}/></div><button className="btn btn-p" style={{width:"100%",justifyContent:"center",padding:"11px"}} onClick={onFinish}>اعتمد هذه البداية ←</button></div></div></div>
       );}
 
-function Dashboard({go,user,trial,mistakes}){
+function Dashboard({go,user,trial,mistakes,settings,setSettings,getTopicProgress,watchedVideos={}}){
   useEffect(()=>{window.scrollTo({top:0,behavior:"instant"});},[]); 
-  const acc=user.totalSolved?Math.round((user.correct/user.totalSolved)*100):0;
-  const wrongCount=mistakes.length;
-  const isNew=user.totalSolved===0;
-  const statusLabel=acc>=80?"ممتاز 🏆":acc>=60?"جيد جدًا ⭐":acc>0?"في تقدم 📈":"ابدأ رحلتك 💪";
-  const accColor=acc>=70?"#4ade80":acc>=50?"#f97316":"#f87171";
-  const isSubscribed=trial.isSubscribed||trial.isAdmin;
-  const trialPct=Math.min(100,Math.round((trial.used/trial.limit)*100));
-  const trialLeft=trial.limit-trial.used;
+
+  const acc = user.totalSolved ? Math.round((user.correct/user.totalSolved)*100) : 0;
+  const wrongCount = mistakes.length;
+  const isNew = user.totalSolved === 0;
+  const isSubscribed = trial.isSubscribed || trial.isAdmin;
+  const trialLeft = trial.limit - trial.used;
+  const trialPct = Math.min(100, Math.round((trial.used / trial.limit)*100));
+
+  const lastTopic = settings?.topic || "النسبة والتناسب";
+  const lastTopicProgress = getTopicProgress ? getTopicProgress(lastTopic) : null;
+  const lastTopicWatched = lastTopicProgress ? lastTopicProgress.done : 0;
+  const lastTopicTotal = lastTopicProgress ? lastTopicProgress.total : 0;
+  const lastTopicPct = lastTopicProgress ? lastTopicProgress.pct : 0;
+
+  const qTopics = TOPICS["\u0643\u0645\u064a"].filter(t=>VIDEO_LESSONS[t]);
+  const totalWatched = Object.values(watchedVideos).reduce((s,arr)=>s+(Array.isArray(arr)?arr.length:0),0);
+
+  const C = {
+    bg:"rgba(10,18,40,.92)",bg2:"rgba(5,9,26,.75)",
+    border:"rgba(255,255,255,.07)",
+    orange:"#f97316",cyan:"#22d3ee",green:"#4ade80",
+    muted:"#475569",dimmed:"#334155",text:"#e2e8f0",subtext:"#94a3b8",
+  };
 
   return(
-    <div style={{display:"flex",flexDirection:"column",gap:16}}>
+    <div style={{display:"flex",flexDirection:"column",gap:14}}>
 
-      {/* ── Hero Banner ── */}
-      <div className="gl" style={{
-        padding:"32px 28px",
-        background:"linear-gradient(145deg,rgba(10,18,40,.95) 0%,rgba(15,25,55,.9) 100%)",
-        borderColor:"rgba(249,115,22,.15)",
-        position:"relative",overflow:"hidden"
-      }}>
-        {/* Background glow */}
-        <div style={{position:"absolute",top:-60,left:-60,width:220,height:220,borderRadius:"50%",
-          background:"rgba(249,115,22,.06)",filter:"blur(60px)",pointerEvents:"none"}}/>
-        <div style={{position:"absolute",bottom:-40,right:-40,width:160,height:160,borderRadius:"50%",
-          background:"rgba(34,211,238,.05)",filter:"blur(50px)",pointerEvents:"none"}}/>
-
-        <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",flexWrap:"wrap",gap:16,position:"relative"}}>
-          {/* Left: Greeting */}
-          <div style={{flex:1,minWidth:200}}>
-            <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:8}}>
-              <span className="badge b-o" style={{fontSize:".67rem"}}>{statusLabel}</span>
-              {user.streak>0&&(
-                <span className="badge b-y" style={{fontSize:".67rem"}}>🔥 {user.streak} يوم متواصل</span>
-              )}
-            </div>
-            <h1 className="au d1" style={{fontSize:"1.75rem",fontWeight:900,color:"#fff",lineHeight:1.3,marginBottom:6}}>
-              أهلًا، <span style={{color:"#f97316"}}>{user.name||"طالب"}</span>
-            </h1>
-            <p className="au d2" style={{fontSize:".85rem",color:"#64748b",lineHeight:1.7}}>
-              {isNew
-                ?"ابدأ جلستك الأولى واكسر الحاجز 🚀"
-                :`حللت ${user.totalSolved} سؤالاً — دقتك ${acc}% · استمر!`}
+      {/* 1) HEADER */}
+      <div style={{padding:"26px 26px 22px",background:C.bg,border:`1px solid ${C.border}`,borderRadius:20}}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",flexWrap:"wrap",gap:14,marginBottom:18}}>
+          <div>
+            <p style={{fontSize:".69rem",color:C.muted,fontWeight:600,marginBottom:4}}>
+              {new Date().toLocaleDateString("ar-SA",{weekday:"long",day:"numeric",month:"long"})}
             </p>
+            <h1 style={{fontSize:"1.5rem",fontWeight:900,color:"#fff",lineHeight:1.3,marginBottom:4}}>
+              مرحباً، <span style={{color:C.orange}}>{user.name||"طالب"}</span>
+            </h1>
+            <p style={{fontSize:".8rem",color:C.subtext,lineHeight:1.6}}>
+              {isNew?"ابدأ جلستك الأولى الآن — كل خطوة تُقربك من الهدف.":
+               acc>=80?"أداؤك متميز — حافظ على هذا المستوى.":
+               acc>=60?"تقدم جيد — واصل التدريب اليومي.":
+               "أنت في بداية المسار — كل جلسة تُحدث فرقاً."}
+            </p>
+          </div>
+          {user.streak>0&&(
+            <div style={{padding:"10px 16px",borderRadius:12,background:"rgba(249,115,22,.06)",border:"1px solid rgba(249,115,22,.15)",textAlign:"center"}}>
+              <p style={{fontSize:"1.35rem",fontWeight:900,color:C.orange,lineHeight:1}}>{user.streak}</p>
+              <p style={{fontSize:".62rem",color:C.muted,fontWeight:600,marginTop:3}}>يوم متواصل</p>
+            </div>
+          )}
+        </div>
 
-            {/* Progress bar */}
-            {!isNew&&(
-              <div className="au d3" style={{marginTop:18}}>
-                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
-                  <span style={{fontSize:".72rem",color:"#94a3b8",fontWeight:600}}>دقة الإجابات</span>
-                  <span style={{fontSize:".78rem",color:accColor,fontWeight:800}}>{acc}%</span>
+        {!isNew&&(
+          <>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
+              <span style={{fontSize:".69rem",color:C.subtext,fontWeight:600}}>دقة الإجابات الكلية</span>
+              <span style={{fontSize:".76rem",fontWeight:800,
+                color:acc>=70?C.green:acc>=50?C.orange:"#f87171"}}>{acc}%</span>
+            </div>
+            <div style={{height:5,borderRadius:99,background:"rgba(255,255,255,.06)",overflow:"hidden",marginBottom:18}}>
+              <div style={{height:"100%",borderRadius:99,width:`${acc}%`,
+                background:acc>=70?`linear-gradient(90deg,${C.green},${C.cyan})`:
+                           acc>=50?`linear-gradient(90deg,${C.orange},#fb923c)`:
+                           "linear-gradient(90deg,#f87171,#fb7185)",
+                transition:"width 1.2s cubic-bezier(.22,1,.36,1)"}}/>
+            </div>
+            <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:9}}>
+              {[
+                {v:user.totalSolved,l:"سؤال حُلَّ",c:C.cyan},
+                {v:user.correct,l:"إجابة صحيحة",c:C.green},
+                {v:totalWatched,l:"فيديو شُوهد",c:"#c4b5fd"},
+              ].map(({v,l,c},i)=>(
+                <div key={i} style={{padding:"12px 10px",background:C.bg2,border:`1px solid ${C.border}`,borderRadius:12,textAlign:"center"}}>
+                  <p style={{fontSize:"1.25rem",fontWeight:900,color:c,
+                    animation:"numPop .4s cubic-bezier(.34,1.56,.64,1) both",
+                    animationDelay:`${i*.07}s`}}>{v}</p>
+                  <p style={{fontSize:".62rem",color:C.muted,fontWeight:600,marginTop:3}}>{l}</p>
                 </div>
-                <div className="pt8">
-                  <div className="pf" style={{width:`${acc}%`,
-                    background:`linear-gradient(90deg,${accColor},${acc>=70?"#22d3ee":"#fb923c"})`}}/>
-                </div>
-              </div>
-            )}
+              ))}
+            </div>
+          </>
+        )}
+      </div>
 
-            {/* CTA buttons */}
-            <div className="au d4" style={{display:"flex",gap:10,marginTop:20,flexWrap:"wrap"}}>
-              <button className="btn btn-p" style={{padding:"12px 24px",fontSize:".88rem"}}
-                onClick={()=>go("session")}>
-                {isNew?"ابدأ جلستك الأولى ←":"كمّل التدريب ←"}
-              </button>
-              <button className="btn btn-g" style={{padding:"12px 18px",fontSize:".84rem"}}
-                onClick={()=>go("roadmap")}>
-                🗺️ خريطة المسار
-              </button>
+      {/* 2) MAIN FOCUS — كمّل من هنا */}
+      <div style={{
+        padding:"22px 24px",
+        background:"linear-gradient(135deg,rgba(249,115,22,.06) 0%,rgba(10,18,40,.95) 70%)",
+        border:"1px solid rgba(249,115,22,.18)",borderRadius:20,position:"relative",overflow:"hidden"
+      }}>
+        <div style={{position:"absolute",top:-40,left:-40,width:130,height:130,borderRadius:"50%",
+          background:"rgba(249,115,22,.05)",filter:"blur(40px)",pointerEvents:"none"}}/>
+        <div style={{position:"relative"}}>
+          <p style={{fontSize:".64rem",fontWeight:700,color:C.orange,letterSpacing:".11em",marginBottom:8}}>
+            مسارك الحالي
+          </p>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",flexWrap:"wrap",gap:12,marginBottom:14}}>
+            <div style={{flex:1,minWidth:150}}>
+              <h2 style={{fontSize:"1.15rem",fontWeight:900,color:"#fff",marginBottom:3}}>{lastTopic}</h2>
+              <p style={{fontSize:".74rem",color:C.subtext}}>
+                {lastTopicTotal>0?`${lastTopicWatched} من ${lastTopicTotal} فيديو مكتمل`:"ابدأ الشرح والتدريب"}
+              </p>
+            </div>
+            <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
+              <button className="btn btn-p" style={{padding:"10px 20px",fontSize:".84rem",fontWeight:800}}
+                onClick={()=>go("session")}>كمّل التدريب ←</button>
+              <button className="btn btn-g" style={{padding:"10px 14px",fontSize:".8rem"}}
+                onClick={()=>go("roadmap")}>📖 الشرح</button>
             </div>
           </div>
-
-          {/* Right: Ring */}
-          {!isNew&&(
-            <div className="au d2" style={{display:"flex",flexDirection:"column",alignItems:"center",gap:10}}>
-              <Ring pct={acc} size={100} color={accColor}/>
-              <span style={{fontSize:".7rem",color:"#475569",fontWeight:600,textAlign:"center"}}>دقة الإجابات</span>
+          {lastTopicTotal>0&&(
+            <div>
+              <div style={{display:"flex",justifyContent:"space-between",marginBottom:4}}>
+                <span style={{fontSize:".63rem",color:C.dimmed,fontWeight:600}}>تقدم هذا الباب</span>
+                <span style={{fontSize:".66rem",color:C.orange,fontWeight:700}}>{lastTopicPct}%</span>
+              </div>
+              <div style={{height:4,borderRadius:99,background:"rgba(255,255,255,.06)",overflow:"hidden"}}>
+                <div style={{height:"100%",borderRadius:99,width:`${lastTopicPct}%`,
+                  background:`linear-gradient(90deg,${C.orange},#fb923c)`,transition:"width 1s"}}/>
+              </div>
             </div>
           )}
         </div>
       </div>
 
-      {/* ── Stats Row ── */}
-      {!isNew&&(
-        <div className="rg-4" style={{gap:10}}>
-          {[
-            {l:"الأسئلة",v:user.totalSolved,c:"#22d3ee",ic:"📝"},
-            {l:"الصحيح",v:user.correct,c:"#4ade80",ic:"✅"},
-            {l:"الدقة",v:`${acc}%`,c:accColor,ic:"🎯"},
-            {l:"أطول سلسلة",v:`${user.streak}🔥`,c:"#f97316",ic:"⚡"},
-          ].map(({l,v,c,ic},i)=>(
-            <div key={i} className={`gl2 stat au d${i+1}`}
-              style={{padding:"16px 14px",textAlign:"center",display:"flex",flexDirection:"column",alignItems:"center",gap:6}}>
-              <span style={{fontSize:"1.1rem"}}>{ic}</span>
-              <p key={String(v)} style={{fontSize:"1.4rem",fontWeight:900,color:c,
-                animation:"numPop .4s cubic-bezier(.34,1.56,.64,1) both"}}>{v}</p>
-              <p style={{fontSize:".67rem",color:"#475569",fontWeight:600}}>{l}</p>
-            </div>
-          ))}
+      {/* 3) LEARNING STRUCTURE */}
+      <div style={{padding:"20px 22px",background:C.bg,border:`1px solid ${C.border}`,borderRadius:20}}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
+          <p style={{fontSize:".64rem",fontWeight:700,color:C.muted,letterSpacing:".11em"}}>هيكل المسار الكمي</p>
+          <button className="btn btn-g" style={{padding:"6px 13px",fontSize:".72rem",fontWeight:700}}
+            onClick={()=>go("roadmap")}>عرض الكل</button>
         </div>
-      )}
-
-      {/* ── Review Alert ── */}
-      {wrongCount>0&&(
-        <div className="au d2" style={{
-          padding:"18px 22px",borderRadius:18,
-          background:"rgba(248,113,113,.07)",
-          border:"1px solid rgba(248,113,113,.22)",
-          display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:12
-        }}>
-          <div>
-            <p style={{fontWeight:800,color:"#fca5a5",fontSize:".9rem"}}>📋 {wrongCount} سؤال تحتاج مراجعة</p>
-            <p style={{marginTop:4,fontSize:".77rem",color:"#64748b"}}>راجع أخطاءك وثبّت الفهم قبل التقدم.</p>
-          </div>
-          <button className="btn" style={{
-            background:"rgba(248,113,113,.15)",border:"1.5px solid rgba(248,113,113,.35) !important",
-            color:"#fca5a5",fontSize:".82rem",padding:"10px 20px",borderRadius:12
-          }} onClick={()=>go("review")}>ابدأ المراجعة ←</button>
-        </div>
-      )}
-
-      {/* ── Quick Access ── */}
-      <div className="gl" style={{padding:"22px"}}>
-        <p style={{fontSize:".68rem",color:"#f97316",fontWeight:700,letterSpacing:".1em",marginBottom:14}}>
-          ابدأ بسرعة
-        </p>
-        <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:11}}>
-          {[
-            {ic:"🤖",t:"جلسة AI",d:"سؤال + شرح فوري من الذكاء الاصطناعي",p:"session",grad:"rgba(249,115,22,.12)",border:"rgba(249,115,22,.25)",paid:false},
-            {ic:"📋",t:"مراجعة الأخطاء",d:`${wrongCount} سؤال بانتظارك`,p:"review",grad:"rgba(248,113,113,.08)",border:"rgba(248,113,113,.2)",paid:true},
-            {ic:"⚡",t:"محاكاة الاختبار",d:"اختبار كامل بظروف حقيقية",p:"sim",grad:"rgba(167,139,250,.08)",border:"rgba(167,139,250,.2)",paid:true},
-          ].map((m,i)=>{
-            const isLocked=m.paid&&!isSubscribed;
+        <div style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:8}}>
+          {qTopics.slice(0,8).map((topic,i)=>{
+            const prog = getTopicProgress ? getTopicProgress(topic) : null;
+            const done = prog?.done||0;
+            const total = prog?.total||0;
+            const pct = prog?.pct||0;
+            const isActive = topic===lastTopic;
+            const isLocked = !isSubscribed && GEO.includes(topic);
             return(
-              <div key={i} className={`gl2 au d${i+1}`} style={{
-                padding:"20px 16px",position:"relative",
-                background:m.grad,border:`1px solid ${m.border}`,
-                borderRadius:18,
-                opacity:isLocked?0.7:1,
-                transition:"transform .2s,box-shadow .2s",
-                cursor:"pointer"
-              }}
-              onClick={()=>go(m.p)}
-              onMouseEnter={e=>{if(!isLocked){e.currentTarget.style.transform="translateY(-3px)";e.currentTarget.style.boxShadow="0 8px 24px rgba(0,0,0,.3)";}}}
-              onMouseLeave={e=>{e.currentTarget.style.transform="";e.currentTarget.style.boxShadow="";}}>
-                {isLocked&&(
-                  <span style={{position:"absolute",top:10,left:10,fontSize:".6rem",
-                    padding:"2px 7px",borderRadius:99,
-                    background:"rgba(249,115,22,.15)",border:"1px solid rgba(249,115,22,.25)",
-                    color:"#f97316"}}>🔒 مدفوع</span>
+              <div key={topic}
+                onClick={()=>{
+                  if(isLocked){go("paywall");return;}
+                  if(setSettings) setSettings(p=>({...p,topic,section:"\u0643\u0645\u064a"}));
+                  go("roadmap");
+                }}
+                style={{
+                  padding:"13px 14px",
+                  background:isActive?"rgba(249,115,22,.06)":C.bg2,
+                  border:`1px solid ${isActive?"rgba(249,115,22,.22)":C.border}`,
+                  borderRadius:13,cursor:"pointer",position:"relative",
+                  opacity:isLocked?.65:1,
+                  transition:"background .15s,border-color .15s,transform .15s",
+                }}
+                onMouseEnter={e=>{
+                  if(!isLocked){e.currentTarget.style.background=isActive?"rgba(249,115,22,.09)":"rgba(255,255,255,.035)";
+                  e.currentTarget.style.transform="translateY(-2px)";}
+                }}
+                onMouseLeave={e=>{
+                  e.currentTarget.style.background=isActive?"rgba(249,115,22,.06)":C.bg2;
+                  e.currentTarget.style.transform="";
+                }}
+              >
+                {pct===100&&(
+                  <div style={{position:"absolute",top:8,left:8,fontSize:".55rem",fontWeight:700,
+                    color:C.green,padding:"1px 7px",borderRadius:99,
+                    background:"rgba(74,222,128,.08)",border:"1px solid rgba(74,222,128,.18)"}}>✓ مكتمل</div>
                 )}
-                <div style={{fontSize:"1.6rem",marginBottom:10}}>{m.ic}</div>
-                <h3 style={{fontWeight:800,color:"#fff",fontSize:".88rem",marginBottom:5}}>{m.t}</h3>
-                <p style={{fontSize:".74rem",color:"#64748b",lineHeight:1.6}}>{m.d}</p>
+                {isLocked&&(
+                  <div style={{position:"absolute",top:8,left:8,fontSize:".56rem",fontWeight:700,
+                    color:C.dimmed,padding:"1px 7px",borderRadius:99,
+                    background:"rgba(255,255,255,.04)",border:`1px solid ${C.border}`}}>🔒</div>
+                )}
+                {isActive&&pct<100&&!isLocked&&(
+                  <div style={{position:"absolute",top:10,left:10,width:6,height:6,
+                    borderRadius:"50%",background:C.orange}}/>
+                )}
+                <p style={{
+                  fontSize:".8rem",fontWeight:800,color:"#fff",marginBottom:5,
+                  lineHeight:1.4,paddingLeft:(isActive||pct===100||isLocked)?16:0
+                }}>{topic}</p>
+                {total>0?(
+                  <>
+                    <div style={{height:3,borderRadius:99,background:"rgba(255,255,255,.05)",overflow:"hidden",marginBottom:4}}>
+                      <div style={{height:"100%",borderRadius:99,width:`${pct}%`,
+                        background:pct===100?`linear-gradient(90deg,${C.green},${C.cyan})`:
+                                   pct>0?`linear-gradient(90deg,${C.orange},#fb923c)`:"transparent",
+                        transition:"width .8s"}}/>
+                    </div>
+                    <p style={{fontSize:".62rem",color:C.dimmed,fontWeight:600}}>
+                      {done}/{total} فيديو
+                      {pct>0&&pct<100&&<span style={{color:C.orange,marginRight:5}}>{pct}%</span>}
+                    </p>
+                  </>
+                ):(
+                  <p style={{fontSize:".62rem",color:C.dimmed}}>لم يُبدأ بعد</p>
+                )}
               </div>
             );
           })}
         </div>
       </div>
 
-      {/* ── Trial Banner ── */}
+      {/* 4) QUICK ACTIONS */}
+      <div style={{padding:"20px 22px",background:C.bg,border:`1px solid ${C.border}`,borderRadius:20}}>
+        <p style={{fontSize:".64rem",fontWeight:700,color:C.muted,letterSpacing:".11em",marginBottom:12}}>أدوات التدريب</p>
+        <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:8}}>
+          {[
+            {ic:"🤖",t:"جلسة AI",d:"سؤال + شرح فوري",p:"session",locked:false},
+            {ic:"📋",t:"مراجعة الأخطاء",d:`${wrongCount} سؤال`,p:"review",locked:!isSubscribed},
+            {ic:"⚡",t:"محاكاة الاختبار",d:"ظروف حقيقية",p:"sim",locked:!isSubscribed},
+          ].map((m,i)=>(
+            <div key={i} onClick={()=>go(m.p)} style={{
+              padding:"15px 13px",borderRadius:13,cursor:"pointer",
+              background:C.bg2,border:`1px solid ${C.border}`,
+              opacity:m.locked?.65:1,position:"relative",
+              transition:"background .15s,transform .15s",
+            }}
+            onMouseEnter={e=>{e.currentTarget.style.background="rgba(255,255,255,.035)";e.currentTarget.style.transform="translateY(-2px)";}}
+            onMouseLeave={e=>{e.currentTarget.style.background=C.bg2;e.currentTarget.style.transform="";}}>
+              {m.locked&&<span style={{position:"absolute",top:8,left:8,fontSize:".56rem",
+                color:C.dimmed,padding:"1px 6px",borderRadius:99,
+                background:"rgba(255,255,255,.04)",border:`1px solid ${C.border}`}}>🔒</span>}
+              <div style={{fontSize:"1.25rem",marginBottom:7}}>{m.ic}</div>
+              <p style={{fontSize:".8rem",fontWeight:800,color:"#fff",marginBottom:2}}>{m.t}</p>
+              <p style={{fontSize:".67rem",color:C.muted}}>{m.d}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* مراجعة الأخطاء — تنبيه */}
+      {wrongCount>0&&isSubscribed&&(
+        <div style={{padding:"14px 20px",borderRadius:16,
+          background:"rgba(248,113,113,.05)",border:"1px solid rgba(248,113,113,.16)",
+          display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:10}}>
+          <div>
+            <p style={{fontWeight:700,color:"#fca5a5",fontSize:".84rem"}}>📋 {wrongCount} سؤال في قائمة المراجعة</p>
+            <p style={{fontSize:".71rem",color:C.muted,marginTop:2}}>راجع أخطاءك لتثبيت الفهم.</p>
+          </div>
+          <button style={{padding:"8px 16px",borderRadius:11,cursor:"pointer",
+            background:"rgba(248,113,113,.1)",border:"1px solid rgba(248,113,113,.22)",
+            color:"#fca5a5",fontFamily:"Cairo,sans-serif",fontSize:".76rem",fontWeight:700,
+            transition:"background .15s"}} onClick={()=>go("review")}>ابدأ المراجعة ←</button>
+        </div>
+      )}
+
+      {/* Trial Banner */}
       {!isSubscribed&&(
-        <div className="au d3" style={{
-          padding:"16px 22px",borderRadius:18,
-          background:"linear-gradient(135deg,rgba(249,115,22,.08),rgba(34,211,238,.05))",
-          border:"1px solid rgba(249,115,22,.15)",
-          display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:12
-        }}>
-          <div style={{flex:1,minWidth:180}}>
-            <p style={{fontWeight:700,color:"#fdba74",fontSize:".84rem",marginBottom:6}}>
-              التجربة المجانية — {trialLeft} سؤال متبقي
+        <div style={{padding:"14px 20px",borderRadius:16,
+          background:"rgba(249,115,22,.04)",border:"1px solid rgba(249,115,22,.12)",
+          display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:12}}>
+          <div style={{flex:1,minWidth:160}}>
+            <p style={{fontWeight:700,color:"#fdba74",fontSize:".8rem",marginBottom:5}}>
+              التجربة المجانية &mdash; {trialLeft} سؤال متبقي
             </p>
-            <div className="pt" style={{height:4}}>
-              <div className="pf" style={{width:`${trialPct}%`,
-                background:`linear-gradient(90deg,#f97316,${trialPct>80?"#f87171":"#22d3ee"})`}}/>
+            <div style={{height:4,borderRadius:99,background:"rgba(255,255,255,.05)",overflow:"hidden"}}>
+              <div style={{height:"100%",borderRadius:99,width:`${trialPct}%`,
+                background:`linear-gradient(90deg,${C.orange},${trialPct>80?"#f87171":"#fb923c"})`,transition:"width 1s"}}/>
             </div>
           </div>
-          <button className="btn btn-p" style={{fontSize:".8rem",padding:"9px 18px"}}
-            onClick={()=>go("paywall")}>
-            اشترك الآن ←
-          </button>
+          <button className="btn btn-p" style={{padding:"9px 18px",fontSize:".78rem",fontWeight:800}}
+            onClick={()=>go("paywall")}>فتح الكامل ←</button>
         </div>
       )}
 
@@ -3509,6 +3594,7 @@ function Dashboard({go,user,trial,mistakes}){
     </div>
   );
 }
+
 
 function Bank({settings,setSettings,go,trial={}}){  useEffect(()=>{window.scrollTo({top:0,behavior:"instant"});if(trial.status==='expired'||trial.status==='cancelled'){go("expired");}
       else if(!trial.isSubscribed&&trial.used>=trial.limit){go("paywall");}},[]); return(<div style={{display:"grid",gap:14}}><div className="gl" style={{padding:"30px"}}><span className="badge b-o" style={{marginBottom:11}}>بنك الأسئلة</span><h1 style={{fontSize:"1.75rem",fontWeight:900,color:"#fff",marginBottom:7}}>اختر مسارك ثم ابدأ</h1></div><div className="rg-3 bank-grid" style={{gap:14}}><div className="gl" style={{padding:"18px"}}><p style={{fontSize:".68rem",color:"#f97316",fontWeight:700,letterSpacing:".08em",marginBottom:11}}>القسم</p>{["كمي","لفظي"].map(s=>(<button key={s} className={`sc ${settings.section===s?"on":""}`} style={{marginBottom:8}} onClick={()=>setSettings(p=>({...p,section:s,topic:TOPICS[s][0]}))}><p style={{fontWeight:800,color:"#fff"}}>{s}</p></button>))}</div><div className="gl" style={{padding:"18px"}}><p style={{fontSize:".68rem",color:"#f97316",fontWeight:700,letterSpacing:".08em",marginBottom:11}}>الصعوبة</p>{[{v:"سهل",d:"بداية هادئة"},{v:"متوسط",d:"تثبيت"},{v:"صعب",d:"تحدٍّ"}].map(d=>(<button key={d.v} className={`sc ${settings.difficulty===d.v?"on":""}`} style={{marginBottom:8}} onClick={()=>setSettings(p=>({...p,difficulty:d.v}))}><p style={{fontWeight:800,color:"#fff"}}>{d.v}</p><p style={{marginTop:3,fontSize:".76rem",color:"#64748b"}}>{d.d}</p></button>))}</div><div className="gl" style={{padding:"18px"}}><p style={{fontSize:".68rem",color:"#f97316",fontWeight:700,letterSpacing:".08em",marginBottom:11}}>الباب</p><div style={{maxHeight:260,overflowY:"auto",display:"flex",flexDirection:"column",gap:6}}>{TOPICS[settings.section].map(t=>(<button key={t} className={`sc ${settings.topic===t?"on":""}`} style={{padding:"10px 13px"}} onClick={()=>setSettings(p=>({...p,topic:t}))}><div style={{display:"flex",alignItems:"center",gap:7}}>{GEO.includes(t)&&<span style={{fontSize:".6rem",padding:"1px 6px",borderRadius:99,background:"rgba(167,139,250,.12)",border:"1px solid rgba(167,139,250,.2)",color:"#c4b5fd"}}>📐</span>}<p style={{fontWeight:700,color:"#fff",fontSize:".84rem"}}>{t}</p></div></button>))}</div></div></div>
@@ -5057,7 +5143,7 @@ export default function Fahmni(){
       if(session&&!session.isGuest) sbSavePlacement(session.userId,session.token,rec?.level||"متوسط");
       go("dashboard");
     }}/>;
-    case"dashboard":return <Dashboard go={go} user={user} trial={trial} mistakes={mistakes}/>;
+    case"dashboard":return <Dashboard go={go} user={user} trial={trial} mistakes={mistakes} settings={settings} setSettings={setSettings} getTopicProgress={getTopicProgress} watchedVideos={watchedVideos}/>;
     case"roadmap":return <Roadmap go={go} setSettings={setSettings} openLesson={openLesson} trial={trial} getTopicProgress={getTopicProgress}/>;
     case"lesson":
       if(!trial.isAdmin&&(!trial.isSubscribed||trial.status==='expired')) return <UpgradePrompt feature="شرح الأبواب" go={go}/>;
