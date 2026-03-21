@@ -4247,28 +4247,6 @@ function Roadmap({go,setSettings,openLesson,trial={},getTopicProgress}){
       ))}
 
       {/* Footer CTA */}
-      <div style={{
-        padding:"18px 22px", borderRadius:16,
-        background:"linear-gradient(135deg,rgba(167,139,250,.08),rgba(249,115,22,.05))",
-        border:"1px solid rgba(167,139,250,.18)",
-        display:"flex", justifyContent:"space-between", alignItems:"center", flexWrap:"wrap", gap:12
-      }}>
-        <div>
-          <p style={{fontWeight:800,color:"#c4b5fd",fontSize:".9rem"}}>جاهز تبدأ؟</p>
-          <p style={{fontSize:".76rem",color:"#64748b",marginTop:3}}>
-            {TOPICS.كمي.length + TOPICS.لفظي.length} باب · كل باب فيه شرح + تشخيص + تدريب AI
-          </p>
-        </div>
-        <div style={{display:"flex",gap:9}}>
-          <button className="btn btn-g" style={{fontSize:".82rem"}} onClick={()=>go("bank")}>
-            📚 بنك الأسئلة
-          </button>
-          <button className="btn btn-p" style={{padding:"11px 22px"}} onClick={()=>go("session")}>
-            ابدأ التدريب ←
-          </button>
-        </div>
-      </div>
-
       <SiteFooter go={go}/>
     </div>
   );
