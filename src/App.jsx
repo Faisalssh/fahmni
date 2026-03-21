@@ -790,7 +790,7 @@ function getRec({goal,confidence,minutes,section,score,answers}){
 const SUPABASE_URL=import.meta.env.VITE_SUPABASE_URL;
 const IS_ARTIFACT=typeof window!=="undefined"&&(window.location.hostname.includes("claude.ai")||window.location.hostname==="localhost");
 
-/* ── Admin email — الحساب الوحيد بصلاحيات كاملة ── */
+/* ── Admin email — full access always ── */
 const ADMIN_EMAIL="sirfaisalalshehri@gmail.com";
 const isAdminUser=(email)=>typeof email==="string"&&email.toLowerCase().trim()===ADMIN_EMAIL;
 
@@ -2147,7 +2147,7 @@ function Session({settings,go,updateUser,trial,setTrial,addMistake,plan="free",s
   },[settings,trial]);
 
   useEffect(()=>{
-    if(!trial.isAdmin&&!trial.isSubscribed&&trial.used>=trial.limit){go("paywall");return;}
+    if(!trial.isSubscribed&&trial.used>=trial.limit){go("paywall");return;}
     fetchQ();
   },[]);
 
@@ -3268,18 +3268,16 @@ function Dashboard({go,user,trial,mistakes}){
   </div>
 );}
 
-function Bank({settings,setSettings,go,trial={}}){  useEffect(()=>{window.scrollTo({top:0,behavior:"instant"});if(!trial.isAdmin&&(trial.status==='expired'||trial.status==='cancelled')){go("expired");}
-      else if(!trial.isAdmin&&!trial.isSubscribed&&trial.used>=trial.limit){go("paywall");}},[]); return(<div style={{display:"grid",gap:14}}><div className="gl" style={{padding:"30px"}}><span className="badge b-o" style={{marginBottom:11}}>بنك الأسئلة</span><h1 style={{fontSize:"1.75rem",fontWeight:900,color:"#fff",marginBottom:7}}>اختر مسارك ثم ابدأ</h1></div><div className="rg-3 bank-grid" style={{gap:14}}><div className="gl" style={{padding:"18px"}}><p style={{fontSize:".68rem",color:"#f97316",fontWeight:700,letterSpacing:".08em",marginBottom:11}}>القسم</p>{["كمي","لفظي"].map(s=>(<button key={s} className={`sc ${settings.section===s?"on":""}`} style={{marginBottom:8}} onClick={()=>setSettings(p=>({...p,section:s,topic:TOPICS[s][0]}))}><p style={{fontWeight:800,color:"#fff"}}>{s}</p></button>))}</div><div className="gl" style={{padding:"18px"}}><p style={{fontSize:".68rem",color:"#f97316",fontWeight:700,letterSpacing:".08em",marginBottom:11}}>الصعوبة</p>{[{v:"سهل",d:"بداية هادئة"},{v:"متوسط",d:"تثبيت"},{v:"صعب",d:"تحدٍّ"}].map(d=>(<button key={d.v} className={`sc ${settings.difficulty===d.v?"on":""}`} style={{marginBottom:8}} onClick={()=>setSettings(p=>({...p,difficulty:d.v}))}><p style={{fontWeight:800,color:"#fff"}}>{d.v}</p><p style={{marginTop:3,fontSize:".76rem",color:"#64748b"}}>{d.d}</p></button>))}</div><div className="gl" style={{padding:"18px"}}><p style={{fontSize:".68rem",color:"#f97316",fontWeight:700,letterSpacing:".08em",marginBottom:11}}>الباب</p><div style={{maxHeight:260,overflowY:"auto",display:"flex",flexDirection:"column",gap:6}}>{TOPICS[settings.section].map(t=>(<button key={t} className={`sc ${settings.topic===t?"on":""}`} style={{padding:"10px 13px"}} onClick={()=>setSettings(p=>({...p,topic:t}))}><div style={{display:"flex",alignItems:"center",gap:7}}>{GEO.includes(t)&&<span style={{fontSize:".6rem",padding:"1px 6px",borderRadius:99,background:"rgba(167,139,250,.12)",border:"1px solid rgba(167,139,250,.2)",color:"#c4b5fd"}}>📐</span>}<p style={{fontWeight:700,color:"#fff",fontSize:".84rem"}}>{t}</p></div></button>))}</div></div></div>
+function Bank({settings,setSettings,go,trial={}}){  useEffect(()=>{window.scrollTo({top:0,behavior:"instant"});if(trial.status==='expired'||trial.status==='cancelled'){go("expired");}
+      else if(!trial.isSubscribed&&trial.used>=trial.limit){go("paywall");}},[]); return(<div style={{display:"grid",gap:14}}><div className="gl" style={{padding:"30px"}}><span className="badge b-o" style={{marginBottom:11}}>بنك الأسئلة</span><h1 style={{fontSize:"1.75rem",fontWeight:900,color:"#fff",marginBottom:7}}>اختر مسارك ثم ابدأ</h1></div><div className="rg-3 bank-grid" style={{gap:14}}><div className="gl" style={{padding:"18px"}}><p style={{fontSize:".68rem",color:"#f97316",fontWeight:700,letterSpacing:".08em",marginBottom:11}}>القسم</p>{["كمي","لفظي"].map(s=>(<button key={s} className={`sc ${settings.section===s?"on":""}`} style={{marginBottom:8}} onClick={()=>setSettings(p=>({...p,section:s,topic:TOPICS[s][0]}))}><p style={{fontWeight:800,color:"#fff"}}>{s}</p></button>))}</div><div className="gl" style={{padding:"18px"}}><p style={{fontSize:".68rem",color:"#f97316",fontWeight:700,letterSpacing:".08em",marginBottom:11}}>الصعوبة</p>{[{v:"سهل",d:"بداية هادئة"},{v:"متوسط",d:"تثبيت"},{v:"صعب",d:"تحدٍّ"}].map(d=>(<button key={d.v} className={`sc ${settings.difficulty===d.v?"on":""}`} style={{marginBottom:8}} onClick={()=>setSettings(p=>({...p,difficulty:d.v}))}><p style={{fontWeight:800,color:"#fff"}}>{d.v}</p><p style={{marginTop:3,fontSize:".76rem",color:"#64748b"}}>{d.d}</p></button>))}</div><div className="gl" style={{padding:"18px"}}><p style={{fontSize:".68rem",color:"#f97316",fontWeight:700,letterSpacing:".08em",marginBottom:11}}>الباب</p><div style={{maxHeight:260,overflowY:"auto",display:"flex",flexDirection:"column",gap:6}}>{TOPICS[settings.section].map(t=>(<button key={t} className={`sc ${settings.topic===t?"on":""}`} style={{padding:"10px 13px"}} onClick={()=>setSettings(p=>({...p,topic:t}))}><div style={{display:"flex",alignItems:"center",gap:7}}>{GEO.includes(t)&&<span style={{fontSize:".6rem",padding:"1px 6px",borderRadius:99,background:"rgba(167,139,250,.12)",border:"1px solid rgba(167,139,250,.2)",color:"#c4b5fd"}}>📐</span>}<p style={{fontWeight:700,color:"#fff",fontSize:".84rem"}}>{t}</p></div></button>))}</div></div></div>
 <div style={{padding:"22px 26px",borderRadius:18,background:"linear-gradient(135deg,rgba(34,211,238,.08),rgba(249,115,22,.06))",border:"1px solid rgba(34,211,238,.16)",display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:12}}><div><p style={{fontSize:".68rem",color:"#67e8f9",fontWeight:700,marginBottom:5}}>جاهز</p><p style={{fontSize:"1.3rem",fontWeight:900,color:"#fff"}}>{settings.topic} · {settings.difficulty}</p></div><div style={{display:"flex",gap:9}}><button className="btn btn-out" style={{fontSize:".8rem"}} onClick={()=>go("diagnostic")}>🧪 تشخيص أولاً</button><button className="btn btn-p" style={{padding:"11px 22px"}} onClick={()=>go("session")}>ابدأ مباشرة ←</button></div></div>
 <SiteFooter go={go}/>
 </div>);}
 
 /* ═══════════════════ TOPIC LESSON PANEL ═══════════════════ */
 async function genTopicLesson(topic){
-  /* Cache lesson in memory — avoid repeated API calls */
   if(!genTopicLesson._cache) genTopicLesson._cache={};
   if(genTopicLesson._cache[topic]) return genTopicLesson._cache[topic];
-  const sec=deriveSec(topic);
   const prompt=`أنت مدرس خبير في اختبار القدرات (قياس). اشرح باب "${topic}" للطالب السعودي.
 
 أجب بـ JSON فقط بهذا الهيكل (لا تكتب أي نص خارج JSON):
@@ -3295,12 +3293,18 @@ async function genTopicLesson(topic){
   "common_mistakes": ["خطأ شائع 1","خطأ شائع 2","خطأ شائع 3"],
   "speed_tip": "نصيحة لحل الأسئلة بسرعة في الاختبار"
 }`;
-  const raw=await callClaude(prompt,600);
-  const clean=raw.replace(/```json|```/g,"").trim();
-  const start=clean.indexOf("{"),end=clean.lastIndexOf("}");
-  if(start===-1||end===-1) throw new Error("no JSON in response");
-  try{ return JSON.parse(clean.slice(start,end+1)); }
-  catch(err){ throw new Error("تعذّر قراءة رد AI — أعد المحاولة"); }
+  try{
+    const raw=await callClaude(prompt,600);
+    const clean=raw.replace(/```json|```/g,"").trim();
+    const s=clean.indexOf("{"),e=clean.lastIndexOf("}");
+    if(s===-1||e===-1) throw new Error("no JSON");
+    const parsed=JSON.parse(clean.slice(s,e+1));
+    genTopicLesson._cache[topic]=parsed;
+    return parsed;
+  }catch(err){
+    // Return null — caller will use CONCEPTS fallback
+    return null;
+  }
 }
 
 /* ═══════════════════ QUICK COACH (per-question AI) ═══════════════════ */
@@ -3324,52 +3328,70 @@ ${!ok?`الصحيح: "${correctAns}"`:""}
 
 /* ═══════════════════ TOPIC LESSON PAGE ═══════════════════ */
 function TopicLesson({topic,onClose,onStartPractice,go}){
-  const[data,setData]=useState(null);
-  const[loading,setLoading]=useState(true);
-  const[err,setErr]=useState("");
   const sec=deriveSec(topic);
   const secColor=sec==="كمي"?"#f97316":"#22d3ee";
-  const ytQuery=encodeURIComponent(`شرح قدرات ${topic} قياس`);
-  const ytUrl=`https://www.youtube.com/results?search_query=${ytQuery}`;
+  const concept=CONCEPTS[topic];
+  const videos=getTopicVideos(topic);
 
-  const load=()=>{
-    setLoading(true);setErr("");setData(null);
+  const[curIdx,setCurIdx]=useState(0);
+  const[watched,setWatched]=useState([]);
+  const[aiData,setAiData]=useState(null);
+  const[aiLoading,setAiLoading]=useState(false);
+
+  // Load AI explanation once
+  useEffect(()=>{
+    setAiLoading(true);
     genTopicLesson(topic)
-      .then(d=>setData(d))
-      .catch(e=>{
-        console.error("genTopicLesson error:",e);
-        setErr(`فشل تحميل الشرح: ${e.message||"خطأ غير معروف"}`);
-      })
-      .finally(()=>setLoading(false));
+      .then(d=>setAiData(d))
+      .catch(()=>setAiData(null))
+      .finally(()=>setAiLoading(false));
+  },[topic]);
+
+  const curVid=videos[curIdx]||null;
+  const hasVideos=videos.length>0;
+  const hasPrev=curIdx>0;
+  const hasNext=curIdx<videos.length-1;
+
+  const markWatched=(idx)=>{
+    if(!watched.includes(idx)) setWatched(p=>[...p,idx]);
   };
-  useEffect(()=>{load();},[topic]);
+  const goNext=()=>{if(hasNext){markWatched(curIdx);setCurIdx(p=>p+1);}};
+  const goPrev=()=>{if(hasPrev)setCurIdx(p=>p-1);};
+
+  const ytQuery=encodeURIComponent(`شرح قدرات ${topic} قياس`);
+  const ytSearchUrl=`https://www.youtube.com/results?search_query=${ytQuery}`;
+
+  // Explanation data: AI first, fallback to CONCEPTS
+  const summary = aiData?.summary || (concept ? `${topic} — من أهم أبواب اختبار القدرات. ${concept.trap}` : "");
+  const keyRules = aiData?.key_rules || concept?.rules || [];
+  const speedTip = aiData?.speed_tip || "";
+  const commonMistakes = aiData?.common_mistakes || [];
+  const solvedExample = aiData?.solved_example || null;
 
   return(
     <div style={{display:"grid",gap:14}}>
 
-      {/* Header / back button */}
+      {/* ── Header ── */}
       <div style={{
         display:"flex",justifyContent:"space-between",alignItems:"center",
         padding:"18px 22px",borderRadius:18,
         background:`linear-gradient(135deg,${secColor}10,rgba(5,9,26,.6))`,
-        border:`1px solid ${secColor}22`
+        border:`1px solid ${secColor}22`,flexWrap:"wrap",gap:12
       }}>
         <div style={{display:"flex",gap:12,alignItems:"center"}}>
           <div style={{
             width:46,height:46,borderRadius:13,flexShrink:0,
             background:`${secColor}18`,border:`1.5px solid ${secColor}35`,
             display:"flex",alignItems:"center",justifyContent:"center",fontSize:"1.4rem"
-          }}>{CONCEPTS[topic]?.icon||"📖"}</div>
+          }}>{concept?.icon||"📖"}</div>
           <div>
             <div style={{display:"flex",gap:8,alignItems:"center",flexWrap:"wrap"}}>
               <h1 style={{fontWeight:900,color:"#fff",fontSize:"1.15rem"}}>{topic}</h1>
-              <span style={{
-                padding:"2px 10px",borderRadius:99,fontSize:".6rem",fontWeight:700,
-                background:`${secColor}15`,border:`1px solid ${secColor}28`,color:secColor
-              }}>{sec}</span>
+              <span style={{padding:"2px 10px",borderRadius:99,fontSize:".6rem",fontWeight:700,
+                background:`${secColor}15`,border:`1px solid ${secColor}28`,color:secColor}}>{sec}</span>
             </div>
             <p style={{fontSize:".72rem",color:"#475569",marginTop:2}}>
-              شرح AI · مثال محلول · أخطاء شائعة · نصيحة السرعة
+              {hasVideos?`${videos.length} فيديو شرح · مثال محلول · نصيحة السرعة`:"مثال محلول · قواعد أساسية · نصيحة السرعة"}
             </p>
           </div>
         </div>
@@ -3378,212 +3400,286 @@ function TopicLesson({topic,onClose,onStartPractice,go}){
         </button>
       </div>
 
-      {/* Loading */}
-      {loading&&(
-        <div className="gl" style={{padding:"60px",textAlign:"center"}}>
-          <div className="spin spin-lg" style={{margin:"0 auto 16px"}}/>
-          <p style={{color:"#64748b"}}>يولّد الشرح من <strong style={{color:secColor}}>{topic}</strong>...</p>
-        </div>
-      )}
+      {/* ── Main grid: video player + sidebar ── */}
+      {hasVideos&&(
+        <div style={{display:"grid",gridTemplateColumns:"1fr 280px",gap:14}}>
 
-      {/* Error */}
-      {err&&!loading&&(
-        <div className="gl" style={{
-          padding:"26px",textAlign:"center",
-          borderColor:"rgba(248,113,113,.2)",background:"rgba(248,113,113,.06)"
-        }}>
-          <p style={{color:"#fca5a5",marginBottom:14}}>{err}</p>
-          <button className="btn btn-p" onClick={load}>أعد المحاولة</button>
-        </div>
-      )}
-
-      {/* Content */}
-      {data&&!loading&&(
-        <div className="rg-lesson lesson-cols" style={{gap:13}}>
-
-          {/* Right column */}
-          <div style={{display:"flex",flexDirection:"column",gap:13}}>
-
-            {/* Summary */}
-            <div className="gl" style={{
-              padding:"18px 20px",
-              borderColor:`${secColor}20`,background:`${secColor}07`
-            }}>
-              <p style={{fontSize:".68rem",color:secColor,fontWeight:700,letterSpacing:".08em",marginBottom:9}}>
-                نظرة عامة
-              </p>
-              <p style={{fontSize:".86rem",lineHeight:1.9,color:"#94a3b8"}}>{data.summary}</p>
+          {/* Video Player */}
+          <div style={{display:"flex",flexDirection:"column",gap:12}}>
+            {/* iframe embed */}
+            <div style={{borderRadius:16,overflow:"hidden",background:"#000",
+              border:`1.5px solid rgba(220,38,38,.3)`,
+              boxShadow:"0 8px 32px rgba(0,0,0,.5)"}}>
+              <div style={{position:"relative",paddingBottom:"56.25%",height:0}}>
+                <iframe
+                  key={curVid.id}
+                  src={`https://www.youtube.com/embed/${curVid.id}?rel=0&modestbranding=1&autoplay=0`}
+                  title={curVid.title}
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                  style={{position:"absolute",top:0,left:0,width:"100%",height:"100%",border:"none"}}
+                />
+              </div>
             </div>
 
-            {/* Key Rules */}
-            <div className="gl" style={{padding:"18px 20px"}}>
-              <p style={{fontSize:".68rem",color:secColor,fontWeight:700,letterSpacing:".08em",marginBottom:12}}>
-                ▸ القواعد الأساسية
+            {/* Video title + nav */}
+            <div style={{
+              padding:"14px 18px",borderRadius:14,
+              background:"rgba(10,18,40,.9)",border:"1px solid rgba(255,255,255,.07)",
+              display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:10
+            }}>
+              <div style={{flex:1,minWidth:0}}>
+                <p style={{fontWeight:800,color:"#fff",fontSize:".9rem",lineHeight:1.4}}>{curVid.title}</p>
+                <p style={{fontSize:".68rem",color:"#475569",marginTop:3}}>
+                  فيديو {curIdx+1} من {videos.length}
+                  {watched.includes(curIdx)&&<span style={{marginRight:8,color:"#4ade80",fontWeight:700}}>✓ شاهدت</span>}
+                </p>
+              </div>
+              <div style={{display:"flex",gap:8,flexShrink:0}}>
+                <button onClick={goPrev} disabled={!hasPrev} style={{
+                  padding:"8px 16px",borderRadius:10,border:"1px solid rgba(255,255,255,.1)",
+                  background:hasPrev?"rgba(255,255,255,.07)":"rgba(255,255,255,.02)",
+                  color:hasPrev?"#e2e8f0":"#334155",cursor:hasPrev?"pointer":"not-allowed",
+                  fontFamily:"Cairo,sans-serif",fontSize:".8rem",fontWeight:700
+                }}>→ السابق</button>
+                <button onClick={goNext} disabled={!hasNext} style={{
+                  padding:"8px 16px",borderRadius:10,border:"none",
+                  background:hasNext?"linear-gradient(135deg,#f97316,#fb923c)":"rgba(255,255,255,.04)",
+                  color:hasNext?"#0a0f1e":"#334155",cursor:hasNext?"pointer":"not-allowed",
+                  fontFamily:"Cairo,sans-serif",fontSize:".8rem",fontWeight:800
+                }}>{hasNext?"التالي ←":"آخر فيديو"}</button>
+              </div>
+            </div>
+          </div>
+
+          {/* Sidebar: video list */}
+          <div style={{
+            borderRadius:16,overflow:"hidden",
+            background:"rgba(10,18,40,.9)",border:"1px solid rgba(255,255,255,.07)",
+            display:"flex",flexDirection:"column"
+          }}>
+            <div style={{padding:"13px 16px",borderBottom:"1px solid rgba(255,255,255,.06)",
+              background:"rgba(255,255,255,.03)"}}>
+              <p style={{fontSize:".68rem",color:"#f97316",fontWeight:700,letterSpacing:".08em"}}>
+                📋 قائمة الفيديوهات
               </p>
-              <div style={{display:"flex",flexDirection:"column",gap:9}}>
-                {data.key_rules?.map((rule,i)=>(
-                  <div key={i} style={{
-                    display:"flex",gap:11,padding:"11px 14px",borderRadius:12,
-                    background:"rgba(255,255,255,.03)",border:"1px solid rgba(255,255,255,.06)"
-                  }}>
+            </div>
+            <div style={{flex:1,overflowY:"auto",padding:"10px"}}>
+              {videos.map((v,i)=>{
+                const isCur=i===curIdx;
+                const isDone=watched.includes(i);
+                return(
+                  <button key={v.id} onClick={()=>{markWatched(curIdx);setCurIdx(i);}}
+                    style={{
+                      width:"100%",display:"flex",alignItems:"flex-start",gap:10,
+                      padding:"10px 12px",borderRadius:11,marginBottom:6,textAlign:"right",
+                      border:`1.5px solid ${isCur?"rgba(249,115,22,.5)":isDone?"rgba(74,222,128,.2)":"rgba(255,255,255,.06)"}`,
+                      background:isCur?"rgba(249,115,22,.12)":isDone?"rgba(74,222,128,.05)":"rgba(255,255,255,.02)",
+                      cursor:"pointer",transition:"all .18s",fontFamily:"Cairo,sans-serif"
+                    }}>
                     <div style={{
-                      width:24,height:24,borderRadius:7,flexShrink:0,
+                      width:26,height:26,borderRadius:7,flexShrink:0,marginTop:1,
+                      background:isCur?"rgba(249,115,22,.3)":isDone?"rgba(74,222,128,.2)":"rgba(255,255,255,.08)",
+                      display:"flex",alignItems:"center",justifyContent:"center",
+                      fontSize:".7rem",fontWeight:800,
+                      color:isCur?"#f97316":isDone?"#4ade80":"#64748b"
+                    }}>{isDone?"✓":i+1}</div>
+                    <p style={{fontSize:".78rem",fontWeight:isCur?700:400,
+                      color:isCur?"#fff":isDone?"#86efac":"#94a3b8",
+                      lineHeight:1.4,flex:1}}>{v.title}</p>
+                  </button>
+                );
+              })}
+            </div>
+            {/* Mark current as watched + open in YT */}
+            <div style={{padding:"10px",borderTop:"1px solid rgba(255,255,255,.05)"}}>
+              <button onClick={()=>markWatched(curIdx)} style={{
+                width:"100%",padding:"9px",borderRadius:10,marginBottom:6,
+                background:"rgba(74,222,128,.08)",border:"1px solid rgba(74,222,128,.2)",
+                color:"#4ade80",fontSize:".75rem",fontWeight:700,
+                cursor:"pointer",fontFamily:"Cairo,sans-serif"
+              }}>✓ سجّل كمشاهَد</button>
+              <a href={`https://www.youtube.com/watch?v=${curVid.id}`}
+                target="_blank" rel="noopener noreferrer" style={{
+                  display:"flex",alignItems:"center",justifyContent:"center",gap:6,
+                  padding:"9px",borderRadius:10,
+                  background:"rgba(220,38,38,.08)",border:"1px solid rgba(220,38,38,.2)",
+                  color:"#f87171",fontSize:".75rem",fontWeight:700,textDecoration:"none",
+                  fontFamily:"Cairo,sans-serif"
+                }}>▶ فتح في يوتيوب</a>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── No videos: show YouTube search link ── */}
+      {!hasVideos&&(
+        <div style={{
+          padding:"16px 20px",borderRadius:14,
+          background:"rgba(220,38,38,.06)",border:"1px solid rgba(220,38,38,.18)",
+          display:"flex",alignItems:"center",gap:10
+        }}>
+          <span style={{fontSize:"1.3rem"}}>🎬</span>
+          <div style={{flex:1}}>
+            <p style={{fontSize:".84rem",fontWeight:700,color:"#e2e8f0"}}>لا توجد فيديوهات مسجّلة لهذا الباب حتى الآن</p>
+            <p style={{fontSize:".72rem",color:"#64748b",marginTop:2}}>يمكنك البحث عن شروحات على يوتيوب</p>
+          </div>
+          <a href={ytSearchUrl} target="_blank" rel="noopener noreferrer" style={{
+            padding:"9px 16px",borderRadius:10,
+            background:"rgba(220,38,38,.12)",border:"1px solid rgba(220,38,38,.3)",
+            color:"#f87171",fontWeight:700,fontSize:".8rem",textDecoration:"none",
+            fontFamily:"Cairo,sans-serif",flexShrink:0
+          }}>▶ بحث في يوتيوب</a>
+        </div>
+      )}
+
+      {/* ── Explanation section ── */}
+      <div className="rg-lesson lesson-cols" style={{gap:13}}>
+
+        {/* Right: summary + rules + speed tip + mistakes */}
+        <div style={{display:"flex",flexDirection:"column",gap:13}}>
+
+          {/* Loading AI */}
+          {aiLoading&&(
+            <div className="gl" style={{padding:"20px",display:"flex",alignItems:"center",gap:10}}>
+              <div className="spin"/><p style={{color:"#64748b",fontSize:".84rem"}}>يحضّر الشرح...</p>
+            </div>
+          )}
+
+          {/* Summary */}
+          {summary&&!aiLoading&&(
+            <div className="gl" style={{padding:"18px 20px",borderColor:`${secColor}20`,background:`${secColor}07`}}>
+              <p style={{fontSize:".68rem",color:secColor,fontWeight:700,letterSpacing:".08em",marginBottom:9}}>نظرة عامة</p>
+              <p style={{fontSize:".86rem",lineHeight:1.9,color:"#94a3b8"}}>{summary}</p>
+            </div>
+          )}
+
+          {/* Key Rules */}
+          {keyRules.length>0&&!aiLoading&&(
+            <div className="gl" style={{padding:"18px 20px"}}>
+              <p style={{fontSize:".68rem",color:secColor,fontWeight:700,letterSpacing:".08em",marginBottom:12}}>▸ القواعد الأساسية</p>
+              <div style={{display:"flex",flexDirection:"column",gap:9}}>
+                {keyRules.map((rule,i)=>(
+                  <div key={i} style={{display:"flex",gap:11,padding:"11px 14px",borderRadius:12,
+                    background:"rgba(255,255,255,.03)",border:"1px solid rgba(255,255,255,.06)"}}>
+                    <div style={{width:24,height:24,borderRadius:7,flexShrink:0,
                       background:`${secColor}18`,border:`1px solid ${secColor}28`,
                       display:"flex",alignItems:"center",justifyContent:"center",
-                      fontSize:".72rem",fontWeight:900,color:secColor,marginTop:1
-                    }}>{i+1}</div>
+                      fontSize:".72rem",fontWeight:900,color:secColor,marginTop:1}}>{i+1}</div>
                     <p style={{fontSize:".84rem",lineHeight:1.75,color:"#e2e8f0"}}>{rule}</p>
                   </div>
                 ))}
               </div>
             </div>
+          )}
 
-            {/* Speed tip */}
-            {data.speed_tip&&(
-              <div className="gl" style={{
-                padding:"16px 18px",
-                borderColor:"rgba(34,211,238,.18)",background:"rgba(34,211,238,.05)"
-              }}>
-                <p style={{fontSize:".67rem",color:"#22d3ee",fontWeight:700,marginBottom:7}}>
-                  🚀 نصيحة السرعة في الاختبار
-                </p>
-                <p style={{fontSize:".85rem",color:"#a5f3fc",lineHeight:1.8}}>{data.speed_tip}</p>
+          {/* Speed tip */}
+          {speedTip&&!aiLoading&&(
+            <div className="gl" style={{padding:"16px 18px",borderColor:"rgba(34,211,238,.18)",background:"rgba(34,211,238,.05)"}}>
+              <p style={{fontSize:".67rem",color:"#22d3ee",fontWeight:700,marginBottom:7}}>🚀 نصيحة السرعة في الاختبار</p>
+              <p style={{fontSize:".85rem",color:"#a5f3fc",lineHeight:1.8}}>{speedTip}</p>
+            </div>
+          )}
+
+          {/* Common Mistakes */}
+          {commonMistakes.length>0&&!aiLoading&&(
+            <div className="gl" style={{padding:"18px 20px"}}>
+              <p style={{fontSize:".68rem",color:"#f87171",fontWeight:700,letterSpacing:".08em",marginBottom:11}}>⚠ أخطاء شائعة</p>
+              <div style={{display:"flex",flexDirection:"column",gap:8}}>
+                {commonMistakes.map((m,i)=>(
+                  <div key={i} style={{display:"flex",gap:9,padding:"10px 13px",borderRadius:10,
+                    background:"rgba(248,113,113,.06)",border:"1px solid rgba(248,113,113,.14)"}}>
+                    <span style={{color:"#f87171",flexShrink:0,marginTop:2}}>✗</span>
+                    <p style={{fontSize:".82rem",color:"#fca5a5",lineHeight:1.65}}>{m}</p>
+                  </div>
+                ))}
               </div>
-            )}
+            </div>
+          )}
 
-            {/* Common Mistakes */}
-            {data.common_mistakes?.length>0&&(
-              <div className="gl" style={{padding:"18px 20px"}}>
-                <p style={{fontSize:".68rem",color:"#f87171",fontWeight:700,letterSpacing:".08em",marginBottom:11}}>
-                  ⚠ أخطاء شائعة
-                </p>
-                <div style={{display:"flex",flexDirection:"column",gap:8}}>
-                  {data.common_mistakes.map((m,i)=>(
-                    <div key={i} style={{
-                      display:"flex",gap:9,padding:"10px 13px",borderRadius:10,
-                      background:"rgba(248,113,113,.06)",border:"1px solid rgba(248,113,113,.14)"
-                    }}>
-                      <span style={{color:"#f87171",flexShrink:0,marginTop:2}}>✗</span>
-                      <p style={{fontSize:".82rem",color:"#fca5a5",lineHeight:1.65}}>{m}</p>
+          {/* No explanation available */}
+          {!aiLoading&&!summary&&keyRules.length===0&&(
+            <div className="gl" style={{padding:"20px",textAlign:"center",borderColor:"rgba(255,255,255,.06)"}}>
+              <p style={{fontSize:"1.4rem",marginBottom:8}}>📖</p>
+              <p style={{fontSize:".84rem",color:"#64748b"}}>لا يوجد شرح نصي لهذا الباب حاليًا</p>
+              <p style={{fontSize:".74rem",color:"#334155",marginTop:4}}>شاهد الفيديو أعلاه للشرح الكامل</p>
+            </div>
+          )}
+        </div>
+
+        {/* Left: solved example + quick ref */}
+        <div style={{display:"flex",flexDirection:"column",gap:13}}>
+
+          {/* Solved Example */}
+          {solvedExample&&!aiLoading&&(
+            <div className="gl" style={{padding:0,overflow:"hidden",borderColor:"rgba(167,139,250,.22)"}}>
+              <div style={{padding:"13px 18px",background:"linear-gradient(135deg,rgba(167,139,250,.14),rgba(5,9,26,.9))",
+                borderBottom:"1px solid rgba(167,139,250,.15)"}}>
+                <p style={{fontSize:".68rem",color:"#c4b5fd",fontWeight:700,letterSpacing:".07em"}}>💡 مثال محلول — نوع قياس</p>
+              </div>
+              <div style={{padding:"18px 20px"}}>
+                <p style={{fontSize:".9rem",fontWeight:700,color:"#f1f5f9",lineHeight:1.85,marginBottom:16,
+                  paddingBottom:14,borderBottom:"1px solid rgba(255,255,255,.06)"}}>{solvedExample.question}</p>
+                <p style={{fontSize:".67rem",color:"#f97316",fontWeight:700,marginBottom:10}}>خطوات الحل:</p>
+                <div style={{display:"flex",flexDirection:"column",gap:9,marginBottom:14}}>
+                  {solvedExample.steps?.map((s,i)=>(
+                    <div key={i} className="step">
+                      <div className="snum">{i+1}</div>
+                      <p style={{fontSize:".83rem",lineHeight:1.8,color:"#cbd5e1"}}>{s}</p>
                     </div>
                   ))}
                 </div>
-              </div>
-            )}
-          </div>
-
-          {/* Left column */}
-          <div style={{display:"flex",flexDirection:"column",gap:13}}>
-
-            {/* Solved Example */}
-            {data.solved_example&&(
-              <div className="gl" style={{
-                padding:0,overflow:"hidden",
-                borderColor:"rgba(167,139,250,.22)"
-              }}>
-                <div style={{
-                  padding:"13px 18px",
-                  background:"linear-gradient(135deg,rgba(167,139,250,.14),rgba(5,9,26,.9))",
-                  borderBottom:"1px solid rgba(167,139,250,.15)"
-                }}>
-                  <p style={{fontSize:".68rem",color:"#c4b5fd",fontWeight:700,letterSpacing:".07em"}}>
-                    💡 مثال محلول — نوع قياس
-                  </p>
+                <div style={{padding:"11px 15px",borderRadius:11,marginBottom:10,
+                  background:"rgba(74,222,128,.07)",border:"1px solid rgba(74,222,128,.22)"}}>
+                  <p style={{fontSize:".68rem",color:"#6ee7b7",fontWeight:700,marginBottom:3}}>✓ الإجابة</p>
+                  <p style={{color:"#bbf7d0",fontWeight:800,fontSize:".88rem"}}>{solvedExample.answer}</p>
                 </div>
-                <div style={{padding:"18px 20px"}}>
-                  <p style={{
-                    fontSize:".9rem",fontWeight:700,color:"#f1f5f9",
-                    lineHeight:1.85,marginBottom:16,
-                    paddingBottom:14,borderBottom:"1px solid rgba(255,255,255,.06)"
-                  }}>
-                    {data.solved_example.question}
-                  </p>
-                  <p style={{fontSize:".67rem",color:"#f97316",fontWeight:700,marginBottom:10}}>
-                    خطوات الحل:
-                  </p>
-                  <div style={{display:"flex",flexDirection:"column",gap:9,marginBottom:14}}>
-                    {data.solved_example.steps?.map((s,i)=>(
-                      <div key={i} className="step">
-                        <div className="snum">{i+1}</div>
-                        <p style={{fontSize:".83rem",lineHeight:1.8,color:"#cbd5e1"}}>{s}</p>
-                      </div>
-                    ))}
-                  </div>
-                  <div style={{
-                    padding:"11px 15px",borderRadius:11,marginBottom:10,
-                    background:"rgba(74,222,128,.07)",border:"1px solid rgba(74,222,128,.22)"
-                  }}>
-                    <p style={{fontSize:".68rem",color:"#6ee7b7",fontWeight:700,marginBottom:3}}>✓ الإجابة</p>
-                    <p style={{color:"#bbf7d0",fontWeight:800,fontSize:".88rem"}}>
-                      {data.solved_example.answer}
-                    </p>
-                  </div>
-                  {data.solved_example.trick&&(
-                    <div style={{
-                      padding:"10px 14px",borderRadius:10,
-                      background:"rgba(249,115,22,.07)",border:"1px solid rgba(249,115,22,.2)"
-                    }}>
-                      <p style={{fontSize:".78rem",color:"#fdba74",lineHeight:1.7}}>
-                        ⚡ {data.solved_example.trick}
-                      </p>
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
-
-            {/* Quick ref from CONCEPTS */}
-            {CONCEPTS[topic]&&(
-              <div className="gl" style={{padding:"18px 20px"}}>
-                <p style={{fontSize:".67rem",color:"#22d3ee",fontWeight:700,letterSpacing:".08em",marginBottom:10}}>
-                  📌 مرجع سريع
-                </p>
-                {CONCEPTS[topic].formula!=="—"&&(
-                  <div style={{
-                    padding:"10px",borderRadius:10,marginBottom:10,
-                    background:"rgba(249,115,22,.07)",border:"1px solid rgba(249,115,22,.18)",
-                    textAlign:"center"
-                  }}>
-                    <p style={{fontSize:".65rem",color:"#f97316",marginBottom:4}}>الصيغة</p>
-                    <p style={{fontSize:".82rem",fontWeight:800,color:"#fdba74",direction:"rtl"}}>
-                      {CONCEPTS[topic].formula}
-                    </p>
+                {solvedExample.trick&&(
+                  <div style={{padding:"10px 14px",borderRadius:10,
+                    background:"rgba(249,115,22,.07)",border:"1px solid rgba(249,115,22,.2)"}}>
+                    <p style={{fontSize:".78rem",color:"#fdba74",lineHeight:1.7}}>⚡ {solvedExample.trick}</p>
                   </div>
                 )}
-                <p style={{fontSize:".78rem",color:"#f87171",lineHeight:1.75}}>
-                  {CONCEPTS[topic].trap}
-                </p>
               </div>
-            )}
-          </div>
+            </div>
+          )}
+
+          {/* Quick ref from CONCEPTS */}
+          {concept&&(
+            <div className="gl" style={{padding:"18px 20px"}}>
+              <p style={{fontSize:".67rem",color:"#22d3ee",fontWeight:700,letterSpacing:".08em",marginBottom:10}}>📌 مرجع سريع</p>
+              {concept.formula&&concept.formula!=="—"&&(
+                <div style={{padding:"10px",borderRadius:10,marginBottom:10,
+                  background:"rgba(249,115,22,.07)",border:"1px solid rgba(249,115,22,.18)",textAlign:"center"}}>
+                  <p style={{fontSize:".65rem",color:"#f97316",marginBottom:4}}>الصيغة</p>
+                  <p style={{fontSize:".82rem",fontWeight:800,color:"#fdba74",direction:"rtl"}}>{concept.formula}</p>
+                </div>
+              )}
+              <p style={{fontSize:".78rem",color:"#f87171",lineHeight:1.75}}>{concept.trap}</p>
+            </div>
+          )}
         </div>
-      )}
+      </div>
 
-      {/* فيديوهات الشرح */}
-      {(()=>{const vids=getTopicVideos(topic);if(!vids.length)return null;return(<div className="gl" style={{padding:"18px 20px"}}><p style={{fontSize:".68rem",color:"#f87171",fontWeight:700,letterSpacing:".08em",marginBottom:12}}>🎬 فيديوهات الشرح ({vids.length})</p><div style={{display:"flex",flexDirection:"column",gap:8}}>{vids.map((v,i)=>(<a key={v.id} href={`https://www.youtube.com/watch?v=${v.id}`} target="_blank" rel="noopener noreferrer" style={{display:"flex",alignItems:"center",gap:12,padding:"11px 14px",borderRadius:12,textDecoration:"none",background:"rgba(220,38,38,.07)",border:"1px solid rgba(220,38,38,.18)"}}><div style={{width:30,height:30,borderRadius:8,flexShrink:0,background:"rgba(220,38,38,.18)",border:"1px solid rgba(220,38,38,.3)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:".75rem",fontWeight:800,color:"#f87171"}}>{i+1}</div><div style={{flex:1,minWidth:0}}><p style={{fontWeight:700,color:"#e2e8f0",fontSize:".82rem",marginBottom:1}}>{v.title}</p><p style={{fontSize:".68rem",color:"#64748b"}}>يوتيوب · فيديو {v.order}</p></div><span style={{fontSize:"1.1rem",color:"#f87171",flexShrink:0}}>▶</span></a>))}</div></div>);})()}
-
-      {/* Bottom action bar */}
+      {/* ── Bottom action bar ── */}
       <div style={{
         display:"flex",gap:10,justifyContent:"space-between",alignItems:"center",
         padding:"16px 20px",borderRadius:16,flexWrap:"wrap",
         background:"rgba(255,255,255,.03)",border:"1px solid rgba(255,255,255,.07)"
       }}>
-        <a href={ytUrl} target="_blank" rel="noopener noreferrer" style={{
-          display:"flex",alignItems:"center",gap:8,padding:"10px 18px",borderRadius:11,
-          background:"rgba(220,38,38,.09)",border:"1px solid rgba(220,38,38,.24)",
-          color:"#f87171",fontWeight:700,fontSize:".82rem",
-          textDecoration:"none",fontFamily:"Cairo,sans-serif"
-        }}>
-          <span style={{fontSize:"1.1rem"}}>▶</span> فيديو شرح على يوتيوب
-        </a>
-        <div style={{display:"flex",gap:9}}>
-          <button className="btn btn-g" onClick={onClose}>
-            ← رجوع للخريطة
-          </button>
-          <button className="btn btn-p" style={{padding:"11px 26px"}}
-            onClick={onStartPractice}>
-            ابدأ التدريب ←
-          </button>
+        {!hasVideos&&(
+          <a href={ytSearchUrl} target="_blank" rel="noopener noreferrer" style={{
+            display:"flex",alignItems:"center",gap:8,padding:"10px 18px",borderRadius:11,
+            background:"rgba(220,38,38,.09)",border:"1px solid rgba(220,38,38,.24)",
+            color:"#f87171",fontWeight:700,fontSize:".82rem",
+            textDecoration:"none",fontFamily:"Cairo,sans-serif"
+          }}>
+            <span style={{fontSize:"1.1rem"}}>▶</span> فيديو شرح على يوتيوب
+          </a>
+        )}
+        <div style={{display:"flex",gap:9,marginRight:"auto"}}>
+          <button className="btn btn-g" onClick={onClose}>← رجوع للخريطة</button>
+          <button className="btn btn-p" style={{padding:"11px 26px"}} onClick={onStartPractice}>ابدأ التدريب ←</button>
         </div>
       </div>
       <SiteFooter go={go}/>
@@ -4398,51 +4494,30 @@ export default function Fahmni(){
         const u=await r.json();
         if(!u.id){localStorage.removeItem('fm_session');return;}
         // Token valid — restore session
-        const adminByEmail=isAdminUser(sess.email||u.email);
-        setSession({...sess,isAdmin:adminByEmail});
+        setSession({...sess,isAdmin:false}); // isAdmin updated after RPC
         setUser(u2=>({...u2,name:sess.name}));
         const prog=await sbLoadProgress(sess.userId,sess.token);
         if(prog){
           setUser({name:sess.name,totalSolved:prog.totalSolved,correct:prog.correct,streak:prog.streak});
           setMistakes(prog.mistakes||[]);
           if(prog.placementDone){placementDoneRef.current=true;setPlacementDone(true);}
-          // Admin by email → full access, no RPC needed
+          if(prog.placementDone){}
+          // Check admin by email first
+          const adminByEmail=isAdminUser(sess.email||u.email);
           if(adminByEmail){
             setTrial({isSubscribed:true,isAdmin:true,used:0,limit:99999,plan:'exam',status:'active',freeTrialUsed:false,expiresAt:null});
             setSessionLoading(false);
             return;
           }
-          // Non-admin: try RPC then fallback to profile data
-          let gotRPC=false;
-          try{
-            const rpcR=await fetch(`${SUPABASE_URL}/rest/v1/rpc/get_my_access`,{
-              method:'POST',headers:{"Content-Type":"application/json","apikey":SUPABASE_ANON,"Authorization":`Bearer ${sess.token}`,"Prefer":"return=minimal"},body:'{}'
-            });
-            if(rpcR.ok){
-              const access=await rpcR.json();
-              gotRPC=true;
-              setTrial({
-                isSubscribed:access.isSubscribed||!!access.isAdmin,
-                isAdmin:!!access.isAdmin,
-                used:access.trialUsed||0,limit:access.trialLimit||15,
-                plan:access.isAdmin?'exam':access.plan||'free',
-                status:access.isAdmin?'active':access.status||'inactive',
-                freeTrialUsed:access.status==='expired'&&access.plan==='free',
-                expiresAt:access.expiresAt?new Date(access.expiresAt):null,
-              });
-            }
-          }catch(e){}
-          if(!gotRPC){
-            const now=new Date();
-            const expiresAt=prog.subscribed_until?new Date(prog.subscribed_until):null;
-            const plan=prog.plan||'free';
-            const freeTrialUsed=!!(prog?.free_trial_used||false);
-            let status='inactive';
-            if(['month','exam'].includes(plan)&&expiresAt&&expiresAt>now) status='active';
-            else if(['month','exam'].includes(plan)&&expiresAt&&expiresAt<=now) status='expired';
-            else if(plan==='free'&&!freeTrialUsed&&(prog.trialUsed||0)<(prog.trialLimit||15)) status='free_trial';
-            setTrial({isSubscribed:status==='active',used:prog.trialUsed||0,limit:prog.trialLimit||15,plan,status,freeTrialUsed,expiresAt,isAdmin:false});
-          }
+          const now=new Date();
+          const expiresAt=prog.subscribed_until?new Date(prog.subscribed_until):null;
+          const plan=prog.plan||'free';
+          const freeTrialUsed=!!(prog?.free_trial_used||false);
+          let status='inactive';
+          if(['month','exam'].includes(plan)&&expiresAt&&expiresAt>now) status='active';
+          else if(['month','exam'].includes(plan)&&expiresAt&&expiresAt<=now) status='expired';
+          else if(plan==='free'&&!freeTrialUsed&&(prog.trialUsed||0)<(prog.trialLimit||15)) status='free_trial';
+          setTrial({isSubscribed:status==='active',used:prog.trialUsed||0,limit:prog.trialLimit||15,plan,status,freeTrialUsed,expiresAt,isAdmin:false});
         }
       }catch(e){console.warn('Session restore failed:',e);}
       finally{setSessionLoading(false);}
@@ -4495,23 +4570,15 @@ export default function Fahmni(){
   const handleLogin=async(sess)=>{
     const adminByEmail=isAdminUser(sess.email);
     setSession({...sess,isAdmin:adminByEmail});
-    // Admin by email → full access immediately, skip RPC
     if(adminByEmail){
+      if(!sess.isGuest) try{const minimal={userId:sess.userId,name:sess.name,email:sess.email,token:sess.token};localStorage.setItem('fm_session',JSON.stringify(minimal));}catch(e){}
       setTrial({isSubscribed:true,isAdmin:true,used:0,limit:99999,plan:'exam',status:'active',freeTrialUsed:false,expiresAt:null});
-      if(!sess.isGuest) try{
-        const minimal={userId:sess.userId,name:sess.name,email:sess.email,token:sess.token};
-        localStorage.setItem('fm_session',JSON.stringify(minimal));
-      }catch(e){}
       setUser(u=>({...u,name:sess.name}));
       if(!sess.isGuest) await sbCreateProfile(sess.userId,sess.token,sess.name);
       const prog=await sbLoadProgress(sess.userId,sess.token);
-      if(prog){
-        setUser({name:sess.name,totalSolved:prog.totalSolved,correct:prog.correct,streak:prog.streak});
-        setMistakes(prog.mistakes||[]);
-      }
+      if(prog){setUser({name:sess.name,totalSolved:prog.totalSolved,correct:prog.correct,streak:prog.streak});setMistakes(prog.mistakes||[]);}
       if(prog?.placementDone){placementDoneRef.current=true;setPlacementDone(true);}
-      go("dashboard");
-      return;
+      go("dashboard");return;
     }
     if(!sess.isGuest) try{
       const minimal={userId:sess.userId,name:sess.name,email:sess.email,token:sess.token};
@@ -4553,7 +4620,7 @@ export default function Fahmni(){
             if(['month','exam'].includes(plan)&&expiresAt&&expiresAt>now) status='active';
             else if(['month','exam'].includes(plan)&&expiresAt&&expiresAt<=now) status='expired';
             else if(plan==='free'&&!freeTrialUsed&&(prog.trialUsed||0)<(prog.trialLimit||15)) status='free_trial';
-            setTrial({isSubscribed:status==='active',used:prog.trialUsed||0,limit:prog.trialLimit||15,plan,status,freeTrialUsed,expiresAt,isAdmin:false});
+            setTrial({isSubscribed:status==='active',used:prog.trialUsed||0,limit:prog.trialLimit||15,plan,status,freeTrialUsed,expiresAt});
           }
         }
       }
