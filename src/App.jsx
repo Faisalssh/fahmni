@@ -777,7 +777,11 @@ const VIDEO_LESSONS={
     {id:"KEb5Hvqz8Oc",title:"الأنماط — الجمع والضرب والمتتابعات الهندسية",order:1,segments:[{id:"KE-S1",title:"أنماط الجمع والفروق",startTime:0,order:1},{id:"KE-S2",title:"أنماط الضرب والتضاعف",startTime:360,order:2},{id:"KE-S3",title:"أنماط المدرجات والأعواد",startTime:840,order:3},{id:"KE-S4",title:"قانون المتتابعة الحسابية",startTime:1548,order:4}]},
     {id:"Mrl0y_-bsmU",title:"أنماط الكسور والمتتابعات الحسابية وقانون الحد",order:2,segments:[{id:"Mr-S1",title:"أنماط الكسور",startTime:0,order:1},{id:"Mr-S2",title:"الأنماط المرسومة والمتتابعة الحسابية",startTime:637,order:2},{id:"Mr-S3",title:"قانون إيجاد الحد العام",startTime:1299,order:3},{id:"Mr-S4",title:"أنماط (-1)^ن والمسائل المتقدمة",startTime:1647,order:4}]},
   ],
-};
+  "الزوايا والأضلاع":[
+    {id:"rz3M75Vd_BU",title:"الزوايا — مستقيم، مثلث، تقابل بالرأس، نقطة",order:1,segments:[{id:"Z1-S1",title:"الزاوية المستقيمة والمثلث = 180°",startTime:0,order:1},{id:"Z1-S2",title:"الزوايا المتجمعة حول نقطة = 360°",startTime:480,order:2},{id:"Z1-S3",title:"مسائل زوايا المثلث",startTime:720,order:3},{id:"Z1-S4",title:"التقابل بالرأس + المثلث متساوي الضلعين",startTime:1140,order:4}]},
+    {id:"z4rJUlafeGE",title:"المضلعات — الزوايا الداخلية والخارجية والمتوازي",order:2,segments:[{id:"Z2-S1",title:"مجموع الزوايا الداخلية = (n-2)×180",startTime:0,order:1},{id:"Z2-S2",title:"زاوية المضلع المنتظم الداخلية ÷ n",startTime:270,order:2},{id:"Z2-S3",title:"مجموع الزوايا الخارجية = 360",startTime:374,order:3},{id:"Z2-S4",title:"متوازي الأضلاع والمعين (متجاور=180، متقابل=متساوٍ)",startTime:469,order:4},{id:"Z2-S5",title:"أقطار السداسي المنتظم",startTime:1423,order:5}]},
+    {id:"5yai-bFEdfg",title:"الزاوية الخارجية للمثلث والرباعي الدائري",order:3,segments:[{id:"Z3-S1",title:"الزاوية الخارجية = مجموع الزاويتين البعيدتين",startTime:0,order:1},{id:"Z3-S2",title:"الدائرة — أنصاف الأقطار المتساوية",startTime:373,order:2},{id:"Z3-S3",title:"الرباعي الدائري — المتقابلتان مجموعهما 180",startTime:1129,order:3}]},
+  ],
 const getTopicVideos=(topic)=>VIDEO_LESSONS[topic]||[];
 
 const PLACEMENT_Q=[
