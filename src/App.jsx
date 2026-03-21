@@ -747,6 +747,10 @@ function getRec({goal,confidence,minutes,section,score,answers}){
 const SUPABASE_URL=import.meta.env.VITE_SUPABASE_URL;
 const IS_ARTIFACT=typeof window!=="undefined"&&(window.location.hostname.includes("claude.ai")||window.location.hostname==="localhost");
 
+/* ── Admin email — الحساب الوحيد بصلاحيات كاملة ── */
+const ADMIN_EMAIL="sirfaisalalshehri@gmail.com";
+const isAdminUser=(email)=>typeof email==="string"&&email.toLowerCase().trim()===ADMIN_EMAIL;
+
 /* ═══ PLAN HELPERS ═══════════════════════════════════════════
  *  free  → 10 سؤال مجاني فقط
  *  month → أسئلة غير محدودة + شرح + محاكاة + تتبع
@@ -2081,7 +2085,7 @@ function Session({settings,go,updateUser,trial,setTrial,addMistake,plan="free",s
   const avgT=qTimes.length?Math.round(qTimes.reduce((a,b)=>a+b,0)/qTimes.length):0;
 
   const fetchQ=useCallback(async()=>{
-    if(!trial.isSubscribed&&trial.used>=trial.limit){go("paywall");return;}
+    if(!trial.isAdmin&&!trial.isSubscribed&&trial.used>=trial.limit){go("paywall");return;}
     // اختر باباً عشوائياً جديداً مختلفاً عن الحالي
     const nextTopic=(()=>{
       const pool=ALL_TOPICS.filter(t=>t!==curTopic);
@@ -2100,7 +2104,7 @@ function Session({settings,go,updateUser,trial,setTrial,addMistake,plan="free",s
   },[settings,trial]);
 
   useEffect(()=>{
-    if(!trial.isSubscribed&&trial.used>=trial.limit){go("paywall");return;}
+    if(!trial.isAdmin&&!trial.isSubscribed&&trial.used>=trial.limit){go("paywall");return;}
     fetchQ();
   },[]);
 
@@ -2197,7 +2201,7 @@ function Session({settings,go,updateUser,trial,setTrial,addMistake,plan="free",s
             <p style={{fontSize:".7rem",color:"#64748b"}}>الصحيح / الكلي</p>
             <p style={{fontSize:".9rem",fontWeight:900,color:"#fff"}}>{correct} / {history.length}</p>
           </div>
-          {!trial.isSubscribed&&<div style={{textAlign:"left",minWidth:80}}>
+          {!trial.isSubscribed&&!trial.isAdmin&&<div style={{textAlign:"left",minWidth:80}}>
             <p style={{fontSize:".62rem",color:"#f97316",fontWeight:700,marginBottom:3}}>{trial.used}/{trial.limit} سؤال</p>
             <div className="pt"><div className="pf" style={{width:`${Math.min((trial.used/trial.limit)*100,100)}%`}}/></div>
           </div>}
@@ -2357,7 +2361,7 @@ function Session({settings,go,updateUser,trial,setTrial,addMistake,plan="free",s
           {history.map((h,i)=><div key={i} style={{height:26,borderRadius:7,display:"flex",alignItems:"center",justifyContent:"center",fontSize:".68rem",fontWeight:700,background:h.ok?"rgba(74,222,128,.12)":"rgba(248,113,113,.1)",border:`1px solid ${h.ok?"rgba(74,222,128,.3)":"rgba(248,113,113,.25)"}`,color:h.ok?"#86efac":"#fca5a5"}}>{h.ok?"✓":"✗"}</div>)}
         </div>
       </div>}
-      {!trial.isSubscribed&&<div className="gl2" style={{padding:"12px 14px",borderColor:"rgba(249,115,22,.2)",background:"rgba(249,115,22,.05)"}}>
+      {!trial.isSubscribed&&!trial.isAdmin&&<div className="gl2" style={{padding:"12px 14px",borderColor:"rgba(249,115,22,.2)",background:"rgba(249,115,22,.05)"}}>
         <p style={{fontSize:".67rem",color:"#f97316",fontWeight:700,marginBottom:6}}>التجربة المجانية</p>
         <div className="pt"><div className="pf" style={{width:`${Math.min((trial.used/trial.limit)*100,100)}%`}}/></div>
         <p style={{fontSize:".74rem",color:"#94a3b8",marginTop:6}}>{trial.used}/{trial.limit} سؤال</p>
@@ -4348,39 +4352,51 @@ export default function Fahmni(){
         const u=await r.json();
         if(!u.id){localStorage.removeItem('fm_session');return;}
         // Token valid — restore session
-        setSession({...sess,isAdmin:false}); // isAdmin updated after RPC
+        const adminByEmail=isAdminUser(sess.email||u.email);
+        setSession({...sess,isAdmin:adminByEmail});
         setUser(u2=>({...u2,name:sess.name}));
         const prog=await sbLoadProgress(sess.userId,sess.token);
         if(prog){
           setUser({name:sess.name,totalSolved:prog.totalSolved,correct:prog.correct,streak:prog.streak});
           setMistakes(prog.mistakes||[]);
           if(prog.placementDone){placementDoneRef.current=true;setPlacementDone(true);}
-          // Subscription fallback — DB only, no client-side override
-          const now=new Date();
-          const expiresAt=prog.subscribed_until?new Date(prog.subscribed_until):null;
-          const plan=prog.plan||'free';
-          const freeTrialUsed=!!(prog?.free_trial_used||false);
-          let status='inactive';
-          if(['month','exam'].includes(plan)&&expiresAt&&expiresAt>now) status='active';
-          else if(['month','exam'].includes(plan)&&expiresAt&&expiresAt<=now) status='expired';
-          else if(plan==='free'&&!freeTrialUsed&&(prog.trialUsed||0)<(prog.trialLimit||15)) status='free_trial';
-          // Try RPC to get accurate isAdmin
-          let isAdmin=false;
+          // Admin by email → full access, no RPC needed
+          if(adminByEmail){
+            setTrial({isSubscribed:true,isAdmin:true,used:0,limit:99999,plan:'exam',status:'active',freeTrialUsed:false,expiresAt:null});
+            setSessionLoading(false);
+            return;
+          }
+          // Non-admin: try RPC then fallback to profile data
+          let gotRPC=false;
           try{
             const rpcR=await fetch(`${SUPABASE_URL}/rest/v1/rpc/get_my_access`,{
               method:'POST',headers:{"Content-Type":"application/json","apikey":SUPABASE_ANON,"Authorization":`Bearer ${sess.token}`,"Prefer":"return=minimal"},body:'{}'
             });
             if(rpcR.ok){
               const access=await rpcR.json();
-              isAdmin=!!access.isAdmin;
-              if(isAdmin){
-                setTrial({isSubscribed:true,isAdmin:true,used:access.trialUsed||0,limit:access.trialLimit||99999,plan:'exam',status:'active',freeTrialUsed:false,expiresAt:null});
-                setSessionLoading(false);
-                return;
-              }
+              gotRPC=true;
+              setTrial({
+                isSubscribed:access.isSubscribed||!!access.isAdmin,
+                isAdmin:!!access.isAdmin,
+                used:access.trialUsed||0,limit:access.trialLimit||15,
+                plan:access.isAdmin?'exam':access.plan||'free',
+                status:access.isAdmin?'active':access.status||'inactive',
+                freeTrialUsed:access.status==='expired'&&access.plan==='free',
+                expiresAt:access.expiresAt?new Date(access.expiresAt):null,
+              });
             }
           }catch(e){}
-          setTrial({isSubscribed:status==='active',used:prog.trialUsed||0,limit:prog.trialLimit||15,plan,status,freeTrialUsed,expiresAt,isAdmin:false});
+          if(!gotRPC){
+            const now=new Date();
+            const expiresAt=prog.subscribed_until?new Date(prog.subscribed_until):null;
+            const plan=prog.plan||'free';
+            const freeTrialUsed=!!(prog?.free_trial_used||false);
+            let status='inactive';
+            if(['month','exam'].includes(plan)&&expiresAt&&expiresAt>now) status='active';
+            else if(['month','exam'].includes(plan)&&expiresAt&&expiresAt<=now) status='expired';
+            else if(plan==='free'&&!freeTrialUsed&&(prog.trialUsed||0)<(prog.trialLimit||15)) status='free_trial';
+            setTrial({isSubscribed:status==='active',used:prog.trialUsed||0,limit:prog.trialLimit||15,plan,status,freeTrialUsed,expiresAt,isAdmin:false});
+          }
         }
       }catch(e){console.warn('Session restore failed:',e);}
       finally{setSessionLoading(false);}
@@ -4431,9 +4447,27 @@ export default function Fahmni(){
   },[]);
 
   const handleLogin=async(sess)=>{
-    setSession(sess);
+    const adminByEmail=isAdminUser(sess.email);
+    setSession({...sess,isAdmin:adminByEmail});
+    // Admin by email → full access immediately, skip RPC
+    if(adminByEmail){
+      setTrial({isSubscribed:true,isAdmin:true,used:0,limit:99999,plan:'exam',status:'active',freeTrialUsed:false,expiresAt:null});
+      if(!sess.isGuest) try{
+        const minimal={userId:sess.userId,name:sess.name,email:sess.email,token:sess.token};
+        localStorage.setItem('fm_session',JSON.stringify(minimal));
+      }catch(e){}
+      setUser(u=>({...u,name:sess.name}));
+      if(!sess.isGuest) await sbCreateProfile(sess.userId,sess.token,sess.name);
+      const prog=await sbLoadProgress(sess.userId,sess.token);
+      if(prog){
+        setUser({name:sess.name,totalSolved:prog.totalSolved,correct:prog.correct,streak:prog.streak});
+        setMistakes(prog.mistakes||[]);
+      }
+      if(prog?.placementDone){placementDoneRef.current=true;setPlacementDone(true);}
+      go("dashboard");
+      return;
+    }
     if(!sess.isGuest) try{
-      // Store minimal session data — token verified server-side on restore
       const minimal={userId:sess.userId,name:sess.name,email:sess.email,token:sess.token};
       localStorage.setItem('fm_session',JSON.stringify(minimal));
     }catch(e){}
@@ -4473,7 +4507,7 @@ export default function Fahmni(){
             if(['month','exam'].includes(plan)&&expiresAt&&expiresAt>now) status='active';
             else if(['month','exam'].includes(plan)&&expiresAt&&expiresAt<=now) status='expired';
             else if(plan==='free'&&!freeTrialUsed&&(prog.trialUsed||0)<(prog.trialLimit||15)) status='free_trial';
-            setTrial({isSubscribed:status==='active',used:prog.trialUsed||0,limit:prog.trialLimit||15,plan,status,freeTrialUsed,expiresAt});
+            setTrial({isSubscribed:status==='active',used:prog.trialUsed||0,limit:prog.trialLimit||15,plan,status,freeTrialUsed,expiresAt,isAdmin:false});
           }
         }
       }
@@ -4581,7 +4615,7 @@ export default function Fahmni(){
       if(!trial.isAdmin){go("placement");return null;}
     }
     // 3) Session limit check for free trial
-    if(page==="session"&&!trial.isSubscribed&&trial.used>=trial.limit){
+    if(page==="session"&&!trial.isAdmin&&!trial.isSubscribed&&trial.used>=trial.limit){
       go("paywall");return null;
     }
     const plan=trial.plan||'free';
@@ -4599,8 +4633,7 @@ export default function Fahmni(){
     case"dashboard":return <Dashboard go={go} user={user} trial={trial} mistakes={mistakes}/>;
     case"roadmap":return <Roadmap go={go} setSettings={setSettings} openLesson={openLesson} trial={trial}/>;
     case"lesson":
-      if(!trial.isSubscribed&&!trial.isAdmin) return <UpgradePrompt feature="شرح الأبواب" go={go}/>;
-      if(trial.status==='expired'&&!trial.isAdmin) return <UpgradePrompt feature="شرح الأبواب" go={go}/>;
+      if(!trial.isAdmin&&(!trial.isSubscribed||trial.status==='expired')) return <UpgradePrompt feature="شرح الأبواب" go={go}/>;
       return lessonTopic
       ? <TopicLesson
           topic={lessonTopic}
@@ -4613,15 +4646,15 @@ export default function Fahmni(){
       : <Roadmap go={go} setSettings={setSettings} openLesson={openLesson} trial={trial}/>;
     case"diagnostic":return <DiagnosticQ topic={settings.topic} section={settings.section} onResult={level=>{setSettings(p=>({...p,difficulty:level==="متقدم"?"صعب":"سهل"}));go("session");}} onSkip={()=>go("session")}/>;
     case"bank":
-      if(!trial.isSubscribed&&!trial.isAdmin) return <UpgradePrompt feature="بنك الأسئلة" go={go}/>;
-      if(trial.status==='expired'&&!trial.isAdmin) return <ExpiredWall trial={trial} go={go}/>;
+      if(!trial.isAdmin&&!trial.isSubscribed) return <UpgradePrompt feature="بنك الأسئلة" go={go}/>;
+      if(!trial.isAdmin&&trial.status==='expired') return <ExpiredWall trial={trial} go={go}/>;
       return <Bank settings={settings} setSettings={setSettings} go={go} trial={trial}/>;
     case"session":return <Session settings={settings} go={go} updateUser={updateUser} trial={trial} setTrial={setTrial} addMistake={addMistake} plan={trial.plan||"free"} session={session} user={user}/>;
     case"sim":
-      if((!trial.isSubscribed||trial.status==='expired')&&!trial.isAdmin) return <UpgradePrompt feature="وضع المحاكاة" go={go}/>;
+      if(!trial.isAdmin&&(!trial.isSubscribed||trial.status==='expired')) return <UpgradePrompt feature="وضع المحاكاة" go={go}/>;
       return <SimMode settings={settings} go={go} updateUser={updateUser} addMistake={addMistake} trial={trial}/>;
     case"review":
-      if((!trial.isSubscribed||trial.status==='expired')&&!trial.isAdmin) return <UpgradePrompt feature="وضع المراجعة" go={go}/>;
+      if(!trial.isAdmin&&(!trial.isSubscribed||trial.status==='expired')) return <UpgradePrompt feature="وضع المراجعة" go={go}/>;
       return <ReviewMode mistakes={mistakes} go={go} onRedo={()=>go("session")}/>;
     case"pricing":return <Pricing go={go} setCheckoutPlan={setCheckoutPlan} setCheckoutPeriod={setCheckoutPeriod}/>;
     case"checkout":return <Checkout go={go} trial={trial} selectedPlan={checkoutPlan} selectedPeriod={checkoutPeriod}/>;
