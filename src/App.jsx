@@ -724,6 +724,49 @@ const CONCEPTS={
   "الخطأ السياقي":{icon:"🔍",formula:"جملة صحيحة إملائياً لكن فيها كلمة واحدة تكسر المعنى",rules:["اقرأ الجملة وتصوّر معناها الكامل","ابحث عن الكلمة التي لا تنتمي للسياق","الخطأ واحد فقط — لا أكثر"],trap:"⚠ الفخ: الكلمة مكتوبة صح إملائياً لكنها خطأ في المعنى"},
 };
 
+const VIDEO_LESSONS={
+  "النسبة والتناسب":[
+    {id:"L7seENxdC0o",title:"الكسور والنسبة والتناسب — تأسيس",order:1},
+    {id:"G2ZMfsSByLo",title:"قسمة الكسور ومسائل النسبة والتناسب",order:2},
+    {id:"7ubjvI0NV7w",title:"مسائل النسبة والتناسب — شامل",order:3},
+    {id:"ynylnmD6K80",title:"التناسب الطردي وتطبيقاته",order:4},
+    {id:"tAAo54Kk1dM",title:"طابعتان معاً · التناسب العكسي · عملات",order:5},
+    {id:"_ETvoigQ93I",title:"الضرب التبادلي وأجزاء النسب",order:6},
+  ],
+  "السرعة والمسافة والزمن":[
+    {id:"QiDMduqe2ww",title:"قانون السرعة والزمن والمسافة — أساسيات",order:1},
+    {id:"hGNUYSuxZps",title:"الاتجاهات المتعاكسة وزمن الالتحاق",order:2},
+    {id:"786rld21Vi8",title:"السرعة المتوسطة ومسائل العجلة",order:3},
+  ],
+  "المتوسط الحسابي":[
+    {id:"XKl5DvPsTao",title:"الوسط الحسابي — شامل ومتكامل",order:1},
+  ],
+  "الأرباح والنسب المئوية":[
+    {id:"gcMTWTxkCvk",title:"النسبة المئوية — تأسيس وتطبيقات",order:1},
+    {id:"ENJUJw_H2ZY",title:"الربح والخسارة والخصومات",order:2},
+    {id:"RJvmfCstmbY",title:"مسائل البيع والشراء والتقسيط",order:3},
+    {id:"Ywiy09CTcco",title:"مسائل متقدمة في الربح والخسارة",order:4},
+  ],
+  "المقارنة الكمية":[
+    {id:"5nR49wlgzt8",title:"مقارنة الأعداد العشرية",order:1},
+    {id:"HbTXKmN8EQc",title:"مقارنة الأعداد العشرية والكسور",order:2},
+    {id:"UWi9Og9WAoU",title:"مقارنة الكسور والتدوين العلمي",order:3},
+    {id:"shq-QNWXmZc",title:"مقارنة الكسور المحصورة بين 0 و1",order:4},
+    {id:"rDKKHd6RU4U",title:"مقارنة الجذور والتعابير",order:5},
+    {id:"sqXv1GfFpRc",title:"مقارنة تعابير الأسس",order:6},
+    {id:"YIl4qv7Y3dY",title:"مقارنة الأسس الكبيرة والأسس السالبة",order:7},
+  ],
+  "الجبر والمعادلات":[
+    {id:"qMogyYzIhz0",title:"معادلات بسيطة وكسرية",order:1},
+    {id:"MFe7iOPB_Zs",title:"الجذر التربيعي — قواعد وتطبيقات",order:2},
+    {id:"CKtsfQDGYEU",title:"الجذور — ضرب وتبسيط وتطهير المقام",order:3},
+    {id:"Chr_TKNZOCI",title:"معادلات الجذر والأسس الكسرية",order:4},
+    {id:"Y-XVUHgpAtU",title:"قوانين الأسس ومعادلاتها",order:5},
+    {id:"RQBI98AkmFk",title:"الأسس المتقدمة — أس مرفوع لأس وأسس سالبة",order:6},
+  ],
+};
+const getTopicVideos=(topic)=>VIDEO_LESSONS[topic]||[];
+
 const PLACEMENT_Q=[
   {id:1,sec:"كمي",q:"إذا كان 4 طلاب ينهون 10 سؤالاً في 10 دقائق، فكم سؤالاً ينجز 8 طلاب في نفس الوقت؟",opts:["20","30","40","80"],correct:2,why:"عدد العمال تضاعف والوقت ثابت → الإنجاز يتضاعف: 20×2=40"},
   {id:2,sec:"لفظي",q:"أكمل الجملة: النجاح لا يأتي من الحظ، بل من ____.",opts:["الاجتهاد","النسيان","الانتظار","التردد"],correct:0,why:"السياق يطلب ضد الحظ = الاجتهاد"},
@@ -3515,6 +3558,9 @@ function TopicLesson({topic,onClose,onStartPractice,go}){
           </div>
         </div>
       )}
+
+      {/* فيديوهات الشرح */}
+      {(()=>{const vids=getTopicVideos(topic);if(!vids.length)return null;return(<div className="gl" style={{padding:"18px 20px"}}><p style={{fontSize:".68rem",color:"#f87171",fontWeight:700,letterSpacing:".08em",marginBottom:12}}>🎬 فيديوهات الشرح ({vids.length})</p><div style={{display:"flex",flexDirection:"column",gap:8}}>{vids.map((v,i)=>(<a key={v.id} href={`https://www.youtube.com/watch?v=${v.id}`} target="_blank" rel="noopener noreferrer" style={{display:"flex",alignItems:"center",gap:12,padding:"11px 14px",borderRadius:12,textDecoration:"none",background:"rgba(220,38,38,.07)",border:"1px solid rgba(220,38,38,.18)"}}><div style={{width:30,height:30,borderRadius:8,flexShrink:0,background:"rgba(220,38,38,.18)",border:"1px solid rgba(220,38,38,.3)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:".75rem",fontWeight:800,color:"#f87171"}}>{i+1}</div><div style={{flex:1,minWidth:0}}><p style={{fontWeight:700,color:"#e2e8f0",fontSize:".82rem",marginBottom:1}}>{v.title}</p><p style={{fontSize:".68rem",color:"#64748b"}}>يوتيوب · فيديو {v.order}</p></div><span style={{fontSize:"1.1rem",color:"#f87171",flexShrink:0}}>▶</span></a>))}</div></div>);})()}
 
       {/* Bottom action bar */}
       <div style={{
