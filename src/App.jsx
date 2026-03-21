@@ -3327,14 +3327,13 @@ ${!ok?`الصحيح: "${correctAns}"`:""}
 }
 
 /* ═══════════════════ TOPIC LESSON PAGE ═══════════════════ */
-function TopicLesson({topic,onClose,onStartPractice,go}){
+function TopicLesson({topic,onClose,onStartPractice,go,watchedVideos=[],onWatchVideo}){
   const sec=deriveSec(topic);
   const secColor=sec==="كمي"?"#f97316":"#22d3ee";
   const concept=CONCEPTS[topic];
   const videos=getTopicVideos(topic);
 
   const[curIdx,setCurIdx]=useState(0);
-  const[watched,setWatched]=useState([]);
   const[aiData,setAiData]=useState(null);
   const[aiLoading,setAiLoading]=useState(false);
 
@@ -3352,9 +3351,10 @@ function TopicLesson({topic,onClose,onStartPractice,go}){
   const hasPrev=curIdx>0;
   const hasNext=curIdx<videos.length-1;
 
-  const markWatched=(idx)=>{
-    if(!watched.includes(idx)) setWatched(p=>[...p,idx]);
-  };
+  // watched helpers using parent's persisted state
+  const isWatched=(idx)=>videos[idx]&&watchedVideos.includes(videos[idx].id);
+  const markWatched=(idx)=>{const vid=videos[idx];if(vid&&onWatchVideo&&!watchedVideos.includes(vid.id))onWatchVideo(vid.id);};
+
   const goNext=()=>{if(hasNext){markWatched(curIdx);setCurIdx(p=>p+1);}};
   const goPrev=()=>{if(hasPrev)setCurIdx(p=>p-1);};
 
@@ -3432,7 +3432,7 @@ function TopicLesson({topic,onClose,onStartPractice,go}){
                 <p style={{fontWeight:800,color:"#fff",fontSize:".9rem",lineHeight:1.4}}>{curVid.title}</p>
                 <p style={{fontSize:".68rem",color:"#475569",marginTop:3}}>
                   فيديو {curIdx+1} من {videos.length}
-                  {watched.includes(curIdx)&&<span style={{marginRight:8,color:"#4ade80",fontWeight:700}}>✓ شاهدت</span>}
+                  {isWatched(curIdx)&&<span style={{marginRight:8,color:"#4ade80",fontWeight:700}}>✓ شاهدت</span>}
                 </p>
               </div>
               <div style={{display:"flex",gap:8,flexShrink:0}}>
@@ -3467,7 +3467,7 @@ function TopicLesson({topic,onClose,onStartPractice,go}){
             <div style={{flex:1,overflowY:"auto",padding:"10px"}}>
               {videos.map((v,i)=>{
                 const isCur=i===curIdx;
-                const isDone=watched.includes(i);
+                const isDone=isWatched(i);
                 return(
                   <button key={v.id} onClick={()=>{markWatched(curIdx);setCurIdx(i);}}
                     style={{
@@ -3687,7 +3687,7 @@ function TopicLesson({topic,onClose,onStartPractice,go}){
   );
 }
 
-function Roadmap({go,setSettings,openLesson,trial={}}){
+function Roadmap({go,setSettings,openLesson,trial={},getTopicProgress}){
   const[active,setActive]=useState("كمي");
 
   const launch=t=>{
@@ -3803,7 +3803,9 @@ function Roadmap({go,setSettings,openLesson,trial={}}){
 
           {/* Topics grid */}
           <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(210px,1fr))",gap:10}}>
-            {grp.topics.map(t=>(
+            {grp.topics.map(t=>{
+              const prog=getTopicProgress?getTopicProgress(t):null;
+              return(
               <div key={t} style={{
                 padding:"14px 15px", borderRadius:14,
                 border:`1.5px solid rgba(255,255,255,.07)`,
@@ -3832,7 +3834,26 @@ function Roadmap({go,setSettings,openLesson,trial={}}){
                       {CONCEPTS[t]?.trap?.replace("⚠ الفخ: ","").slice(0,35)+"…"}
                     </p>
                   </div>
+                  {prog&&<span style={{
+                    fontSize:".62rem",fontWeight:700,flexShrink:0,
+                    color:prog.pct===100?"#4ade80":prog.pct>0?grp.color:"#334155"
+                  }}>{prog.pct}%</span>}
                 </div>
+                {/* Progress bar — only for topics with videos */}
+                {prog&&(
+                  <div>
+                    <div style={{height:4,borderRadius:99,background:"rgba(255,255,255,.06)",overflow:"hidden"}}>
+                      <div style={{
+                        height:"100%",borderRadius:99,
+                        background:prog.pct===100?"#4ade80":grp.color,
+                        width:`${prog.pct}%`,transition:"width .5s ease"
+                      }}/>
+                    </div>
+                    <p style={{fontSize:".58rem",color:"#334155",marginTop:3}}>
+                      {prog.done}/{prog.total} فيديو
+                    </p>
+                  </div>
+                )}
                 {/* Two buttons */}
                 <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:7}}>
                   <button onClick={()=>(trial.isSubscribed||trial.isAdmin)?openLesson(t):go("paywall")} style={{
@@ -3859,7 +3880,8 @@ function Roadmap({go,setSettings,openLesson,trial={}}){
                   </button>
                 </div>
               </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       ))}
@@ -4475,6 +4497,9 @@ export default function Fahmni(){
   const[confetti,setConfetti]=useState(false);
   const[milestone,setMilestone]=useState(null);
   const[lessonTopic,setLessonTopic]=useState(null);
+  const[watchedVideos,setWatchedVideos]=useState(()=>{
+    try{const s=localStorage.getItem('fm_watched');return s?JSON.parse(s):{}}catch(e){return{};}
+  });
 
   // ── قراءة token من URL بعد تأكيد البريد ──
   // ─── Browser back/forward navigation ───
@@ -4703,6 +4728,21 @@ export default function Fahmni(){
   });
 
   const openLesson=t=>{setLessonTopic(t);go("lesson");};
+  const onWatchVideo=(topic,videoId)=>{
+    setWatchedVideos(prev=>{
+      const topicWatched=prev[topic]||[];
+      if(topicWatched.includes(videoId)) return prev;
+      const updated={...prev,[topic]:[...topicWatched,videoId]};
+      try{localStorage.setItem('fm_watched',JSON.stringify(updated));}catch(e){}
+      return updated;
+    });
+  };
+  const getTopicProgress=(topic)=>{
+    const vids=VIDEO_LESSONS[topic];
+    if(!vids||vids.length===0) return null;
+    const done=(watchedVideos[topic]||[]).length;
+    return{done,total:vids.length,pct:Math.round((done/vids.length)*100)};
+  };
 
   // حماية الصفحات — لو ما في session يرجع للصفحة الرئيسية
   const PROTECTED=["dashboard","roadmap","session","bank","sim","review","lesson","diagnostic","placement","placementResult","onboarding"];
@@ -4744,19 +4784,21 @@ export default function Fahmni(){
       go("dashboard");
     }}/>;
     case"dashboard":return <Dashboard go={go} user={user} trial={trial} mistakes={mistakes}/>;
-    case"roadmap":return <Roadmap go={go} setSettings={setSettings} openLesson={openLesson} trial={trial}/>;
+    case"roadmap":return <Roadmap go={go} setSettings={setSettings} openLesson={openLesson} trial={trial} getTopicProgress={getTopicProgress}/>;
     case"lesson":
       if(!trial.isAdmin&&(!trial.isSubscribed||trial.status==='expired')) return <UpgradePrompt feature="شرح الأبواب" go={go}/>;
       return lessonTopic
       ? <TopicLesson
           topic={lessonTopic}
           go={go}
+          watchedVideos={watchedVideos[lessonTopic]||[]}
+          onWatchVideo={(videoId)=>onWatchVideo(lessonTopic,videoId)}
           onClose={()=>go("roadmap")}
           onStartPractice={()=>{
             setSettings(p=>({...p,topic:lessonTopic,section:deriveSec(lessonTopic),difficulty:"متوسط"}));
             go("diagnostic");
           }}/>
-      : <Roadmap go={go} setSettings={setSettings} openLesson={openLesson} trial={trial}/>;
+      : <Roadmap go={go} setSettings={setSettings} openLesson={openLesson} trial={trial} getTopicProgress={getTopicProgress}/>;
     case"diagnostic":return <DiagnosticQ topic={settings.topic} section={settings.section} onResult={level=>{setSettings(p=>({...p,difficulty:level==="متقدم"?"صعب":"سهل"}));go("session");}} onSkip={()=>go("session")}/>;
     case"bank":
       if(!trial.isAdmin&&!trial.isSubscribed) return <UpgradePrompt feature="بنك الأسئلة" go={go}/>;
