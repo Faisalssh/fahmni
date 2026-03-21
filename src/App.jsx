@@ -768,6 +768,11 @@ const VIDEO_LESSONS={
   ],
   "تحليل البيانات والإحصاء":[
     {id:"UPTSFzQS8jU",title:"الوسيط والمنوال والمدى + الاحتمال والتوافيق والتباديل",order:1},
+    {id:"t2nS0Spx0K8",title:"دور الأيام والساعات والعدد الدوري",order:2},
+  ],
+  "المتتاليات والأنماط":[
+    {id:"KEb5Hvqz8Oc",title:"الأنماط — الجمع والضرب والمتتابعات الهندسية",order:1},
+    {id:"Mrl0y_-bsmU",title:"أنماط الكسور والمتتابعات الحسابية وقانون الحد",order:2},
   ],
 };
 const getTopicVideos=(topic)=>VIDEO_LESSONS[topic]||[];
