@@ -724,6 +724,49 @@ const CONCEPTS={
   "الخطأ السياقي":{icon:"🔍",formula:"جملة صحيحة إملائياً لكن فيها كلمة واحدة تكسر المعنى",rules:["اقرأ الجملة وتصوّر معناها الكامل","ابحث عن الكلمة التي لا تنتمي للسياق","الخطأ واحد فقط — لا أكثر"],trap:"⚠ الفخ: الكلمة مكتوبة صح إملائياً لكنها خطأ في المعنى"},
 };
 
+const VIDEO_LESSONS={
+  "النسبة والتناسب":[
+    {id:"L7seENxdC0o",title:"الكسور والنسبة والتناسب — تأسيس",order:1},
+    {id:"G2ZMfsSByLo",title:"قسمة الكسور ومسائل النسبة والتناسب",order:2},
+    {id:"7ubjvI0NV7w",title:"مسائل النسبة والتناسب — شامل",order:3},
+    {id:"ynylnmD6K80",title:"التناسب الطردي وتطبيقاته",order:4},
+    {id:"tAAo54Kk1dM",title:"طابعتان معاً · التناسب العكسي · عملات",order:5},
+    {id:"_ETvoigQ93I",title:"الضرب التبادلي وأجزاء النسب",order:6},
+  ],
+  "السرعة والمسافة والزمن":[
+    {id:"QiDMduqe2ww",title:"قانون السرعة والزمن والمسافة — أساسيات",order:1},
+    {id:"hGNUYSuxZps",title:"الاتجاهات المتعاكسة وزمن الالتحاق",order:2},
+    {id:"786rld21Vi8",title:"السرعة المتوسطة ومسائل العجلة",order:3},
+  ],
+  "المتوسط الحسابي":[
+    {id:"XKl5DvPsTao",title:"الوسط الحسابي — شامل ومتكامل",order:1},
+  ],
+  "الأرباح والنسب المئوية":[
+    {id:"gcMTWTxkCvk",title:"النسبة المئوية — تأسيس وتطبيقات",order:1},
+    {id:"ENJUJw_H2ZY",title:"الربح والخسارة والخصومات",order:2},
+    {id:"RJvmfCstmbY",title:"مسائل البيع والشراء والتقسيط",order:3},
+    {id:"Ywiy09CTcco",title:"مسائل متقدمة في الربح والخسارة",order:4},
+  ],
+  "المقارنة الكمية":[
+    {id:"5nR49wlgzt8",title:"مقارنة الأعداد العشرية",order:1},
+    {id:"HbTXKmN8EQc",title:"مقارنة الأعداد العشرية والكسور",order:2},
+    {id:"UWi9Og9WAoU",title:"مقارنة الكسور والتدوين العلمي",order:3},
+    {id:"shq-QNWXmZc",title:"مقارنة الكسور المحصورة بين 0 و1",order:4},
+    {id:"rDKKHd6RU4U",title:"مقارنة الجذور والتعابير",order:5},
+    {id:"sqXv1GfFpRc",title:"مقارنة تعابير الأسس",order:6},
+    {id:"YIl4qv7Y3dY",title:"مقارنة الأسس الكبيرة والأسس السالبة",order:7},
+  ],
+  "الجبر والمعادلات":[
+    {id:"qMogyYzIhz0",title:"معادلات بسيطة وكسرية",order:1},
+    {id:"MFe7iOPB_Zs",title:"الجذر التربيعي — قواعد وتطبيقات",order:2},
+    {id:"CKtsfQDGYEU",title:"الجذور — ضرب وتبسيط وتطهير المقام",order:3},
+    {id:"Chr_TKNZOCI",title:"معادلات الجذر والأسس الكسرية",order:4},
+    {id:"Y-XVUHgpAtU",title:"قوانين الأسس ومعادلاتها",order:5},
+    {id:"RQBI98AkmFk",title:"الأسس المتقدمة — أس مرفوع لأس وأسس سالبة",order:6},
+  ],
+};
+const getTopicVideos=(topic)=>VIDEO_LESSONS[topic]||[];
+
 const PLACEMENT_Q=[
   {id:1,sec:"كمي",q:"إذا كان 4 طلاب ينهون 10 سؤالاً في 10 دقائق، فكم سؤالاً ينجز 8 طلاب في نفس الوقت؟",opts:["20","30","40","80"],correct:2,why:"عدد العمال تضاعف والوقت ثابت → الإنجاز يتضاعف: 20×2=40"},
   {id:2,sec:"لفظي",q:"أكمل الجملة: النجاح لا يأتي من الحظ، بل من ____.",opts:["الاجتهاد","النسيان","الانتظار","التردد"],correct:0,why:"السياق يطلب ضد الحظ = الاجتهاد"},
@@ -3202,7 +3245,7 @@ function Dashboard({go,user,trial,mistakes}){
           {ic:"⚡",t:"المحاكاة",d:"اختبار كامل",p:"sim",c:"#a78bfa",paid:true},
           {ic:"🗺️",t:"خريطة المسار",d:"18 باب منظم",p:"roadmap",c:"#22d3ee",paid:true}
         ].map(function(m,i){
-          var isLocked=m.paid&&!trial.isSubscribed&&!trial.isAdmin;
+          var isLocked=m.paid&&!trial.isSubscribed;
           return(
             <div key={i} className={"gl2 au d"+(i+1)} style={{padding:"18px 15px",position:"relative",opacity:isLocked?0.75:1}}>
               {isLocked&&<span style={{position:"absolute",top:8,left:8,fontSize:".6rem",padding:"2px 7px",borderRadius:99,background:"rgba(249,115,22,.15)",border:"1px solid rgba(249,115,22,.25)",color:"#f97316"}}>🔒</span>}
@@ -3512,6 +3555,9 @@ function TopicLesson({topic,onClose,onStartPractice}){
         </div>
       )}
 
+      {/* فيديوهات الشرح */}
+      {(()=>{const vids=getTopicVideos(topic);if(!vids.length)return null;return(<div className="gl" style={{padding:"18px 20px"}}><p style={{fontSize:".68rem",color:"#f87171",fontWeight:700,letterSpacing:".08em",marginBottom:12}}>🎬 فيديوهات الشرح ({vids.length})</p><div style={{display:"flex",flexDirection:"column",gap:8}}>{vids.map((v,i)=>(<a key={v.id} href={`https://www.youtube.com/watch?v=${v.id}`} target="_blank" rel="noopener noreferrer" style={{display:"flex",alignItems:"center",gap:12,padding:"11px 14px",borderRadius:12,textDecoration:"none",background:"rgba(220,38,38,.07)",border:"1px solid rgba(220,38,38,.18)"}}><div style={{width:30,height:30,borderRadius:8,flexShrink:0,background:"rgba(220,38,38,.18)",border:"1px solid rgba(220,38,38,.3)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:".75rem",fontWeight:800,color:"#f87171"}}>{i+1}</div><div style={{flex:1,minWidth:0}}><p style={{fontWeight:700,color:"#e2e8f0",fontSize:".82rem",marginBottom:1}}>{v.title}</p><p style={{fontSize:".68rem",color:"#64748b"}}>يوتيوب · فيديو {v.order}</p></div><span style={{fontSize:"1.1rem",color:"#f87171",flexShrink:0}}>▶</span></a>))}</div></div>);})()}
+
       {/* Bottom action bar */}
       <div style={{
         display:"flex",gap:10,justifyContent:"space-between",alignItems:"center",
@@ -3689,7 +3735,7 @@ function Roadmap({go,setSettings,openLesson,trial={}}){
                 </div>
                 {/* Two buttons */}
                 <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:7}}>
-                  <button onClick={()=>(trial.isSubscribed||trial.isAdmin)?openLesson(t):go("paywall")} style={{
+                  <button onClick={()=>trial.isSubscribed?openLesson(t):go("paywall")} style={{
                     padding:"8px 6px",borderRadius:9,cursor:"pointer",
                     border:`1px solid ${grp.color}30`,
                     background:`${grp.color}0a`,color:grp.color,
@@ -3698,9 +3744,9 @@ function Roadmap({go,setSettings,openLesson,trial={}}){
                   }}
                   onMouseEnter={e=>{e.currentTarget.style.background=`${grp.color}18`;}}
                   onMouseLeave={e=>{e.currentTarget.style.background=`${grp.color}0a`;}}>
-                    {(trial.isSubscribed||trial.isAdmin)?"📖 اعرف الباب":"🔒 اعرف الباب"}
+                    {trial.isSubscribed?"📖 اعرف الباب":"🔒 اعرف الباب"}
                   </button>
-                  <button onClick={()=>(trial.isSubscribed||trial.isAdmin)?launch(t):go("paywall")} style={{
+                  <button onClick={()=>trial.isSubscribed?launch(t):go("paywall")} style={{
                     padding:"8px 6px",borderRadius:9,cursor:"pointer",
                     border:"1px solid rgba(249,115,22,.3)",
                     background:"rgba(249,115,22,.08)",color:"#f97316",
@@ -3709,7 +3755,7 @@ function Roadmap({go,setSettings,openLesson,trial={}}){
                   }}
                   onMouseEnter={e=>{e.currentTarget.style.background="rgba(249,115,22,.18)";}}
                   onMouseLeave={e=>{e.currentTarget.style.background="rgba(249,115,22,.08)";}}>
-                    {(trial.isSubscribed||trial.isAdmin)?"🎯 تدرّب":"🔒 تدرّب"}
+                    {trial.isSubscribed?"🎯 تدرّب":"🔒 تدرّب"}
                   </button>
                 </div>
               </div>
@@ -4355,29 +4401,7 @@ export default function Fahmni(){
           setUser({name:sess.name,totalSolved:prog.totalSolved,correct:prog.correct,streak:prog.streak});
           setMistakes(prog.mistakes||[]);
           if(prog.placementDone){placementDoneRef.current=true;setPlacementDone(true);}
-          // Try RPC first for accurate isAdmin
-          let isAdmin=false;
-          try{
-            const rpcR=await fetch(`${SUPABASE_URL}/rest/v1/rpc/get_my_access`,{
-              method:'POST',headers:{...sbH(sess.token),'Content-Type':'application/json'},body:'{}'
-            });
-            if(rpcR.ok){
-              const access=await rpcR.json();
-              isAdmin=!!access.isAdmin;
-              setTrial({
-                isSubscribed:access.isSubscribed||isAdmin,
-                isAdmin,
-                used:access.trialUsed||0,limit:access.trialLimit||15,
-                plan:isAdmin?'exam':access.plan||'free',
-                status:isAdmin?'active':access.status||'inactive',
-                freeTrialUsed:access.status==='expired'&&access.plan==='free',
-                expiresAt:access.expiresAt?new Date(access.expiresAt):null,
-              });
-              setSessionLoading(false);
-              return;
-            }
-          }catch(e){}
-          // RPC fallback — use profile data
+          // Subscription fallback — DB only, no client-side override
           const now=new Date();
           const expiresAt=prog.subscribed_until?new Date(prog.subscribed_until):null;
           const plan=prog.plan||'free';
@@ -4386,7 +4410,7 @@ export default function Fahmni(){
           if(['month','exam'].includes(plan)&&expiresAt&&expiresAt>now) status='active';
           else if(['month','exam'].includes(plan)&&expiresAt&&expiresAt<=now) status='expired';
           else if(plan==='free'&&!freeTrialUsed&&(prog.trialUsed||0)<(prog.trialLimit||15)) status='free_trial';
-          setTrial({isSubscribed:status==='active',used:prog.trialUsed||0,limit:prog.trialLimit||15,plan,status,freeTrialUsed,expiresAt,isAdmin:false});
+          setTrial({isSubscribed:status==='active',used:prog.trialUsed||0,limit:prog.trialLimit||15,plan,status,freeTrialUsed,expiresAt});
         }
       }catch(e){console.warn('Session restore failed:',e);}
       finally{setSessionLoading(false);}
@@ -4572,7 +4596,7 @@ export default function Fahmni(){
     // 1) مو مسجّل → landing
     if(PROTECTED.includes(page)&&!session){go("landing");return null;}
     // Expired users stay logged in but get shown upgrade screen for paid pages
-    if(session&&!session.isGuest&&!trial.isAdmin&&(trial.status==='expired'||trial.status==='cancelled')){
+    if(session&&!session.isGuest&&(trial.status==='expired'||trial.status==='cancelled')){
       if(PAID_ONLY.includes(page)){go('paywall');return null;}
       if(page==='session'&&trial.used>=trial.limit){go('paywall');return null;}
     }
@@ -4605,8 +4629,7 @@ export default function Fahmni(){
     case"dashboard":return <Dashboard go={go} user={user} trial={trial} mistakes={mistakes}/>;
     case"roadmap":return <Roadmap go={go} setSettings={setSettings} openLesson={openLesson} trial={trial}/>;
     case"lesson":
-      if(!trial.isSubscribed&&!trial.isAdmin) return <UpgradePrompt feature="شرح الأبواب" go={go}/>;
-      if(trial.status==='expired'&&!trial.isAdmin) return <UpgradePrompt feature="شرح الأبواب" go={go}/>;
+      if(!trial.isSubscribed||trial.status==='expired') return <UpgradePrompt feature="شرح الأبواب" go={go}/>;
       return lessonTopic
       ? <TopicLesson
           topic={lessonTopic}
@@ -4618,15 +4641,15 @@ export default function Fahmni(){
       : <Roadmap go={go} setSettings={setSettings} openLesson={openLesson} trial={trial}/>;
     case"diagnostic":return <DiagnosticQ topic={settings.topic} section={settings.section} onResult={level=>{setSettings(p=>({...p,difficulty:level==="متقدم"?"صعب":"سهل"}));go("session");}} onSkip={()=>go("session")}/>;
     case"bank":
-      if(!trial.isSubscribed&&!trial.isAdmin) return <UpgradePrompt feature="بنك الأسئلة" go={go}/>;
-      if(trial.status==='expired'&&!trial.isAdmin) return <ExpiredWall trial={trial} go={go}/>;
+      if(!trial.isSubscribed) return <UpgradePrompt feature="بنك الأسئلة" go={go}/>;
+      if(trial.status==='expired') return <ExpiredWall trial={trial} go={go}/>;
       return <Bank settings={settings} setSettings={setSettings} go={go} trial={trial}/>;
     case"session":return <Session settings={settings} go={go} updateUser={updateUser} trial={trial} setTrial={setTrial} addMistake={addMistake} plan={trial.plan||"free"} session={session} user={user}/>;
     case"sim":
-      if((!trial.isSubscribed||trial.status==='expired')&&!trial.isAdmin) return <UpgradePrompt feature="وضع المحاكاة" go={go}/>;
+      if(!trial.isSubscribed||trial.status==='expired') return <UpgradePrompt feature="وضع المحاكاة" go={go}/>;
       return <SimMode settings={settings} go={go} updateUser={updateUser} addMistake={addMistake} trial={trial}/>;
     case"review":
-      if((!trial.isSubscribed||trial.status==='expired')&&!trial.isAdmin) return <UpgradePrompt feature="وضع المراجعة" go={go}/>;
+      if(!trial.isSubscribed||trial.status==='expired') return <UpgradePrompt feature="وضع المراجعة" go={go}/>;
       return <ReviewMode mistakes={mistakes} go={go} onRedo={()=>go("session")}/>;
     case"pricing":return <Pricing go={go} setCheckoutPlan={setCheckoutPlan} setCheckoutPeriod={setCheckoutPeriod}/>;
     case"checkout":return <Checkout go={go} trial={trial} selectedPlan={checkoutPlan} selectedPeriod={checkoutPeriod}/>;
