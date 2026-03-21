@@ -730,19 +730,19 @@ const VIDEO_LESSONS={
     {id:"G2ZMfsSByLo",title:"قسمة الكسور ومسائل النسبة والتناسب",order:2},
     {id:"7ubjvI0NV7w",title:"مسائل النسبة والتناسب — شامل",order:3},
     {id:"ynylnmD6K80",title:"التناسب الطردي وتطبيقاته",order:4},
-    {id:"tAAo54Kk1dM",title:"طابعتان معاً · التناسب العكسي · عملات",order:5},
-    {id:"_ETvoigQ93I",title:"الضرب التبادلي وأجزاء النسب",order:6},
+    {id:"tAAo54Kk1dM",title:"طابعتان معاً · التناسب العكسي · عملات",order:5,segments:[{id:"T5-S1",title:"تطبيقات التناسب الطردي المتقدمة (طباعتان معاً)",startTime:0,order:1},{id:"T5-S2",title:"التناسب مع المولدات والتقريب",startTime:398,order:2},{id:"T5-S3",title:"مقارنة العملات والمسافات بالتناسب",startTime:686,order:3},{id:"T5-S4",title:"التناسب العكسي — مفهومه وتطبيقاته",startTime:1032,order:4}]},
+    {id:"_ETvoigQ93I",title:"الضرب التبادلي وأجزاء النسب",order:6,segments:[{id:"E6-S1",title:"الضرب التبادلي — المفهوم والقانون",startTime:0,order:1},{id:"E6-S2",title:"تطبيقات الضرب التبادلي (مزارع، لوحات، خلايا)",startTime:496,order:2},{id:"E6-S3",title:"أجزاء النسب — توزيع مبلغ أو عدد على نسب",startTime:825,order:3},{id:"E6-S4",title:"مسائل السلال والأجهزة بالنسب (صالح/فاسد)",startTime:1222,order:4}]},
   ],
   "السرعة والمسافة والزمن":[
-    {id:"QiDMduqe2ww",title:"قانون السرعة والزمن والمسافة — أساسيات",order:1},
-    {id:"hGNUYSuxZps",title:"الاتجاهات المتعاكسة وزمن الالتحاق",order:2},
-    {id:"786rld21Vi8",title:"السرعة المتوسطة ومسائل العجلة",order:3},
+    {id:"QiDMduqe2ww",title:"قانون السرعة والزمن والمسافة — أساسيات",order:1,segments:[{id:"Q1-S1",title:"قانون المسافة = السرعة × الزمن",startTime:0,order:1},{id:"Q1-S2",title:"تحويل وحدات المسافة (كيلو/متر/ديسي/سنتي)",startTime:205,order:2},{id:"Q1-S3",title:"مسائل السرعة والمسافة مع تحويل الدقائق",startTime:440,order:3},{id:"Q1-S4",title:"مسائل وقت الوصول ومسافة مرحلتين",startTime:1147,order:4},{id:"Q1-S5",title:"مسائل التوقف وكسور المسافة والمغادرة",startTime:1835,order:5}]},
+    {id:"hGNUYSuxZps",title:"الاتجاهات المتعاكسة وزمن الالتحاق",order:2,segments:[{id:"Q2-S1",title:"تغيير السرعة لقطع نفس المسافة",startTime:0,order:1},{id:"Q2-S2",title:"قاعدة الاتجاه المتعاكس وعكسه",startTime:404,order:2},{id:"Q2-S3",title:"الاتجاه المتعاكس بالفهم دون كلمة عكس",startTime:1175,order:3},{id:"Q2-S4",title:"زمن الالحاق — 3 أنواع + بالمسافة",startTime:1390,order:4}]},
+    {id:"786rld21Vi8",title:"السرعة المتوسطة ومسائل العجلة",order:3,segments:[{id:"Q3-S1",title:"السرعة المتوسطة — القانونان الأساسيان",startTime:0,order:1},{id:"Q3-S2",title:"مسائل العجلة — المسافة المقطوعة بالدورات",startTime:411,order:2},{id:"Q3-S3",title:"مسائل العجلة مع السيارة + مقارنة بالوسط",startTime:1003,order:3}]},
   ],
   "المتوسط الحسابي":[
-    {id:"XKl5DvPsTao",title:"الوسط الحسابي — شامل ومتكامل",order:1},
+    {id:"XKl5DvPsTao",title:"الوسط الحسابي — شامل ومتكامل",order:1,segments:[{id:"X1-S1",title:"قانون الوسط الحسابي وتطبيقاته الأساسية",startTime:0,order:1},{id:"X1-S2",title:"مسائل الأعداد المتتالية والوسط",startTime:382,order:2},{id:"X1-S3",title:"مسائل لفظية — رواتب وعمولات",startTime:611,order:3},{id:"X1-S4",title:"تعديل الوسط عند اكتشاف خطأ + مجموعتان",startTime:967,order:4},{id:"X1-S5",title:"الأعداد الزوجية والفردية المتتالية",startTime:1554,order:5},{id:"X1-S6",title:"قانون الوسط للأعداد المرتبة بثبات",startTime:2046,order:6}]},
   ],
   "الأرباح والنسب المئوية":[
-    {id:"gcMTWTxkCvk",title:"النسبة المئوية — تأسيس وتطبيقات",order:1},
+    {id:"gcMTWTxkCvk",title:"النسبة المئوية — تأسيس وتطبيقات",order:1,segments:[{id:"G1-S1",title:"مفهوم النسبة المئوية + النسب الشائعة",startTime:0,order:1},{id:"G1-S2",title:"مسائل الطلاب والمساحة المظللة",startTime:115,order:2},{id:"G1-S3",title:"حساب جزء من كل + إيجاد الكل + المتبقي",startTime:2103,order:3},{id:"G1-S4",title:"مسائل التذاكر والحضور والغياب",startTime:2823,order:4},{id:"G1-S5",title:"الزمن والنسبة في السباق + مسائل شاملة",startTime:3430,order:5}]},
     {id:"ENJUJw_H2ZY",title:"الربح والخسارة والخصومات",order:2},
     {id:"RJvmfCstmbY",title:"مسائل البيع والشراء والتقسيط",order:3},
     {id:"Ywiy09CTcco",title:"مسائل متقدمة في الربح والخسارة",order:4},
@@ -763,19 +763,19 @@ const VIDEO_LESSONS={
     {id:"Chr_TKNZOCI",title:"معادلات الجذر والأسس الكسرية",order:4},
     {id:"Y-XVUHgpAtU",title:"قوانين الأسس ومعادلاتها",order:5},
     {id:"RQBI98AkmFk",title:"الأسس المتقدمة — أس مرفوع لأس وأسس سالبة",order:6},
-    {id:"bIVdvrMX2bA",title:"المربع الكامل والفرق بين مربعين — تأسيس",order:7},
+    {id:"bIVdvrMX2bA",title:"المربع الكامل والفرق بين مربعين — تأسيس",order:7,segments:[{id:"b-S1",title:"المربع الكامل",startTime:0,order:1},{id:"b-S2",title:"الفرق بين مربعين",startTime:875,order:2}]},
     {id:"XpZNJHTr--I",title:"الفرق بين مربعين — مسائل متقدمة",order:8},
-    {id:"WEx6IeJNLL0",title:"المضاعف المشترك الأصغر والقاسم المشترك الأكبر",order:9},
-    {id:"3ZFnbtrX3V8",title:"قوانين المرتبات والزكاة والأعداد المحصورة والمصافحات وزمن العمل والأشجار والزوايا",order:10},
-    {id:"f3-dmUGHwYA",title:"الحسابات الذهنية السريعة وقابلية القسمة والأعداد الأولية",order:11},
+    {id:"WEx6IeJNLL0",title:"المضاعف المشترك الأصغر والقاسم المشترك الأكبر",order:9,segments:[{id:"W-S1",title:"المضاعف المشترك الأصغر",startTime:0,order:1},{id:"W-S2",title:"القاسم المشترك الأكبر",startTime:633,order:2}]},
+    {id:"3ZFnbtrX3V8",title:"قوانين المرتبات والزكاة والأعداد المحصورة والمصافحات وزمن العمل والأشجار والزوايا",order:10,segments:[{id:"3Z-S1",title:"قانون المرتبات",startTime:0,order:1},{id:"3Z-S2",title:"قانون الزكاة",startTime:203,order:2},{id:"3Z-S3",title:"عدد الأعداد المحصورة",startTime:456,order:3},{id:"3Z-S4",title:"ترتيب الطلاب في الفصل",startTime:946,order:4},{id:"3Z-S5",title:"جمع الأعداد والمصافحات",startTime:1729,order:5},{id:"3Z-S6",title:"الأشجار والأعمدة",startTime:2290,order:6},{id:"3Z-S7",title:"الزاوية بين عقربي الساعة",startTime:2822,order:7}]},
+    {id:"f3-dmUGHwYA",title:"الحسابات الذهنية السريعة وقابلية القسمة والأعداد الأولية",order:11,segments:[{id:"f3-S1",title:"الجمع الذهني السريع",startTime:0,order:1},{id:"f3-S2",title:"الضرب والقسمة الذهنية",startTime:423,order:2},{id:"f3-S3",title:"قابلية القسمة (2 – 7)",startTime:644,order:3},{id:"f3-S4",title:"قابلية القسمة (8 و9 و11)",startTime:1841,order:4},{id:"f3-S5",title:"الأعداد الأولية ومسائل",startTime:2639,order:5}]},
   ],
   "تحليل البيانات والإحصاء":[
-    {id:"UPTSFzQS8jU",title:"الوسيط والمنوال والمدى + الاحتمال والتوافيق والتباديل",order:1},
-    {id:"t2nS0Spx0K8",title:"دور الأيام والساعات والعدد الدوري",order:2},
+    {id:"UPTSFzQS8jU",title:"الوسيط والمنوال والمدى + الاحتمال والتوافيق والتباديل",order:1,segments:[{id:"UP-S1",title:"مسائل المتوسط والأعداد المتتالية",startTime:0,order:1},{id:"UP-S2",title:"الوسيط والمنوال والمدى",startTime:404,order:2},{id:"UP-S3",title:"الاحتمال والتوافيق والتباديل",startTime:1199,order:3}]},
+    {id:"t2nS0Spx0K8",title:"دور الأيام والساعات والعدد الدوري",order:2,segments:[{id:"t2-S1",title:"دور الأيام",startTime:0,order:1},{id:"t2-S2",title:"دور الساعات",startTime:858,order:2},{id:"t2-S3",title:"العدد الدوري",startTime:942,order:3}]},
   ],
   "المتتاليات والأنماط":[
-    {id:"KEb5Hvqz8Oc",title:"الأنماط — الجمع والضرب والمتتابعات الهندسية",order:1},
-    {id:"Mrl0y_-bsmU",title:"أنماط الكسور والمتتابعات الحسابية وقانون الحد",order:2},
+    {id:"KEb5Hvqz8Oc",title:"الأنماط — الجمع والضرب والمتتابعات الهندسية",order:1,segments:[{id:"KE-S1",title:"أنماط الجمع والفروق",startTime:0,order:1},{id:"KE-S2",title:"أنماط الضرب والتضاعف",startTime:360,order:2},{id:"KE-S3",title:"أنماط المدرجات والأعواد",startTime:840,order:3},{id:"KE-S4",title:"قانون المتتابعة الحسابية",startTime:1548,order:4}]},
+    {id:"Mrl0y_-bsmU",title:"أنماط الكسور والمتتابعات الحسابية وقانون الحد",order:2,segments:[{id:"Mr-S1",title:"أنماط الكسور",startTime:0,order:1},{id:"Mr-S2",title:"الأنماط المرسومة والمتتابعة الحسابية",startTime:637,order:2},{id:"Mr-S3",title:"قانون إيجاد الحد العام",startTime:1299,order:3},{id:"Mr-S4",title:"أنماط (-1)^ن والمسائل المتقدمة",startTime:1647,order:4}]},
   ],
 };
 const getTopicVideos=(topic)=>VIDEO_LESSONS[topic]||[];
@@ -3368,8 +3368,14 @@ function TopicLesson({topic,onClose,onStartPractice,go,watchedVideos=[],onWatchV
   const isWatched=(idx)=>videos[idx]&&watchedVideos.includes(videos[idx].id);
   const markWatched=(idx)=>{const vid=videos[idx];if(vid&&onWatchVideo&&!watchedVideos.includes(vid.id))onWatchVideo(vid.id);};
 
-  const goNext=()=>{if(hasNext){markWatched(curIdx);setCurIdx(p=>p+1);}};
-  const goPrev=()=>{if(hasPrev)setCurIdx(p=>p-1);};
+  // Segments support
+  const[segSrc,setSegSrc]=useState(null);
+  const fmtTime=(s)=>{const m=Math.floor(s/60),sec=s%60;return`${m}:${String(sec).padStart(2,'0')}`;};
+  const jumpSeg=(seg)=>setSegSrc(`https://www.youtube.com/embed/${curVid.id}?start=${seg.startTime}&autoplay=1&rel=0&modestbranding=1`);
+  const iframeSrc=curVid?segSrc||`https://www.youtube.com/embed/${curVid.id}?rel=0&modestbranding=1&autoplay=0`:'';
+
+  const goNext=()=>{if(hasNext){markWatched(curIdx);setCurIdx(p=>p+1);setSegSrc(null);}};
+  const goPrev=()=>{if(hasPrev){setCurIdx(p=>p-1);setSegSrc(null);}};
 
   const ytQuery=encodeURIComponent(`شرح قدرات ${topic} قياس`);
   const ytSearchUrl=`https://www.youtube.com/results?search_query=${ytQuery}`;
@@ -3425,8 +3431,8 @@ function TopicLesson({topic,onClose,onStartPractice,go,watchedVideos=[],onWatchV
               boxShadow:"0 8px 32px rgba(0,0,0,.5)"}}>
               <div style={{position:"relative",paddingBottom:"56.25%",height:0}}>
                 <iframe
-                  key={curVid.id}
-                  src={`https://www.youtube.com/embed/${curVid.id}?rel=0&modestbranding=1&autoplay=0`}
+                  key={curVid.id+(segSrc||'')}
+                  src={iframeSrc}
                   title={curVid.title}
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                   allowFullScreen
@@ -3463,6 +3469,32 @@ function TopicLesson({topic,onClose,onStartPractice,go,watchedVideos=[],onWatchV
                 }}>{hasNext?"التالي ←":"آخر فيديو"}</button>
               </div>
             </div>
+
+            {/* Segments panel — only when video has segments */}
+            {curVid.segments&&curVid.segments.length>0&&(
+              <div style={{padding:"12px 14px",borderRadius:12,background:"rgba(249,115,22,.05)",border:"1px solid rgba(249,115,22,.14)"}}>
+                <p style={{fontSize:".64rem",color:"#f97316",fontWeight:700,letterSpacing:".08em",marginBottom:8}}>📍 أجزاء هذا الفيديو</p>
+                <div style={{display:"flex",flexWrap:"wrap",gap:6}}>
+                  {curVid.segments.map(seg=>{
+                    const active=segSrc&&segSrc.includes();
+                    return(
+                      <button key={seg.id} onClick={()=>jumpSeg(seg)} style={{
+                        display:"flex",alignItems:"center",gap:6,
+                        padding:"6px 11px",borderRadius:8,cursor:"pointer",
+                        background:active?"rgba(249,115,22,.18)":"rgba(255,255,255,.03)",
+                        border:,
+                        color:active?"#fdba74":"#94a3b8",
+                        fontSize:".72rem",fontWeight:active?700:400,fontFamily:"Cairo,sans-serif",
+                        transition:"all .15s"
+                      }}>
+                        <span style={{color:"#475569",fontSize:".63rem",direction:"ltr",display:"inline-block"}}>{fmtTime(seg.startTime)}</span>
+                        {seg.title}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Sidebar: video list */}
@@ -3482,7 +3514,7 @@ function TopicLesson({topic,onClose,onStartPractice,go,watchedVideos=[],onWatchV
                 const isCur=i===curIdx;
                 const isDone=isWatched(i);
                 return(
-                  <button key={v.id} onClick={()=>{markWatched(curIdx);setCurIdx(i);}}
+                  <button key={v.id} onClick={()=>{markWatched(curIdx);setCurIdx(i);setSegSrc(null);}}
                     style={{
                       width:"100%",display:"flex",alignItems:"flex-start",gap:10,
                       padding:"10px 12px",borderRadius:11,marginBottom:6,textAlign:"right",
