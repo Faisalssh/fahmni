@@ -888,7 +888,7 @@ const ADMIN_EMAIL="sirfaisalalshehri@gmail.com";
 const isAdminUser=(email)=>typeof email==="string"&&email.toLowerCase().trim()===ADMIN_EMAIL;
 
 /* ═══ PLAN HELPERS ═══════════════════════════════════════════
- * free  → 25 سؤال تجربة مجانية
+ *  free  → 10 سؤال مجاني فقط
  *  month → أسئلة غير محدودة + شرح + محاكاة + تتبع
  *  exam  → كل شيء + تحليل الضعف + خطة مذاكرة
  * ══════════════════════════════════════════════════════════ */
@@ -934,10 +934,9 @@ function checkRateLimit(userId){
   return true;
 }
 
-const AI_ENABLED = false; // ← true لتفعيل توليد AI / false لإيقافه مؤقتاً
-
+const AI_ENABLED=false;
 const callClaude=async(prompt,maxTok=600,userId=null)=>{
-  if(!AI_ENABLED) throw Object.assign(new Error("توليد AI متوقف مؤقتاً."),{aiDisabled:true});
+  if(!AI_ENABLED) throw Object.assign(new Error("AI متوقف مؤقتاً."),{aiDisabled:true});
   // Rate limit check
   if(!checkRateLimit(userId)){
     throw Object.assign(new Error("وصلت للحد الأقصى من الطلبات (50 طلب/ساعة). انتظر قليلاً."),{rateLimited:true});
@@ -1456,47 +1455,42 @@ function ReviewMode({mistakes,go,onRedo}){
   أدبي  → 110 سؤال (30 كمي + 90 لفظي) · 150 دقيقة
   توليد الأسئلة: سؤال بسؤال (prefetch التالي أثناء الإجابة)
 */
-/* ─── إعدادات الاختبار الموحّد ─── */
 const SIM_CONFIG={
-  quant:  60,   // عدد أسئلة الكمي
-  verbal: 60,   // عدد أسئلة اللفظي
-  get total(){ return this.quant+this.verbal; },
-  minutes:120,  // وقت الاختبار بالدقائق
+  quant:60, verbal:60,
+  get total(){return this.quant+this.verbal;},
+  minutes:120,
 };
 
 function buildSimPlan(){
   const qTopics=TOPICS.كمي, vTopics=TOPICS.لفظي;
   const plan=[];
-  for(let i=0;i<SIM_CONFIG.quant;i++)  plan.push({sec:"كمي",  topic:qTopics[i%qTopics.length]});
-  for(let i=0;i<SIM_CONFIG.verbal;i++) plan.push({sec:"لفظي", topic:vTopics[i%vTopics.length]});
+  for(let i=0;i<SIM_CONFIG.quant;i++) plan.push({sec:"كمي",topic:qTopics[i%qTopics.length]});
+  for(let i=0;i<SIM_CONFIG.verbal;i++) plan.push({sec:"لفظي",topic:vTopics[i%vTopics.length]});
   for(let i=plan.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[plan[i],plan[j]]=[plan[j],plan[i]];}
   return plan;
 }
 
-function SimMode({settings,go,updateUser,addMistake,trial={}}){
-  useEffect(()=>{
-    window.scrollTo({top:0,behavior:"instant"});
-    if(!trial.isAdmin&&(trial.status==='expired'||trial.status==='cancelled')){go("expired");}
-    else if(!trial.isAdmin&&!trial.isSubscribed&&trial.used>=trial.limit){go("paywall");}
-  },[]);
-
+function SimMode({settings,go,updateUser,addMistake,trial={}}){  useEffect(()=>{window.scrollTo({top:0,behavior:"instant"});if(!trial.isAdmin&&(trial.status==='expired'||trial.status==='cancelled')){go("expired");}
+      else if(!trial.isAdmin&&!trial.isSubscribed&&trial.used>=trial.limit){go("paywall");}},[]); 
   const[phase,setPhase]=useState("setup");
-  const[plan,setPlan]=useState([]);
+  const[difficulty,setDifficulty]=useState("متوسط");
+  const[track,setTrack]=useState("علمي");
+  const[plan,setPlan]=useState([]);      // [{sec,topic}] × 120
   const[idx,setIdx]=useState(0);
-  const[curQ,setCurQ]=useState(null);
-  const[nextQData,setNextQData]=useState(null);
+  const[curQ,setCurQ]=useState(null);    // السؤال الحالي
+  const[nextQData,setNextQData]=useState(null); // prefetch
   const[loadingQ,setLoadingQ]=useState(false);
   const[sel,setSel]=useState(null);
-  const[answers,setAnswers]=useState([]);
+  const[answers,setAnswers]=useState([]); // [{chosen,correct,ok,topic,q,options,steps,tip}]
   const[qTimes,setQTimes]=useState([]);
   const[qStart,setQStart]=useState(0);
-  const[timeLeft,setTimeLeft]=useState(SIM_CONFIG.minutes*60);
+  const[timeLeft,setTimeLeft]=useState(9000);
   const[showCard,setShowCard]=useState(false);
   const[startLoading,setStartLoading]=useState(false);
   const sounds=useNatureSounds();
   const fmt=s=>`${String(Math.floor(s/60)).padStart(2,"0")}:${String(s%60).padStart(2,"0")}`;
-  const totalQ=SIM_CONFIG.total;
-  const timeTotal=SIM_CONFIG.minutes*60;
+  const totalQ=QIYYAS[track].total;
+  const timeTotal=QIYYAS[track].minutes*60;
 
   /* ── countdown timer ── */
   useEffect(()=>{
@@ -1506,47 +1500,21 @@ function SimMode({settings,go,updateUser,addMistake,trial={}}){
     return()=>clearTimeout(id);
   },[phase,timeLeft]);
 
-  /* ── fetch one question from DB (no difficulty filter) ── */
-  const fetchOne=async(item)=>{
-    /* محاولة السحب من قاعدة البيانات أولاً */
-    if(!IS_ARTIFACT){
-      try{
-        const res=await fetch(
-          `${SUPABASE_URL}/rest/v1/questions?section=eq.${encodeURIComponent(item.sec)}&active=eq.true&limit=1&order=random()`,
-          {headers:{...sbH(""),"apikey":SUPABASE_ANON}}
-        );
-        if(res.ok){
-          const rows=await res.json();
-          if(rows&&rows.length){
-            const r=rows[0];
-            return{
-              question:r.question_text||"",
-              image_url:r.image_url||null,
-              options:Array.isArray(r.options)?r.options:JSON.parse(r.options||"[]"),
-              correct:r.correct??0,
-              steps:Array.isArray(r.steps)?r.steps:JSON.parse(r.steps||"[]"),
-              tip:r.tip||"",
-              topic:r.topic||item.topic,
-              sec:item.sec,
-              fromDB:true
-            };
-          }
-        }
-      }catch(_){}
-    }
-    /* fallback إلى AI إذا لم تجد */
-    return await genQuestion({topic:item.topic,difficulty:"متوسط"});
+  /* ── fetch a single question for given plan item ── */
+  const fetchOne=async(item,diff)=>{
+    return await genQuestion({topic:item.topic,difficulty:diff});
   };
 
   /* ── start exam ── */
   const startSim=async()=>{
     setStartLoading(true);
-    const p=buildSimPlan();
+    const p=buildTopicPlan(track);
     setPlan(p);
     try{
-      const first=await fetchOne(p[0]);
-      setCurQ({...first,topic:first.topic||p[0].topic,sec:p[0].sec});
-      if(p.length>1) fetchOne(p[1]).then(q=>setNextQData({...q,topic:q.topic||p[1].topic,sec:p[1].sec}));
+      const first=await fetchOne(p[0],difficulty);
+      setCurQ({...first,topic:p[0].topic,sec:p[0].sec});
+      /* prefetch second */
+      if(p.length>1) fetchOne(p[1],difficulty).then(q=>setNextQData({...q,topic:p[1].topic,sec:p[1].sec}));
     }catch(e){setStartLoading(false);return;}
     setIdx(0);setSel(null);setAnswers([]);setQTimes([]);
     setTimeLeft(timeTotal);setQStart(Date.now());
@@ -1563,23 +1531,28 @@ function SimMode({settings,go,updateUser,addMistake,trial={}}){
     const newTimes=[...curTimes,t];
     setAnswers(newAnswers);setQTimes(newTimes);
     if(!ok) addMistake({ok,q:curQ.question,topic:curQ.topic,section:curQ.sec,
-      chosen:curQ.options?.[chosenSel],correctAns:curQ.options?.[curQ.correct],
+      chosen:curQ.options[chosenSel],correctAns:curQ.options[curQ.correct],
       steps:curQ.steps,tip:curQ.tip});
     updateUser(ok);
+
     const next=curIdx+1;
     if(next>=totalQ){doFinish(newAnswers);return;}
-    setIdx(next);setSel(null);setQStart(Date.now());setLoadingQ(false);
+    setIdx(next);setSel(null);setQStart(Date.now());
+    setLoadingQ(false);
+
+    /* use prefetched or fetch fresh */
     if(nextQData){
       setCurQ(nextQData);setNextQData(null);
+      /* prefetch next+1 */
       if(next+1<curPlan.length)
-        fetchOne(curPlan[next+1]).then(q=>setNextQData({...q,topic:q.topic||curPlan[next+1].topic,sec:curPlan[next+1].sec})).catch(()=>{});
-    }else{
+        fetchOne(curPlan[next+1],difficulty).then(q=>setNextQData({...q,topic:curPlan[next+1].topic,sec:curPlan[next+1].sec})).catch(()=>{});
+    } else {
       setLoadingQ(true);
       try{
-        const q=await fetchOne(curPlan[next]);
-        setCurQ({...q,topic:q.topic||curPlan[next].topic,sec:curPlan[next].sec});
+        const q=await fetchOne(curPlan[next],difficulty);
+        setCurQ({...q,topic:curPlan[next].topic,sec:curPlan[next].sec});
         if(next+1<curPlan.length)
-          fetchOne(curPlan[next+1]).then(q2=>setNextQData({...q2,topic:q2.topic||curPlan[next+1].topic,sec:curPlan[next+1].sec})).catch(()=>{});
+          fetchOne(curPlan[next+1],difficulty).then(q2=>setNextQData({...q2,topic:curPlan[next+1].topic,sec:curPlan[next+1].sec})).catch(()=>{});
       }catch(e){}finally{setLoadingQ(false);}
     }
   };
@@ -1587,13 +1560,12 @@ function SimMode({settings,go,updateUser,addMistake,trial={}}){
   const doFinish=(ans=answers)=>{setPhase("done");};
 
   const correct=answers.filter(a=>a.ok).length;
+  const acc=answers.length?Math.round((correct/answers.length)*100):0;
   const avgT=qTimes.length?Math.round(qTimes.reduce((a,b)=>a+b,0)/qTimes.length):0;
 
   /* ══════ SETUP ══════ */
-  if(phase==="setup") return(
+  if(phase==="setup")return(
     <div style={{display:"grid",gap:16}}>
-
-      {/* Header */}
       <div className="gl" style={{padding:"34px 32px"}}>
         <span className="badge b-v" style={{marginBottom:13}}>⚡ وضع المحاكاة</span>
         <h1 style={{fontSize:"1.8rem",fontWeight:900,color:"#fff",marginBottom:8}}>
@@ -1605,26 +1577,63 @@ function SimMode({settings,go,updateUser,addMistake,trial={}}){
         </p>
       </div>
 
-      {/* Info cards */}
-      <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(180px,1fr))",gap:12}}>
-        {[
-          {icon:"🔢",label:"القسم الكمي",val:`${SIM_CONFIG.quant} سؤال`,color:"#f97316"},
-          {icon:"📝",label:"القسم اللفظي",val:`${SIM_CONFIG.verbal} سؤال`,color:"#22d3ee"},
-          {icon:"📊",label:"إجمالي الأسئلة",val:`${SIM_CONFIG.total} سؤال`,color:"#a78bfa"},
-          {icon:"⏱",label:"مدة الاختبار",val:`${SIM_CONFIG.minutes} دقيقة`,color:"#4ade80"},
-        ].map(({icon,label,val,color})=>(
-          <div key={label} style={{
-            padding:"20px 18px",borderRadius:16,textAlign:"center",
-            background:`${color}09`,border:`1.5px solid ${color}25`,
+      {/* Track info cards */}
+      <div className="rg-2 sim-tracks" style={{gap:12}}>
+        {Object.entries(QIYYAS).map(([k,v])=>(
+          <button key={k} onClick={()=>setTrack(k)} style={{
+            padding:"20px",borderRadius:16,cursor:"pointer",textAlign:"right",
+            border:`2px solid ${track===k?"rgba(249,115,22,.5)":"rgba(255,255,255,.07)"}`,
+            background:track===k?"rgba(249,115,22,.08)":"rgba(255,255,255,.03)",
+            transition:"all .2s"
           }}>
-            <div style={{fontSize:"1.8rem",marginBottom:10}}>{icon}</div>
-            <p style={{fontSize:".72rem",color:"#64748b",marginBottom:5}}>{label}</p>
-            <p style={{fontSize:"1.1rem",fontWeight:900,color}}>{val}</p>
-          </div>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:14}}>
+              <span style={{
+                padding:"3px 10px",borderRadius:99,fontSize:".65rem",fontWeight:700,
+                background:track===k?"rgba(249,115,22,.2)":"rgba(255,255,255,.06)",
+                border:`1px solid ${track===k?"rgba(249,115,22,.4)":"rgba(255,255,255,.1)"}`,
+                color:track===k?"#f97316":"#64748b"
+              }}>{track===k?"✓ محدد":k}</span>
+              <span style={{fontSize:"1.5rem"}}>{k==="علمي"?"🔬":"📚"}</span>
+            </div>
+            <p style={{fontWeight:900,color:"#fff",fontSize:"1.1rem",marginBottom:10}}>{v.label}</p>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:7}}>
+              {[["الأسئلة",`${v.total} سؤال`],["الوقت",`${v.minutes} دقيقة`],["التوزيع",`${v.quant}ك·${v.verbal}ل`]].map(([lbl,val])=>(
+                <div key={lbl} style={{padding:"8px",borderRadius:10,background:"rgba(255,255,255,.04)",textAlign:"center"}}>
+                  <p style={{fontSize:".6rem",color:"#475569",marginBottom:3}}>{lbl}</p>
+                  <p style={{fontSize:".78rem",fontWeight:800,color:"#e2e8f0"}}>{val}</p>
+                </div>
+              ))}
+            </div>
+          </button>
         ))}
       </div>
 
-      {/* Start */}
+      {/* Difficulty only */}
+      <div className="gl" style={{padding:"22px"}}>
+        <p style={{fontSize:".68rem",color:"#f97316",fontWeight:700,letterSpacing:".08em",marginBottom:14}}>
+          مستوى الصعوبة
+        </p>
+        <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:10}}>
+          {[
+            {v:"سهل",d:"للمراجعة والتأسيس",icon:"🌱",color:"#4ade80"},
+            {v:"متوسط",d:"مثل قياس الفعلي",icon:"⚡",color:"#f97316"},
+            {v:"صعب",d:"للمتحدي والتميز",icon:"🔥",color:"#f87171"},
+          ].map(({v,d,icon,color})=>(
+            <button key={v} onClick={()=>setDifficulty(v)} style={{
+              padding:"18px 14px",borderRadius:14,cursor:"pointer",textAlign:"center",
+              border:`2px solid ${difficulty===v?color+"55":"rgba(255,255,255,.07)"}`,
+              background:difficulty===v?color+"0d":"rgba(255,255,255,.03)",
+              transition:"all .2s"
+            }}>
+              <div style={{fontSize:"1.6rem",marginBottom:8}}>{icon}</div>
+              <p style={{fontWeight:900,color:difficulty===v?color:"#fff",fontSize:".9rem",marginBottom:4}}>{v}</p>
+              <p style={{fontSize:".72rem",color:"#475569",lineHeight:1.5}}>{d}</p>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Start button */}
       <div style={{
         padding:"22px 26px",borderRadius:18,
         background:"linear-gradient(135deg,rgba(167,139,250,.1),rgba(249,115,22,.06))",
@@ -1633,15 +1642,15 @@ function SimMode({settings,go,updateUser,addMistake,trial={}}){
       }}>
         <div>
           <p style={{fontWeight:900,color:"#c4b5fd",fontSize:"1rem"}}>
-            {SIM_CONFIG.total} سؤال · {SIM_CONFIG.minutes} دقيقة
+            {QIYYAS[track].total} سؤال · {QIYYAS[track].minutes} دقيقة · {difficulty}
           </p>
           <p style={{fontSize:".78rem",color:"#475569",marginTop:4}}>
-            {SIM_CONFIG.quant} كمي + {SIM_CONFIG.verbal} لفظي — مخلوطة عشوائياً
+            {QIYYAS[track].quant} كمي + {QIYYAS[track].verbal} لفظي — مخلوطة عشوائياً
           </p>
         </div>
         <button className="btn btn-p" style={{padding:"13px 30px",fontSize:"1rem"}}
           disabled={startLoading} onClick={startSim}>
-          {startLoading?<><div className="spin"/> يحضّر أول سؤال...</>:"ابدأ المحاكاة ←"}
+          {startLoading?<><div className="spin"/> يحضّر أول سؤال...</>:"ابدأ الاختبار ←"}
         </button>
       </div>
     </div>
@@ -1651,9 +1660,11 @@ function SimMode({settings,go,updateUser,addMistake,trial={}}){
   if(phase==="running"){
     const secColor=curQ?.sec==="كمي"?"#f97316":"#22d3ee";
     const timePct=(timeLeft/timeTotal)*100;
-    const timeWarning=timeLeft<600;
+    const timeWarning=timeLeft<600; // أقل من 10 دقائق
     return(
       <div className="rg-sim" style={{gap:13}}>
+
+        {/* Main */}
         <div style={{display:"flex",flexDirection:"column",gap:13}}>
 
           {/* Top bar */}
@@ -1671,6 +1682,7 @@ function SimMode({settings,go,updateUser,addMistake,trial={}}){
                 </span>
               </div>
             </div>
+            {/* Progress bar */}
             <div className="pt">
               <div style={{height:"100%",borderRadius:99,
                 background:`linear-gradient(90deg,${secColor},${secColor}88)`,
@@ -1682,33 +1694,33 @@ function SimMode({settings,go,updateUser,addMistake,trial={}}){
           {loadingQ?(
             <div className="gl" style={{padding:"60px",textAlign:"center"}}>
               <div className="spin spin-lg" style={{margin:"0 auto 14px"}}/>
-              <p style={{color:"#64748b"}}>يحضّر السؤال التالي...</p>
+              <p style={{color:"#64748b"}}>يولّد السؤال التالي...</p>
             </div>
           ):(
             <div className="gl si" style={{padding:"28px",minHeight:280}}>
               {curQ?.shape&&<ShapeRender shape={curQ.shape}/>}
-              {curQ?.image_url&&(
-                <img src={curQ.image_url} alt="سؤال"
-                  style={{width:"100%",maxHeight:280,objectFit:"contain",borderRadius:10,
-                    border:"1px solid rgba(255,255,255,.08)",marginBottom:16}}/>
-              )}
-              {curQ?.question&&(
-                <h2 style={{fontSize:"1.12rem",fontWeight:800,color:"#fff",lineHeight:1.9,marginBottom:22}}>
-                  {curQ.question}
-                </h2>
-              )}
+              <p style={{fontSize:".7rem",color:"#475569",marginBottom:10,fontWeight:600}}>
+                سؤال {idx+1} من {totalQ}
+              </p>
+              <h2 style={{fontSize:"1.12rem",fontWeight:800,color:"#fff",lineHeight:1.9,marginBottom:22}}>
+                {curQ?.question||curQ?.question_text||""}
+              </h2>
               <div style={{display:"flex",flexDirection:"column",gap:9}}>
                 {(curQ?.options||[]).filter(Boolean).map((opt,i)=>(
                   <button key={i} className={`ans ${sel===i?"sel":""}`}
-                    onClick={()=>setSel(i)} style={{transition:"all .15s"}}>
+                    onClick={()=>setSel(i)}
+                    style={{transition:"all .15s"}}>
                     <span>{opt}</span>
                     <div className="opt-l">{['أ','ب','ج','د'][i]}</div>
                   </button>
                 ))}
               </div>
               <div style={{marginTop:20,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-                <p style={{fontSize:".73rem",color:"#334155"}}>{sel===null?"اختر إجابة للمتابعة":""}</p>
-                <button className="btn btn-p" disabled={sel===null||loadingQ}
+                <p style={{fontSize:".73rem",color:"#334155"}}>
+                  {sel===null?"اختر إجابة للمتابعة":""}
+                </p>
+                <button className="btn btn-p"
+                  disabled={sel===null||loadingQ}
                   style={{padding:"11px 24px"}}
                   onClick={()=>goNext(sel,plan,idx,answers,qTimes)}>
                   {idx===totalQ-1?"أنهِ الاختبار ←":"التالي →"}
@@ -1720,6 +1732,8 @@ function SimMode({settings,go,updateUser,addMistake,trial={}}){
 
         {/* Sidebar */}
         <div style={{display:"flex",flexDirection:"column",gap:11,alignSelf:"start",position:"sticky",top:20}}>
+
+          {/* Timer */}
           <div className="gl" style={{padding:"18px 16px",textAlign:"center",
             border:`1.5px solid ${timeWarning?"rgba(248,113,113,.3)":"rgba(255,255,255,.07)"}`,
             background:timeWarning?"rgba(248,113,113,.05)":"rgba(5,9,26,.8)"}}>
@@ -1727,49 +1741,35 @@ function SimMode({settings,go,updateUser,addMistake,trial={}}){
               color:timeWarning?"#f87171":"#f97316",marginBottom:7}}>
               {timeWarning?"⚠ الوقت ينفد":"⏱ الوقت المتبقي"}
             </p>
-            <p style={{fontSize:"2.6rem",fontWeight:900,letterSpacing:"0.04em",
+            <p style={{
+              fontSize:"2.6rem",fontWeight:900,letterSpacing:"0.04em",
               fontFamily:"monospace",lineHeight:1,
-              color:timeLeft<300?"#f87171":timeWarning?"#f97316":"#fff"}}>
-              {fmt(timeLeft)}
-            </p>
+              color:timeLeft<300?"#f87171":timeWarning?"#f97316":"#fff"
+            }}>{fmt(timeLeft)}</p>
             <div className="pt" style={{marginTop:10}}>
               <div style={{height:"100%",borderRadius:99,transition:"width 1s linear",
                 width:`${timePct}%`,
-                background:timeWarning?"linear-gradient(90deg,#f87171,#fb923c)":"linear-gradient(90deg,#f97316,#22d3ee)"}}/>
+                background:timeWarning?"linear-gradient(90deg,#f87171,#fb923c)":"linear-gradient(90deg,#f97316,#22d3ee)"
+              }}/>
             </div>
             <p style={{fontSize:".67rem",color:"#334155",marginTop:6}}>
-              {SIM_CONFIG.minutes} دقيقة إجمالاً
+              {QIYYAS[track].minutes} دقيقة إجمالاً
             </p>
           </div>
 
+          {/* Progress stats */}
           <div className="gl" style={{padding:"14px"}}>
             <p style={{fontSize:".65rem",color:"#64748b",fontWeight:700,marginBottom:11}}>التقدم</p>
             <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:12}}>
-              {[["المجاب",`${answers.length}`,"#f97316"],["المتبقي",`${totalQ-answers.length}`,"#475569"]].map(([l,v,c])=>(
+              {[["المجاب",`${answers.length}`,"#f97316"],[`المتبقي`,`${totalQ-answers.length}`,"#475569"]].map(([l,v,c])=>(
                 <div key={l} style={{padding:"9px",borderRadius:10,background:"rgba(255,255,255,.04)",textAlign:"center"}}>
                   <p style={{fontSize:".6rem",color:"#475569",marginBottom:3}}>{l}</p>
                   <p style={{fontSize:"1.1rem",fontWeight:900,color:c}}>{v}</p>
                 </div>
               ))}
             </div>
-            {/* كمي vs لفظي mini progress */}
-            {[{sec:"كمي",color:"#f97316"},{sec:"لفظي",color:"#22d3ee"}].map(({sec,color})=>{
-              const done=answers.filter(a=>a.sec===sec).length;
-              const total=plan.filter(p=>p.sec===sec).length||SIM_CONFIG[sec==="كمي"?"quant":"verbal"];
-              return(
-                <div key={sec} style={{marginBottom:8}}>
-                  <div style={{display:"flex",justifyContent:"space-between",marginBottom:3}}>
-                    <span style={{fontSize:".6rem",color}}>{sec}</span>
-                    <span style={{fontSize:".6rem",color:"#475569"}}>{done}/{total}</span>
-                  </div>
-                  <div style={{height:4,borderRadius:99,background:"rgba(255,255,255,.06)"}}>
-                    <div style={{height:"100%",borderRadius:99,background:color,
-                      width:`${Math.round((done/total)*100)}%`,transition:"width .4s"}}/>
-                  </div>
-                </div>
-              );
-            })}
-            <div style={{display:"grid",gridTemplateColumns:"repeat(6,1fr)",gap:3,marginTop:8,maxHeight:100,overflowY:"auto"}}>
+            {/* Question grid (mini) */}
+            <div style={{display:"grid",gridTemplateColumns:"repeat(6,1fr)",gap:3,maxHeight:100,overflowY:"auto"}}>
               {Array.from({length:Math.min(totalQ,60)}).map((_,i)=>(
                 <div key={i} style={{
                   height:18,borderRadius:4,fontSize:".55rem",
@@ -1779,6 +1779,7 @@ function SimMode({settings,go,updateUser,addMistake,trial={}}){
                   color:i===idx?"#f97316":i<answers.length?"#86efac":"#334155"
                 }}>{i+1}</div>
               ))}
+              {totalQ>60&&<div style={{height:18,borderRadius:4,background:"rgba(255,255,255,.04)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:".55rem",color:"#334155"}}>…</div>}
             </div>
           </div>
 
@@ -1794,100 +1795,102 @@ function SimMode({settings,go,updateUser,addMistake,trial={}}){
   /* ══════ DONE ══════ */
   if(phase==="done"){
     const qCorrect=answers.filter(a=>a.sec==="كمي"&&a.ok).length;
-    const qTotal=  answers.filter(a=>a.sec==="كمي").length;
+    const qTotal=answers.filter(a=>a.sec==="كمي").length;
     const vCorrect=answers.filter(a=>a.sec==="لفظي"&&a.ok).length;
-    const vTotal=  answers.filter(a=>a.sec==="لفظي").length;
-    const totalCorrect=qCorrect+vCorrect;
-    const totalAnswered=answers.length;
+    const vTotal=answers.filter(a=>a.sec==="لفظي").length;
     const timeTaken=timeTotal-timeLeft;
-    const pct=n=>totalAnswered?Math.round((n/totalAnswered)*100):0;
-    const qPct=qTotal?Math.round((qCorrect/qTotal)*100):0;
-    const vPct=vTotal?Math.round((vCorrect/vTotal)*100):0;
-    const totalPct=totalAnswered?Math.round((totalCorrect/totalAnswered)*100):0;
     return(
       <div style={{display:"grid",gap:14}}>
-        {showCard&&<ResultCard stats={{topic:"محاكاة قياس",section:"محاكاة",correct:totalCorrect,total:totalAnswered,avgTime:avgT}} onClose={()=>setShowCard(false)}/>}
+        {showCard&&<ResultCard stats={{topic:track,section:"محاكاة",correct,total:answers.length,avgTime:avgT}} onClose={()=>setShowCard(false)}/>}
 
         {/* Header */}
-        <div className="gl gl-pad-lg" style={{padding:"34px 30px",textAlign:"center"}}>
+        <div className="gl gl-pad-lg" style={{padding:"34px 30px"}}>
           <span className="badge b-g" style={{marginBottom:12}}>✓ انتهى الاختبار</span>
-          <h1 style={{fontSize:"1.8rem",fontWeight:900,color:"#fff",marginBottom:8}}>نتيجة المحاكاة</h1>
-          <p style={{color:"#64748b",fontSize:".88rem"}}>
-            أجبت على {totalAnswered} سؤالاً في {Math.floor(timeTaken/60)} دقيقة و{timeTaken%60} ثانية
-          </p>
-        </div>
-
-        {/* الدرجة الكلية */}
-        <div style={{
-          padding:"28px",borderRadius:18,textAlign:"center",
-          background:`linear-gradient(135deg,rgba(167,139,250,.12),rgba(249,115,22,.08))`,
-          border:"1.5px solid rgba(167,139,250,.3)"
-        }}>
-          <p style={{fontSize:".8rem",color:"#94a3b8",marginBottom:6}}>الدرجة الكلية</p>
-          <p style={{fontSize:"3.5rem",fontWeight:900,color:totalPct>=70?"#4ade80":totalPct>=50?"#f97316":"#f87171",lineHeight:1}}>
-            {totalPct}%
-          </p>
-          <p style={{fontSize:".9rem",color:"#94a3b8",marginTop:8}}>
-            {totalCorrect} / {totalAnswered} إجابة صحيحة
-          </p>
-        </div>
-
-        {/* كمي + لفظي منفصلَين */}
-        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
-          {[
-            {label:"القسم الكمي",icon:"🔢",correct:qCorrect,total:qTotal,pct:qPct,color:"#f97316"},
-            {label:"القسم اللفظي",icon:"📝",correct:vCorrect,total:vTotal,pct:vPct,color:"#22d3ee"},
-          ].map(({label,icon,correct,total,pct,color})=>(
-            <div key={label} style={{
-              padding:"22px 18px",borderRadius:16,textAlign:"center",
-              background:`${color}09`,border:`1.5px solid ${color}30`
-            }}>
-              <div style={{fontSize:"1.6rem",marginBottom:8}}>{icon}</div>
-              <p style={{fontSize:".75rem",color:"#64748b",marginBottom:6}}>{label}</p>
-              <p style={{fontSize:"2.2rem",fontWeight:900,color,lineHeight:1}}>{pct}%</p>
-              <p style={{fontSize:".72rem",color:"#475569",marginTop:6}}>
-                {correct} / {total} صح
-              </p>
-              {/* progress bar */}
-              <div style={{marginTop:10,height:5,borderRadius:99,background:"rgba(255,255,255,.06)"}}>
-                <div style={{height:"100%",borderRadius:99,background:color,width:`${pct}%`,transition:"width .6s"}}/>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* ملخص سريع */}
-        <div className="gl" style={{padding:"20px 24px"}}>
-          <p style={{fontWeight:800,color:"#fff",marginBottom:14,fontSize:".9rem"}}>📊 ملخص الأداء</p>
-          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(120px,1fr))",gap:10}}>
+          <h1 style={{fontSize:"1.85rem",fontWeight:900,color:"#fff",marginBottom:18}}>
+            نتائج محاكاة قياس
+          </h1>
+          <div style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:11}}>
             {[
-              ["⏱ متوسط السؤال",`${avgT} ث`,"#94a3b8"],
-              ["✅ إجمالي الصح",`${totalCorrect}`,"#4ade80"],
-              ["❌ إجمالي الخطأ",`${totalAnswered-totalCorrect}`,"#f87171"],
-              ["📐 الكمي",`${qPct}%`,"#f97316"],
-              ["📝 اللفظي",`${vPct}%`,"#22d3ee"],
-            ].map(([l,v,c])=>(
-              <div key={l} style={{padding:"12px",borderRadius:12,background:"rgba(255,255,255,.04)",textAlign:"center"}}>
-                <p style={{fontSize:".65rem",color:"#475569",marginBottom:4}}>{l}</p>
-                <p style={{fontSize:"1.1rem",fontWeight:900,color:c}}>{v}</p>
+              ["الدقة الكلية",`${acc}%`,acc>=75?"#4ade80":acc>=50?"#f97316":"#f87171","⭐"],
+              ["الصحيح/الكلي",`${correct}/${answers.length}`,"#22d3ee","✓"],
+              ["الوقت المستغرق",fmt(timeTaken),"#a78bfa","⏱"],
+              ["متوسط/سؤال",`${avgT}ث`,"#f97316","⚡"],
+            ].map(([l,v,c,ic],i)=>(
+              <div key={i} className={`gl2 stat au d${i+1}`} style={{padding:"16px 18px"}}>
+                <p style={{fontSize:".65rem",color:"#475569",marginBottom:6}}>{ic} {l}</p>
+                <p style={{fontSize:"1.3rem",fontWeight:900,color:c}}>{v}</p>
               </div>
             ))}
           </div>
         </div>
 
-        {/* أزرار */}
-        <div style={{display:"flex",gap:10,flexWrap:"wrap"}}>
-          <button className="btn btn-p" style={{flex:1,padding:"13px",justifyContent:"center"}}
-            onClick={()=>{setPhase("setup");setAnswers([]);setIdx(0);setCurQ(null);setNextQData(null);setTimeLeft(timeTotal);}}>
-            ← محاكاة جديدة
-          </button>
-          <button className="btn" style={{flex:1,padding:"13px",justifyContent:"center"}}
-            onClick={()=>setShowCard(true)}>
-            📊 بطاقة النتيجة
-          </button>
-          <button className="btn" style={{flex:1,padding:"13px",justifyContent:"center"}}
-            onClick={()=>go("roadmap")}>
-            🗺️ خريطة المسار
+        {/* Section breakdown */}
+        <div className="rg-2" style={{display:"grid",gap:12}}>
+          {[
+            {sec:"كمي",label:"القسم الكمي",cor:qCorrect,tot:qTotal,color:"#f97316",icon:"🔢"},
+            {sec:"لفظي",label:"القسم اللفظي",cor:vCorrect,tot:vTotal,color:"#22d3ee",icon:"📝"},
+          ].map(({sec,label,cor,tot,color,icon})=>(
+            <div key={sec} className="gl" style={{padding:"20px",border:`1px solid ${color}20`}}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
+                <div style={{display:"flex",gap:8,alignItems:"center"}}>
+                  <span>{icon}</span>
+                  <p style={{fontWeight:800,color:"#fff",fontSize:".9rem"}}>{label}</p>
+                </div>
+                <span style={{fontWeight:900,color,fontSize:"1.1rem"}}>
+                  {tot?Math.round((cor/tot)*100):0}%
+                </span>
+              </div>
+              <div className="pt" style={{marginBottom:8}}>
+                <div style={{height:"100%",borderRadius:99,background:color,
+                  width:`${tot?Math.round((cor/tot)*100):0}%`,transition:"width .6s ease"}}/>
+              </div>
+              <p style={{fontSize:".75rem",color:"#64748b"}}>{cor} صحيح من {tot} سؤال</p>
+            </div>
+          ))}
+        </div>
+
+        {/* Question breakdown */}
+        <div className="gl" style={{padding:"22px"}}>
+          <p style={{fontSize:".68rem",color:"#f97316",fontWeight:700,letterSpacing:".08em",marginBottom:13}}>
+            ▸ تفصيل الأسئلة
+          </p>
+          <div style={{display:"flex",flexDirection:"column",gap:7,maxHeight:300,overflowY:"auto"}}>
+            {answers.map((a,i)=>(
+              <div key={i} style={{
+                display:"flex",alignItems:"flex-start",gap:10,padding:"10px 13px",borderRadius:11,
+                background:a.ok?"rgba(74,222,128,.06)":"rgba(248,113,113,.06)",
+                border:`1px solid ${a.ok?"rgba(74,222,128,.18)":"rgba(248,113,113,.18)"}`
+              }}>
+                <span style={{fontWeight:900,color:a.ok?"#86efac":"#fca5a5",fontSize:".8rem",flexShrink:0,marginTop:2}}>
+                  {a.ok?"✓":"✗"}
+                </span>
+                <div style={{flex:1,minWidth:0}}>
+                  <div style={{display:"flex",gap:6,marginBottom:4,flexWrap:"wrap"}}>
+                    <span style={{fontSize:".6rem",padding:"1px 7px",borderRadius:99,
+                      background:a.sec==="كمي"?"rgba(249,115,22,.12)":"rgba(34,211,238,.1)",
+                      color:a.sec==="كمي"?"#f97316":"#22d3ee",fontWeight:700}}>
+                      {a.topic}
+                    </span>
+                    <span style={{fontSize:".6rem",color:"#334155"}}>{qTimes[i]||"—"}ث</span>
+                  </div>
+                  <p style={{fontSize:".78rem",color:"#94a3b8",lineHeight:1.5,
+                    overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>
+                    {a.q?.slice(0,80)}…
+                  </p>
+                  {!a.ok&&<p style={{fontSize:".7rem",color:"#6ee7b7",marginTop:4}}>
+                    الصحيحة: {a.options?.[a.correct]}
+                  </p>}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div style={{display:"flex",gap:10,justifyContent:"flex-end",flexWrap:"wrap"}}>
+          <button className="btn btn-g" onClick={()=>go("review")}>📋 راجع الأخطاء</button>
+          <button className="btn btn-v" onClick={()=>setShowCard(true)}>🎴 بطاقة النتيجة</button>
+          <button className="btn btn-p" onClick={()=>{setPhase("setup");setAnswers([]);setIdx(0);setCurQ(null);setNextQData(null);}}>
+            محاكاة جديدة ←
           </button>
         </div>
       </div>
@@ -1956,6 +1959,13 @@ function Pricing({go,setCheckoutPlan,setCheckoutPeriod}){
 
   const PLANS=[
     {
+      id:"free",name:"مجاني",price:0,per:"",color:"#22d3ee",
+      badge:"ابدأ هنا 🎁",badgeBg:"rgba(34,211,238,.12)",
+      features:["25 سؤال تجربة مجانية","استعراض بعض المفاهيم","خريطة مسار التعلم","تجربة واجهة الاختبار"],
+      locked:["أسئلة AI غير محدودة","شرح تفصيلي لكل سؤال","وضع المحاكاة","تحليل التقدم"],
+      btn:"ابدأ مجانًا ←",isPaid:false,highlight:false,
+    },
+    {
       id:"month",name:"تأسيسي",price:59,per:"شهر",color:"#f97316",
       badge:"الأكثر شيوعاً ⭐",badgeBg:"rgba(249,115,22,.12)",
       features:["أسئلة AI غير محدودة","شرح مفصّل لكل سؤال","وضع المحاكاة الكامل ⚡","تتبع التقدم والدقة","بنك الأسئلة 18 باب","تايمر 90 ثانية ⏱","وضع المراجعة 📋","بطاقة النتيجة"],
@@ -1991,32 +2001,21 @@ function Pricing({go,setCheckoutPlan,setCheckoutPeriod}){
       </div>
 
       {/* Cards */}
-      <div className="pricing-grid" style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(260px,1fr))",gap:14,maxWidth:680,margin:"0 auto",width:"100%"}}>
-        {/* Free trial notice */}
-        <div style={{gridColumn:"1/-1",display:"flex",alignItems:"center",justifyContent:"center",gap:8,
-          padding:"10px 18px",borderRadius:12,
-          background:"rgba(34,211,238,.06)",border:"1px solid rgba(34,211,238,.18)"}}>
-          <span style={{fontSize:"1rem"}}>🎁</span>
-          <p style={{fontSize:".78rem",color:"#67e8f9"}}>
-            جرّب مجاناً — <strong>25 سؤال</strong> بدون بطاقة ائتمانية
-            <button onClick={()=>go("auth")} style={{
-              marginRight:10,padding:"4px 12px",borderRadius:99,
-              background:"rgba(34,211,238,.15)",border:"1px solid rgba(34,211,238,.3)",
-              color:"#22d3ee",fontSize:".72rem",fontWeight:700,cursor:"pointer",fontFamily:"Cairo,sans-serif"
-            }}>ابدأ مجانًا ←</button>
-          </p>
-        </div>
+      <div className="pricing-grid" style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(230px,1fr))",gap:14}}>
         {PLANS.map((p,i)=>{
-          const priceData=p.id==="month"?BASIC_PRICES[basicDur]:EXAM_PRICES[examDur];
+          const basicPriceData=BASIC_PRICES[basicDur];
+          const examPriceData=EXAM_PRICES[examDur];
           return(
           <div key={p.id} className={`gl au d${i+1}`} style={{
             padding:"clamp(20px,3vw,28px) clamp(16px,2.5vw,22px)",
             position:"relative",
-            border:`1.5px solid ${p.isBest?"rgba(167,139,250,.55)":"rgba(249,115,22,.4)"}`,
+            border:`1.5px solid ${p.isBest?"rgba(167,139,250,.55)":p.highlight?"rgba(249,115,22,.4)":`${p.color}25`}`,
             display:"flex",flexDirection:"column",gap:0,
             background:p.isBest?"linear-gradient(160deg,rgba(167,139,250,.07),rgba(5,9,26,.98))":"",
-            boxShadow:p.isBest?"0 12px 40px rgba(167,139,250,.18)":"0 8px 28px rgba(249,115,22,.12)",
+            boxShadow:p.isBest?`0 12px 40px rgba(167,139,250,.18)`:p.highlight?`0 8px 28px rgba(249,115,22,.12)`:"",
+            opacity:p.isPaid?.85:1,
           }}>
+            {/* Best badge */}
             {p.isBest&&(
               <div style={{position:"absolute",top:-13,left:"50%",transform:"translateX(-50%)",
                 whiteSpace:"nowrap",padding:"5px 16px",borderRadius:99,
@@ -2025,24 +2024,43 @@ function Pricing({go,setCheckoutPlan,setCheckoutPeriod}){
                 ✦ الأكثر اختياراً
               </div>
             )}
+
+            {/* Plan name */}
             <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:14}}>
               <div>
                 <p style={{fontSize:"1.1rem",fontWeight:900,color:"#fff",marginBottom:3}}>{p.name}</p>
                 <span style={{display:"inline-block",padding:"3px 10px",borderRadius:99,
                   background:p.badgeBg,fontSize:".62rem",fontWeight:700,color:p.color}}>
-                  {p.badge}
+                  {p.isBest?"المميز 👑":p.badge}
                 </span>
               </div>
-              <div style={{padding:"4px 8px",borderRadius:8,
-                background:"rgba(251,191,36,.1)",border:"1px solid rgba(251,191,36,.2)"}}>
-                <span style={{fontSize:".55rem",color:"#fbbf24",fontWeight:700}}>🔒 قريباً</span>
-              </div>
+              {p.isPaid&&(
+                <div style={{padding:"4px 8px",borderRadius:8,
+                  background:"rgba(251,191,36,.1)",border:"1px solid rgba(251,191,36,.2)"}}>
+                  <span style={{fontSize:".55rem",color:"#fbbf24",fontWeight:700}}>🔒 قريباً</span>
+                </div>
+              )}
             </div>
-            {p.id==="month"
-              ?<DurTabs value={basicDur} onChange={setBasicDur} prices={BASIC_PRICES}/>
-              :<DurTabs value={examDur} onChange={setExamDur} prices={EXAM_PRICES}/>
-            }
-            <PriceDisplay priceData={priceData} color={p.color}/>
+
+            {/* Duration tabs for paid plans */}
+            {p.id==="month"&&<DurTabs value={basicDur} onChange={setBasicDur} prices={BASIC_PRICES}/>}
+            {p.id==="exam"&&<DurTabs value={examDur} onChange={setExamDur} prices={EXAM_PRICES}/>}
+
+            {/* Price */}
+            {p.isPaid?(
+              p.id==="month"
+                ?<PriceDisplay priceData={basicPriceData} color={p.color}/>
+                :<PriceDisplay priceData={examPriceData} color={p.color}/>
+            ):(
+              <div style={{marginBottom:14}}>
+                <div style={{display:"flex",alignItems:"baseline",gap:6}}>
+                  <span style={{fontSize:"clamp(2rem,4vw,2.6rem)",fontWeight:900,color:p.color,lineHeight:1}}>مجاني</span>
+                </div>
+                <p style={{fontSize:".7rem",color:"#64748b",marginTop:3}}>لا يحتاج بطاقة</p>
+              </div>
+            )}
+
+            {/* Features */}
             <div style={{display:"flex",flexDirection:"column",gap:7,flex:1,marginBottom:20}}>
               {p.features.map((f,j)=>(
                 <div key={j} style={{display:"flex",alignItems:"center",gap:8}}>
@@ -2050,29 +2068,48 @@ function Pricing({go,setCheckoutPlan,setCheckoutPeriod}){
                   <span style={{fontSize:".78rem",color:"#cbd5e1"}}>{f}</span>
                 </div>
               ))}
+              {p.locked.map((f,j)=>(
+                <div key={j} style={{display:"flex",alignItems:"center",gap:8,opacity:.4}}>
+                  <span style={{color:"#475569",fontSize:".7rem",flexShrink:0}}>✕</span>
+                  <span style={{fontSize:".78rem",color:"#475569"}}>{f}</span>
+                </div>
+              ))}
             </div>
-            <button
-              onClick={()=>{
-                const plan=p.id==="month"?"basic":"premium";
-                const period=p.id==="month"?basicDur:examDur;
-                setCheckoutPlan&&setCheckoutPlan(plan);
-                setCheckoutPeriod&&setCheckoutPeriod(period);
-                go("checkout");
-              }}
-              style={{
-                width:"100%",padding:"13px",borderRadius:12,
-                background:`linear-gradient(135deg,${p.color}22,${p.color}11)`,
-                border:`1px solid ${p.color}44`,
-                color:p.color,fontSize:".82rem",fontWeight:700,
-                cursor:"pointer",letterSpacing:.3,fontFamily:"Cairo,sans-serif",transition:"all .2s",
-              }}
-              onMouseEnter={e=>e.currentTarget.style.opacity=".8"}
-              onMouseLeave={e=>e.currentTarget.style.opacity="1"}>
-              اشترك الآن ← (قريباً)
-            </button>
-            <p style={{textAlign:"center",fontSize:".6rem",color:"#334155",marginTop:8}}>
-              سيتم تحويلك إلى بوابة دفع آمنة عند التفعيل · لا استرداد بعد إتمام الدفع
-            </p>
+
+            {/* CTA Button */}
+            {p.isPaid?(
+              <div>
+                <button
+                  onClick={()=>{
+                    const plan=p.id==="month"?"basic":"premium";
+                    const period=p.id==="month"?basicDur:examDur;
+                    setCheckoutPlan&&setCheckoutPlan(plan);
+                    setCheckoutPeriod&&setCheckoutPeriod(period);
+                    go("checkout");
+                  }}
+                  style={{
+                    width:"100%",padding:"13px",borderRadius:12,
+                    background:`linear-gradient(135deg,${p.color}22,${p.color}11)`,
+                    border:`1px solid ${p.color}44`,
+                    color:p.color,fontSize:".82rem",fontWeight:700,
+                    cursor:"pointer",letterSpacing:.3,fontFamily:"Cairo,sans-serif",
+                    transition:"all .2s",
+                  }}
+                  onMouseEnter={e=>e.currentTarget.style.opacity=".8"}
+                  onMouseLeave={e=>e.currentTarget.style.opacity="1"}>
+                  اشترك الآن ← (قريباً)
+                </button>
+                <p style={{textAlign:"center",fontSize:".6rem",color:"#334155",marginTop:8}}>
+                  سيتم تحويلك إلى بوابة دفع آمنة عند التفعيل · لا استرداد بعد إتمام الدفع
+                </p>
+              </div>
+            ):(
+              <button className="btn btn-p" style={{width:"100%",padding:"13px",borderRadius:12,fontWeight:700,fontSize:".82rem"}}
+                onClick={()=>go("auth")}>
+                {p.btn}
+              </button>
+            )}
+
           </div>
         );})}
       </div>
@@ -2083,19 +2120,19 @@ function Pricing({go,setCheckoutPlan,setCheckoutPeriod}){
         <table style={{width:"100%",borderCollapse:"collapse",fontSize:".75rem"}}>
           <thead>
             <tr>
-              {["الميزة","تأسيسي","احترافي"].map((h,i)=>(
-                <th key={i} style={{padding:"8px 10px",textAlign:"center",color:i===0?"#94a3b8":["#f97316","#a78bfa"][i-1],fontWeight:700,borderBottom:"1px solid rgba(255,255,255,.06)"}}>{h}</th>
+              {["الميزة","مجاني","تأسيسي","احترافي"].map((h,i)=>(
+                <th key={i} style={{padding:"8px 10px",textAlign:"center",color:i===0?"#94a3b8":["#22d3ee","#f97316","#a78bfa"][i-1],fontWeight:700,borderBottom:"1px solid rgba(255,255,255,.06)"}}>{h}</th>
               ))}
             </tr>
           </thead>
           <tbody>
             {[
-              ["أسئلة AI","غير محدودة ✓","غير محدودة ✓"],
-              ["وضع المحاكاة","✓","✓"],
-              ["شرح تفصيلي","✓","✓"],
-              ["تحليل AI متقدم","✕","✓"],
-              ["خطة مذاكرة ذكية","✕","✓"],
-              ["الدعم","عادي","24/7 أولوية"],
+              ["أسئلة AI","25 فقط","غير محدودة ✓","غير محدودة ✓"],
+              ["وضع المحاكاة","✕","✓","✓"],
+              ["شرح تفصيلي","✕","✓","✓"],
+              ["تحليل AI متقدم","✕","✕","✓"],
+              ["خطة مذاكرة ذكية","✕","✕","✓"],
+              ["الدعم","✕","عادي","24/7 أولوية"],
             ].map((row,i)=>(
               <tr key={i} style={{background:i%2===0?"rgba(255,255,255,.02)":"transparent"}}>
                 {row.map((cell,j)=>(
@@ -2185,14 +2222,9 @@ function Session({settings,go,updateUser,trial,setTrial,addMistake,plan="free",s
 
   const fetchQ=useCallback(async()=>{
     if(!trial.isAdmin&&!trial.isSubscribed&&trial.used>=trial.limit){go("paywall");return;}
-    // تحديد مصدر الأبواب: شامل لقسم معين أم عشوائي من الكل
-    const isComprehensive = settings.topic==="__comprehensive__";
-    const topicPool = isComprehensive
-      ? TOPICS[settings.comprehensiveSection||settings.section]||ALL_TOPICS
-      : ALL_TOPICS;
-
+    // اختر باباً عشوائياً جديداً مختلفاً عن الحالي
     const nextTopic=(()=>{
-      const pool=topicPool.filter(t=>t!==curTopic);
+      const pool=ALL_TOPICS.filter(t=>t!==curTopic);
       const t=pool[Math.floor(Math.random()*pool.length)];
       setCurTopic(t);
       return t;
@@ -3113,7 +3145,7 @@ function Auth({mode,go,onLogin}){
   const IS_ARTIFACT=typeof window!=="undefined"&&(window.location.hostname.includes("claude.ai")||window.location.hostname==="localhost");
 
 /* ═══ PLAN HELPERS ═══════════════════════════════════════════
- * free  → 25 سؤال تجربة مجانية
+ *  free  → 10 سؤال مجاني فقط
  *  month → أسئلة غير محدودة + شرح + محاكاة + تتبع
  *  exam  → كل شيء + تحليل الضعف + خطة مذاكرة
  * ══════════════════════════════════════════════════════════ */
@@ -3292,202 +3324,268 @@ function PlacementResult({rec,score,onFinish}){if(!rec)return null;return(<div s
 function Dashboard({go,user,trial,mistakes,settings,setSettings,getTopicProgress,watchedVideos={}}){
   useEffect(()=>{window.scrollTo({top:0,behavior:"instant"});},[]); 
 
-  const acc = user.totalSolved ? Math.round((user.correct/user.totalSolved)*100) : 0;
+  const acc        = user.totalSolved ? Math.round((user.correct/user.totalSolved)*100) : 0;
   const wrongCount = mistakes.length;
-  const isNew = user.totalSolved === 0;
-  const isSubscribed = trial.isSubscribed || trial.isAdmin;
-  const trialLeft = trial.limit - trial.used;
-  const trialPct = Math.min(100, Math.round((trial.used / trial.limit)*100));
-
-  const lastTopic = settings?.topic || "النسبة والتناسب";
-  const lastTopicProgress = getTopicProgress ? getTopicProgress(lastTopic) : null;
-  const lastTopicWatched = lastTopicProgress ? lastTopicProgress.done : 0;
-  const lastTopicTotal = lastTopicProgress ? lastTopicProgress.total : 0;
-  const lastTopicPct = lastTopicProgress ? lastTopicProgress.pct : 0;
-
-  const qTopics = TOPICS["\u0643\u0645\u064a"].filter(t=>VIDEO_LESSONS[t]);
-  const totalWatched = Object.values(watchedVideos).reduce((s,arr)=>s+(Array.isArray(arr)?arr.length:0),0);
-
-  const C = {
-    bg:"rgba(10,18,40,.92)",bg2:"rgba(5,9,26,.75)",
-    border:"rgba(255,255,255,.07)",
-    orange:"#f97316",cyan:"#22d3ee",green:"#4ade80",
-    muted:"#475569",dimmed:"#334155",text:"#e2e8f0",subtext:"#94a3b8",
+  const isNew      = user.totalSolved === 0;
+  const isSub      = trial.isSubscribed || trial.isAdmin;
+  const trialLeft  = trial.limit - trial.used;
+  const trialPct   = Math.min(100, Math.round((trial.used / trial.limit)*100));
+  const lastTopic  = settings?.topic || "النسبة والتناسب";
+  const lastProg   = getTopicProgress ? getTopicProgress(lastTopic) : null;
+  const lpDone     = lastProg?.done  || 0;
+  const lpTotal    = lastProg?.total || 0;
+  const lpPct      = lastProg?.pct   || 0;
+  const qTopics    = TOPICS["كمي"].filter(t=>VIDEO_LESSONS[t]);
+  const totalWatched = Object.values(watchedVideos).reduce((s,a)=>s+(Array.isArray(a)?a.length:0),0);
+  const gradeLabel = acc>=85?"ممتاز ✦":acc>=70?"جيد جداً":acc>=55?"جيد":acc>0?"يحتاج تطوير":null;
+  const gradeColor = acc>=85?"#4ade80":acc>=70?"#22d3ee":acc>=55?"#f97316":"#f87171";
+  const dateStr    = new Date().toLocaleDateString("ar-SA",{weekday:"long",day:"numeric",month:"long"});
+  const S = {
+    card:"rgba(255,255,255,.025)",border:"rgba(255,255,255,.07)",
+    bg:"rgba(10,18,40,.95)",bg2:"rgba(5,9,26,.8)",
+    or:"#f97316",cy:"#22d3ee",gr:"#4ade80",pu:"#a78bfa",
+    mu:"#475569",su:"#94a3b8",di:"#334155",
   };
 
   return(
-    <div style={{display:"flex",flexDirection:"column",gap:14}}>
+    <div style={{display:"flex",flexDirection:"column",gap:18,paddingBottom:8}}>
 
-      {/* 1) HEADER */}
-      <div style={{padding:"26px 26px 22px",background:C.bg,border:`1px solid ${C.border}`,borderRadius:20}}>
-        <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",flexWrap:"wrap",gap:14,marginBottom:18}}>
-          <div>
-            <p style={{fontSize:".69rem",color:C.muted,fontWeight:600,marginBottom:4}}>
-              {new Date().toLocaleDateString("ar-SA",{weekday:"long",day:"numeric",month:"long"})}
-            </p>
-            <h1 style={{fontSize:"1.5rem",fontWeight:900,color:"#fff",lineHeight:1.3,marginBottom:4}}>
-              مرحباً، <span style={{color:C.orange}}>{user.name||"طالب"}</span>
-            </h1>
-            <p style={{fontSize:".8rem",color:C.subtext,lineHeight:1.6}}>
-              {isNew?"ابدأ جلستك الأولى الآن — كل خطوة تُقربك من الهدف.":
-               acc>=80?"أداؤك متميز — حافظ على هذا المستوى.":
-               acc>=60?"تقدم جيد — واصل التدريب اليومي.":
-               "أنت في بداية المسار — كل جلسة تُحدث فرقاً."}
-            </p>
-          </div>
-          {user.streak>0&&(
-            <div style={{padding:"10px 16px",borderRadius:12,background:"rgba(249,115,22,.06)",border:"1px solid rgba(249,115,22,.15)",textAlign:"center"}}>
-              <p style={{fontSize:"1.35rem",fontWeight:900,color:C.orange,lineHeight:1}}>{user.streak}</p>
-              <p style={{fontSize:".62rem",color:C.muted,fontWeight:600,marginTop:3}}>يوم متواصل</p>
-            </div>
-          )}
-        </div>
-
-        {!isNew&&(
-          <>
-            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
-              <span style={{fontSize:".69rem",color:C.subtext,fontWeight:600}}>دقة الإجابات الكلية</span>
-              <span style={{fontSize:".76rem",fontWeight:800,
-                color:acc>=70?C.green:acc>=50?C.orange:"#f87171"}}>{acc}%</span>
-            </div>
-            <div style={{height:5,borderRadius:99,background:"rgba(255,255,255,.06)",overflow:"hidden",marginBottom:18}}>
-              <div style={{height:"100%",borderRadius:99,width:`${acc}%`,
-                background:acc>=70?`linear-gradient(90deg,${C.green},${C.cyan})`:
-                           acc>=50?`linear-gradient(90deg,${C.orange},#fb923c)`:
-                           "linear-gradient(90deg,#f87171,#fb7185)",
-                transition:"width 1.2s cubic-bezier(.22,1,.36,1)"}}/>
-            </div>
-            <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:9}}>
-              {[
-                {v:user.totalSolved,l:"سؤال حُلَّ",c:C.cyan},
-                {v:user.correct,l:"إجابة صحيحة",c:C.green},
-                {v:totalWatched,l:"فيديو شُوهد",c:"#c4b5fd"},
-              ].map(({v,l,c},i)=>(
-                <div key={i} style={{padding:"12px 10px",background:C.bg2,border:`1px solid ${C.border}`,borderRadius:12,textAlign:"center"}}>
-                  <p style={{fontSize:"1.25rem",fontWeight:900,color:c,
-                    animation:"numPop .4s cubic-bezier(.34,1.56,.64,1) both",
-                    animationDelay:`${i*.07}s`}}>{v}</p>
-                  <p style={{fontSize:".62rem",color:C.muted,fontWeight:600,marginTop:3}}>{l}</p>
-                </div>
-              ))}
-            </div>
-          </>
-        )}
-      </div>
-
-      {/* 2) MAIN FOCUS — كمّل من هنا */}
+      {/* ══ HEADER ══ */}
       <div style={{
-        padding:"22px 24px",
-        background:"linear-gradient(135deg,rgba(249,115,22,.06) 0%,rgba(10,18,40,.95) 70%)",
-        border:"1px solid rgba(249,115,22,.18)",borderRadius:20,position:"relative",overflow:"hidden"
+        padding:"28px 28px 24px",
+        background:"linear-gradient(135deg,rgba(249,115,22,.08) 0%,rgba(10,18,40,.97) 65%)",
+        border:"1.5px solid rgba(249,115,22,.18)",borderRadius:22,
+        position:"relative",overflow:"hidden"
       }}>
-        <div style={{position:"absolute",top:-40,left:-40,width:130,height:130,borderRadius:"50%",
-          background:"rgba(249,115,22,.05)",filter:"blur(40px)",pointerEvents:"none"}}/>
+        <div style={{position:"absolute",top:-60,right:-60,width:220,height:220,borderRadius:"50%",
+          background:"radial-gradient(circle,rgba(249,115,22,.12),transparent 70%)",pointerEvents:"none"}}/>
         <div style={{position:"relative"}}>
-          <p style={{fontSize:".64rem",fontWeight:700,color:C.orange,letterSpacing:".11em",marginBottom:8}}>
-            مسارك الحالي
-          </p>
-          <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",flexWrap:"wrap",gap:12,marginBottom:14}}>
-            <div style={{flex:1,minWidth:150}}>
-              <h2 style={{fontSize:"1.15rem",fontWeight:900,color:"#fff",marginBottom:3}}>{lastTopic}</h2>
-              <p style={{fontSize:".74rem",color:C.subtext}}>
-                {lastTopicTotal>0?`${lastTopicWatched} من ${lastTopicTotal} فيديو مكتمل`:"ابدأ الشرح والتدريب"}
+
+          {/* top row */}
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",flexWrap:"wrap",gap:14,marginBottom:22}}>
+            <div>
+              <p style={{fontSize:".66rem",color:S.mu,fontWeight:600,letterSpacing:".07em",marginBottom:6}}>{dateStr}</p>
+              <h1 style={{fontSize:"1.65rem",fontWeight:900,color:"#fff",lineHeight:1.2,marginBottom:8}}>
+                مرحباً، <span style={{color:S.or}}>{user.name||"طالب"}</span>
+              </h1>
+              <p style={{fontSize:".82rem",color:S.su,lineHeight:1.75,maxWidth:420}}>
+                {isNew?"ابدأ جلستك الأولى — كل خطوة تقربك من هدفك":
+                 acc>=80?"أداؤك متميز — حافظ على هذا المستوى":
+                 acc>=60?"تقدم جيد — واصل التدريب اليومي":
+                 "كل جلسة تحدث فرقاً — استمر"}
               </p>
             </div>
-            <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
-              <button className="btn btn-p" style={{padding:"10px 20px",fontSize:".84rem",fontWeight:800}}
+            <div style={{display:"flex",flexDirection:"column",gap:8,alignItems:"flex-end"}}>
+              {user.streak>0&&(
+                <div style={{padding:"10px 18px",borderRadius:14,background:"rgba(249,115,22,.08)",
+                  border:"1px solid rgba(249,115,22,.22)",textAlign:"center",minWidth:72}}>
+                  <p style={{fontSize:"1.55rem",fontWeight:900,color:S.or,lineHeight:1}}>{user.streak}</p>
+                  <p style={{fontSize:".58rem",color:S.mu,fontWeight:700,marginTop:3}}>يوم متواصل</p>
+                </div>
+              )}
+              {gradeLabel&&(
+                <div style={{padding:"5px 14px",borderRadius:99,
+                  background:`${gradeColor}14`,border:`1px solid ${gradeColor}30`,
+                  fontSize:".68rem",fontWeight:800,color:gradeColor}}>{gradeLabel}</div>
+              )}
+              <button
+                style={{padding:"11px 22px",borderRadius:13,cursor:"pointer",
+                  background:"linear-gradient(135deg,#f97316,#ea580c)",border:"none",
+                  color:"#fff",fontFamily:"Cairo,sans-serif",fontSize:".85rem",fontWeight:800,
+                  boxShadow:"0 4px 18px rgba(249,115,22,.38)",transition:"all .2s"}}
+                onMouseEnter={e=>{e.currentTarget.style.transform="translateY(-2px)";e.currentTarget.style.boxShadow="0 7px 24px rgba(249,115,22,.50)";}}
+                onMouseLeave={e=>{e.currentTarget.style.transform="";e.currentTarget.style.boxShadow="0 4px 18px rgba(249,115,22,.38)";}}
+                onClick={()=>go("session")}>
+                ابدأ الاختبار ←
+              </button>
+            </div>
+          </div>
+
+          {/* accuracy + stats */}
+          {!isNew&&(
+            <>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:7}}>
+                <span style={{fontSize:".7rem",color:S.su,fontWeight:600}}>دقة الإجابات الكلية</span>
+                <span style={{fontSize:".82rem",fontWeight:900,
+                  color:acc>=70?S.gr:acc>=50?S.or:"#f87171"}}>{acc}%</span>
+              </div>
+              <div style={{height:7,borderRadius:99,background:"rgba(255,255,255,.06)",overflow:"hidden",marginBottom:22}}>
+                <div style={{height:"100%",borderRadius:99,width:`${acc}%`,
+                  background:acc>=70?"linear-gradient(90deg,#4ade80,#22d3ee)":
+                             acc>=50?"linear-gradient(90deg,#f97316,#fb923c)":
+                             "linear-gradient(90deg,#f87171,#fb7185)",
+                  transition:"width 1.4s cubic-bezier(.22,1,.36,1)"}}/>
+              </div>
+              <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:11}}>
+                {[
+                  {icon:"📚",v:user.totalSolved,l:"سؤال حُلَّ",c:S.cy},
+                  {icon:"✅",v:user.correct,l:"إجابة صحيحة",c:S.gr},
+                  {icon:"🎥",v:totalWatched,l:"فيديو شُوهد",c:S.pu},
+                ].map(({icon,v,l,c},i)=>(
+                  <div key={i} style={{padding:"16px 12px",background:S.card,
+                    border:`1px solid ${S.border}`,borderRadius:16,textAlign:"center"}}>
+                    <p style={{fontSize:".9rem",marginBottom:6}}>{icon}</p>
+                    <p style={{fontSize:"1.5rem",fontWeight:900,color:c,lineHeight:1,
+                      animation:"numPop .4s cubic-bezier(.34,1.56,.64,1) both",
+                      animationDelay:`${i*.09}s`}}>{v}</p>
+                    <p style={{fontSize:".62rem",color:S.mu,fontWeight:600,marginTop:5}}>{l}</p>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+
+      {/* ══ CONTINUE LEARNING ══ */}
+      <div style={{
+        padding:"22px 24px",
+        background:"linear-gradient(135deg,rgba(34,211,238,.06) 0%,rgba(10,18,40,.97) 70%)",
+        border:"1.5px solid rgba(34,211,238,.16)",borderRadius:20,
+        position:"relative",overflow:"hidden"
+      }}>
+        <div style={{position:"absolute",bottom:-50,left:-50,width:180,height:180,borderRadius:"50%",
+          background:"radial-gradient(circle,rgba(34,211,238,.07),transparent 70%)",pointerEvents:"none"}}/>
+        <div style={{position:"relative"}}>
+          <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:12}}>
+            <div style={{width:3,height:16,borderRadius:99,background:S.cy}}/>
+            <p style={{fontSize:".68rem",fontWeight:700,color:S.cy,letterSpacing:".08em"}}>استمر من هنا</p>
+          </div>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:14}}>
+            <div style={{flex:1,minWidth:150}}>
+              <h2 style={{fontSize:"1.12rem",fontWeight:900,color:"#fff",marginBottom:4}}>{lastTopic}</h2>
+              <p style={{fontSize:".75rem",color:S.su}}>
+                {lpTotal>0?`${lpDone} من ${lpTotal} فيديو مكتمل`:"ابدأ الشرح والتدريب"}
+              </p>
+            </div>
+            <div style={{display:"flex",gap:8,flexShrink:0}}>
+              <button
+                style={{padding:"10px 20px",borderRadius:12,cursor:"pointer",
+                  background:"rgba(34,211,238,.1)",border:"1.5px solid rgba(34,211,238,.3)",
+                  color:S.cy,fontFamily:"Cairo,sans-serif",fontSize:".84rem",fontWeight:800,transition:"all .2s"}}
+                onMouseEnter={e=>{e.currentTarget.style.background="rgba(34,211,238,.18)";e.currentTarget.style.transform="translateY(-2px)";}}
+                onMouseLeave={e=>{e.currentTarget.style.background="rgba(34,211,238,.1)";e.currentTarget.style.transform="";}}
                 onClick={()=>go("session")}>كمّل التدريب ←</button>
-              <button className="btn btn-g" style={{padding:"10px 14px",fontSize:".8rem"}}
+              <button
+                style={{padding:"10px 14px",borderRadius:12,cursor:"pointer",
+                  background:S.card,border:`1px solid ${S.border}`,
+                  color:S.su,fontFamily:"Cairo,sans-serif",fontSize:".82rem",fontWeight:700,transition:"all .2s"}}
+                onMouseEnter={e=>{e.currentTarget.style.background="rgba(255,255,255,.06)";e.currentTarget.style.color="#fff";}}
+                onMouseLeave={e=>{e.currentTarget.style.background=S.card;e.currentTarget.style.color=S.su;}}
                 onClick={()=>go("roadmap")}>📖 الشرح</button>
             </div>
           </div>
-          {lastTopicTotal>0&&(
-            <div>
-              <div style={{display:"flex",justifyContent:"space-between",marginBottom:4}}>
-                <span style={{fontSize:".63rem",color:C.dimmed,fontWeight:600}}>تقدم هذا الباب</span>
-                <span style={{fontSize:".66rem",color:C.orange,fontWeight:700}}>{lastTopicPct}%</span>
+          {lpTotal>0&&(
+            <div style={{marginTop:16}}>
+              <div style={{display:"flex",justifyContent:"space-between",marginBottom:5}}>
+                <span style={{fontSize:".63rem",color:S.di,fontWeight:600}}>تقدم هذا الباب</span>
+                <span style={{fontSize:".66rem",color:S.cy,fontWeight:700}}>{lpPct}%</span>
               </div>
-              <div style={{height:4,borderRadius:99,background:"rgba(255,255,255,.06)",overflow:"hidden"}}>
-                <div style={{height:"100%",borderRadius:99,width:`${lastTopicPct}%`,
-                  background:`linear-gradient(90deg,${C.orange},#fb923c)`,transition:"width 1s"}}/>
+              <div style={{height:5,borderRadius:99,background:"rgba(255,255,255,.06)",overflow:"hidden"}}>
+                <div style={{height:"100%",borderRadius:99,width:`${lpPct}%`,
+                  background:"linear-gradient(90deg,#22d3ee,#f97316)",transition:"width 1s ease"}}/>
               </div>
             </div>
           )}
         </div>
       </div>
 
-      {/* 3) LEARNING STRUCTURE */}
-      <div style={{padding:"20px 22px",background:C.bg,border:`1px solid ${C.border}`,borderRadius:20}}>
-        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
-          <p style={{fontSize:".64rem",fontWeight:700,color:C.muted,letterSpacing:".11em"}}>هيكل المسار الكمي</p>
-          <button className="btn btn-g" style={{padding:"6px 13px",fontSize:".72rem",fontWeight:700}}
-            onClick={()=>go("roadmap")}>عرض الكل</button>
+      {/* ══ TOOLS ══ */}
+      <div style={{padding:"22px",background:S.bg,border:`1px solid ${S.border}`,borderRadius:20}}>
+        <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:16}}>
+          <div style={{width:3,height:16,borderRadius:99,background:S.or}}/>
+          <p style={{fontSize:".68rem",fontWeight:700,color:S.mu,letterSpacing:".08em"}}>أدوات التدريب</p>
         </div>
-        <div style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:8}}>
+        <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:10}}>
+          {[
+            {icon:"🤖",title:"جلسة AI",desc:"سؤال + شرح فوري",page:"session",locked:false,color:S.or},
+            {icon:"📋",title:"مراجعة الأخطاء",desc:`${wrongCount} سؤال`,page:"review",locked:!isSub,color:"#f87171"},
+            {icon:"⚡",title:"محاكاة الاختبار",desc:"120 سؤال",page:"sim",locked:!isSub,color:S.cy},
+          ].map((m,i)=>(
+            <div key={i} onClick={()=>go(m.page)} style={{
+              padding:"20px 14px",borderRadius:16,cursor:"pointer",textAlign:"center",
+              background:S.card,border:`1px solid ${S.border}`,
+              opacity:m.locked?.6:1,position:"relative",transition:"all .2s",
+            }}
+            onMouseEnter={e=>{if(!m.locked){e.currentTarget.style.background=`${m.color}0d`;e.currentTarget.style.borderColor=`${m.color}38`;e.currentTarget.style.transform="translateY(-3px)";}}}
+            onMouseLeave={e=>{e.currentTarget.style.background=S.card;e.currentTarget.style.borderColor=S.border;e.currentTarget.style.transform="";}}>
+              {m.locked&&(
+                <span style={{position:"absolute",top:8,left:8,fontSize:".55rem",color:S.di,
+                  padding:"1px 6px",borderRadius:99,background:"rgba(255,255,255,.04)",
+                  border:`1px solid ${S.border}`}}>🔒</span>
+              )}
+              <div style={{width:46,height:46,borderRadius:14,margin:"0 auto 10px",
+                background:`${m.color}12`,border:`1.5px solid ${m.color}28`,
+                display:"flex",alignItems:"center",justifyContent:"center",fontSize:"1.2rem"}}>{m.icon}</div>
+              <p style={{fontSize:".85rem",fontWeight:800,color:"#fff",marginBottom:4}}>{m.title}</p>
+              <p style={{fontSize:".68rem",color:S.mu,lineHeight:1.4}}>{m.desc}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* ══ TOPICS ══ */}
+      <div style={{padding:"22px",background:S.bg,border:`1px solid ${S.border}`,borderRadius:20}}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}>
+          <div style={{display:"flex",alignItems:"center",gap:8}}>
+            <div style={{width:3,height:16,borderRadius:99,background:S.pu}}/>
+            <p style={{fontSize:".68rem",fontWeight:700,color:S.mu,letterSpacing:".08em"}}>أبواب المسار الكمي</p>
+          </div>
+          <button
+            style={{padding:"6px 14px",borderRadius:99,cursor:"pointer",
+              background:"rgba(167,139,250,.08)",border:"1px solid rgba(167,139,250,.2)",
+              color:S.pu,fontFamily:"Cairo,sans-serif",fontSize:".7rem",fontWeight:700,transition:"all .18s"}}
+            onMouseEnter={e=>{e.currentTarget.style.background="rgba(167,139,250,.16)";}}
+            onMouseLeave={e=>{e.currentTarget.style.background="rgba(167,139,250,.08)";}}
+            onClick={()=>go("roadmap")}>عرض الكل ←</button>
+        </div>
+        <div style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:9}}>
           {qTopics.slice(0,8).map((topic,i)=>{
-            const prog = getTopicProgress ? getTopicProgress(topic) : null;
-            const done = prog?.done||0;
-            const total = prog?.total||0;
-            const pct = prog?.pct||0;
-            const isActive = topic===lastTopic;
-            const isLocked = !isSubscribed && GEO.includes(topic);
+            const prog   = getTopicProgress?getTopicProgress(topic):null;
+            const done   = prog?.done||0;
+            const total  = prog?.total||0;
+            const pct    = prog?.pct||0;
+            const isAct  = topic===lastTopic;
+            const isLock = !isSub&&GEO.includes(topic);
             return(
               <div key={topic}
-                onClick={()=>{
-                  if(isLocked){go("paywall");return;}
-                  if(setSettings) setSettings(p=>({...p,topic,section:"\u0643\u0645\u064a"}));
-                  go("roadmap");
-                }}
+                onClick={()=>{if(isLock){go("paywall");return;}if(setSettings)setSettings(p=>({...p,topic,section:"كمي"}));go("roadmap");}}
                 style={{
                   padding:"13px 14px",
-                  background:isActive?"rgba(249,115,22,.06)":C.bg2,
-                  border:`1px solid ${isActive?"rgba(249,115,22,.22)":C.border}`,
-                  borderRadius:13,cursor:"pointer",position:"relative",
-                  opacity:isLocked?.65:1,
-                  transition:"background .15s,border-color .15s,transform .15s",
+                  background:isAct?"rgba(249,115,22,.07)":S.card,
+                  border:`1px solid ${isAct?"rgba(249,115,22,.28)":S.border}`,
+                  borderRadius:14,cursor:"pointer",position:"relative",
+                  opacity:isLock?.6:1,transition:"all .18s",
                 }}
-                onMouseEnter={e=>{
-                  if(!isLocked){e.currentTarget.style.background=isActive?"rgba(249,115,22,.09)":"rgba(255,255,255,.035)";
-                  e.currentTarget.style.transform="translateY(-2px)";}
-                }}
-                onMouseLeave={e=>{
-                  e.currentTarget.style.background=isActive?"rgba(249,115,22,.06)":C.bg2;
-                  e.currentTarget.style.transform="";
-                }}
-              >
+                onMouseEnter={e=>{if(!isLock){e.currentTarget.style.background=isAct?"rgba(249,115,22,.12)":"rgba(255,255,255,.04)";e.currentTarget.style.transform="translateY(-2px)";}}}
+                onMouseLeave={e=>{e.currentTarget.style.background=isAct?"rgba(249,115,22,.07)":S.card;e.currentTarget.style.transform="";}}>
                 {pct===100&&(
-                  <div style={{position:"absolute",top:8,left:8,fontSize:".55rem",fontWeight:700,
-                    color:C.green,padding:"1px 7px",borderRadius:99,
-                    background:"rgba(74,222,128,.08)",border:"1px solid rgba(74,222,128,.18)"}}>✓ مكتمل</div>
+                  <span style={{position:"absolute",top:7,left:8,fontSize:".55rem",fontWeight:800,color:S.gr,
+                    padding:"2px 7px",borderRadius:99,background:"rgba(74,222,128,.1)",
+                    border:"1px solid rgba(74,222,128,.22)"}}>✓</span>
                 )}
-                {isLocked&&(
-                  <div style={{position:"absolute",top:8,left:8,fontSize:".56rem",fontWeight:700,
-                    color:C.dimmed,padding:"1px 7px",borderRadius:99,
-                    background:"rgba(255,255,255,.04)",border:`1px solid ${C.border}`}}>🔒</div>
+                {isAct&&pct<100&&!isLock&&(
+                  <div style={{position:"absolute",top:10,left:10,width:5,height:5,
+                    borderRadius:"50%",background:S.or,boxShadow:`0 0 7px ${S.or}`}}/>
                 )}
-                {isActive&&pct<100&&!isLocked&&(
-                  <div style={{position:"absolute",top:10,left:10,width:6,height:6,
-                    borderRadius:"50%",background:C.orange}}/>
-                )}
-                <p style={{
-                  fontSize:".8rem",fontWeight:800,color:"#fff",marginBottom:5,
-                  lineHeight:1.4,paddingLeft:(isActive||pct===100||isLocked)?16:0
-                }}>{topic}</p>
+                <p style={{fontSize:".82rem",fontWeight:800,color:"#fff",
+                  marginBottom:total>0?7:0,lineHeight:1.4,
+                  paddingLeft:(isAct||pct===100)?14:0}}>{topic}</p>
                 {total>0?(
                   <>
-                    <div style={{height:3,borderRadius:99,background:"rgba(255,255,255,.05)",overflow:"hidden",marginBottom:4}}>
+                    <div style={{height:3,borderRadius:99,background:"rgba(255,255,255,.06)",overflow:"hidden",marginBottom:4}}>
                       <div style={{height:"100%",borderRadius:99,width:`${pct}%`,
-                        background:pct===100?`linear-gradient(90deg,${C.green},${C.cyan})`:
-                                   pct>0?`linear-gradient(90deg,${C.orange},#fb923c)`:"transparent",
+                        background:pct===100?"linear-gradient(90deg,#4ade80,#22d3ee)":
+                                   pct>0?"linear-gradient(90deg,#f97316,#fb923c)":"transparent",
                         transition:"width .8s"}}/>
                     </div>
-                    <p style={{fontSize:".62rem",color:C.dimmed,fontWeight:600}}>
-                      {done}/{total} فيديو
-                      {pct>0&&pct<100&&<span style={{color:C.orange,marginRight:5}}>{pct}%</span>}
-                    </p>
+                    <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                      <p style={{fontSize:".6rem",color:S.di}}>{done}/{total} فيديو</p>
+                      {pct>0&&<span style={{fontSize:".62rem",color:pct===100?S.gr:S.or,fontWeight:700}}>{pct}%</span>}
+                    </div>
                   </>
                 ):(
-                  <p style={{fontSize:".62rem",color:C.dimmed}}>لم يُبدأ بعد</p>
+                  <p style={{fontSize:".62rem",color:S.di}}>لم يُبدأ بعد</p>
                 )}
               </div>
             );
@@ -3495,65 +3593,54 @@ function Dashboard({go,user,trial,mistakes,settings,setSettings,getTopicProgress
         </div>
       </div>
 
-      {/* 4) QUICK ACTIONS */}
-      <div style={{padding:"20px 22px",background:C.bg,border:`1px solid ${C.border}`,borderRadius:20}}>
-        <p style={{fontSize:".64rem",fontWeight:700,color:C.muted,letterSpacing:".11em",marginBottom:12}}>أدوات التدريب</p>
-        <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:8}}>
-          {[
-            {ic:"🤖",t:"جلسة AI",d:"سؤال + شرح فوري",p:"session",locked:false},
-            {ic:"📋",t:"مراجعة الأخطاء",d:`${wrongCount} سؤال`,p:"review",locked:!isSubscribed},
-            {ic:"⚡",t:"محاكاة الاختبار",d:"ظروف حقيقية",p:"sim",locked:!isSubscribed},
-          ].map((m,i)=>(
-            <div key={i} onClick={()=>go(m.p)} style={{
-              padding:"15px 13px",borderRadius:13,cursor:"pointer",
-              background:C.bg2,border:`1px solid ${C.border}`,
-              opacity:m.locked?.65:1,position:"relative",
-              transition:"background .15s,transform .15s",
-            }}
-            onMouseEnter={e=>{e.currentTarget.style.background="rgba(255,255,255,.035)";e.currentTarget.style.transform="translateY(-2px)";}}
-            onMouseLeave={e=>{e.currentTarget.style.background=C.bg2;e.currentTarget.style.transform="";}}>
-              {m.locked&&<span style={{position:"absolute",top:8,left:8,fontSize:".56rem",
-                color:C.dimmed,padding:"1px 6px",borderRadius:99,
-                background:"rgba(255,255,255,.04)",border:`1px solid ${C.border}`}}>🔒</span>}
-              <div style={{fontSize:"1.25rem",marginBottom:7}}>{m.ic}</div>
-              <p style={{fontSize:".8rem",fontWeight:800,color:"#fff",marginBottom:2}}>{m.t}</p>
-              <p style={{fontSize:".67rem",color:C.muted}}>{m.d}</p>
+      {/* ══ MISTAKES ══ */}
+      {wrongCount>0&&isSub&&(
+        <div style={{padding:"16px 20px",borderRadius:16,
+          background:"rgba(248,113,113,.04)",border:"1px solid rgba(248,113,113,.15)",
+          display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:12}}>
+          <div style={{display:"flex",alignItems:"center",gap:12}}>
+            <div style={{width:42,height:42,borderRadius:12,flexShrink:0,
+              background:"rgba(248,113,113,.1)",border:"1px solid rgba(248,113,113,.22)",
+              display:"flex",alignItems:"center",justifyContent:"center",fontSize:"1.1rem"}}>📋</div>
+            <div>
+              <p style={{fontWeight:700,color:"#fca5a5",fontSize:".85rem"}}>{wrongCount} سؤال في قائمة المراجعة</p>
+              <p style={{fontSize:".7rem",color:S.mu,marginTop:2}}>راجع أخطاءك لتثبيت الفهم وتحسين النتيجة.</p>
             </div>
-          ))}
-        </div>
-      </div>
-
-      {/* مراجعة الأخطاء — تنبيه */}
-      {wrongCount>0&&isSubscribed&&(
-        <div style={{padding:"14px 20px",borderRadius:16,
-          background:"rgba(248,113,113,.05)",border:"1px solid rgba(248,113,113,.16)",
-          display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:10}}>
-          <div>
-            <p style={{fontWeight:700,color:"#fca5a5",fontSize:".84rem"}}>📋 {wrongCount} سؤال في قائمة المراجعة</p>
-            <p style={{fontSize:".71rem",color:C.muted,marginTop:2}}>راجع أخطاءك لتثبيت الفهم.</p>
           </div>
-          <button style={{padding:"8px 16px",borderRadius:11,cursor:"pointer",
-            background:"rgba(248,113,113,.1)",border:"1px solid rgba(248,113,113,.22)",
-            color:"#fca5a5",fontFamily:"Cairo,sans-serif",fontSize:".76rem",fontWeight:700,
-            transition:"background .15s"}} onClick={()=>go("review")}>ابدأ المراجعة ←</button>
+          <button
+            style={{padding:"9px 20px",borderRadius:12,cursor:"pointer",flexShrink:0,
+              background:"rgba(248,113,113,.1)",border:"1px solid rgba(248,113,113,.28)",
+              color:"#fca5a5",fontFamily:"Cairo,sans-serif",fontSize:".8rem",fontWeight:700,transition:"all .2s"}}
+            onMouseEnter={e=>{e.currentTarget.style.background="rgba(248,113,113,.2)";}}
+            onMouseLeave={e=>{e.currentTarget.style.background="rgba(248,113,113,.1)";}}
+            onClick={()=>go("review")}>ابدأ المراجعة ←</button>
         </div>
       )}
 
-      {/* Trial Banner */}
-      {!isSubscribed&&(
-        <div style={{padding:"14px 20px",borderRadius:16,
-          background:"rgba(249,115,22,.04)",border:"1px solid rgba(249,115,22,.12)",
-          display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:12}}>
-          <div style={{flex:1,minWidth:160}}>
-            <p style={{fontWeight:700,color:"#fdba74",fontSize:".8rem",marginBottom:5}}>
-              التجربة المجانية &mdash; {trialLeft} سؤال متبقي
+      {/* ══ TRIAL BANNER ══ */}
+      {!isSub&&(
+        <div style={{padding:"18px 22px",borderRadius:18,
+          background:"linear-gradient(135deg,rgba(249,115,22,.07),rgba(10,18,40,.98))",
+          border:"1.5px solid rgba(249,115,22,.2)",
+          display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:14}}>
+          <div style={{flex:1,minWidth:180}}>
+            <p style={{fontWeight:800,color:"#fdba74",fontSize:".84rem",marginBottom:7}}>
+              التجربة المجانية — {trialLeft} سؤال متبقٍ
             </p>
-            <div style={{height:4,borderRadius:99,background:"rgba(255,255,255,.05)",overflow:"hidden"}}>
+            <div style={{height:6,borderRadius:99,background:"rgba(255,255,255,.06)",overflow:"hidden"}}>
               <div style={{height:"100%",borderRadius:99,width:`${trialPct}%`,
-                background:`linear-gradient(90deg,${C.orange},${trialPct>80?"#f87171":"#fb923c"})`,transition:"width 1s"}}/>
+                background:`linear-gradient(90deg,#f97316,${trialPct>80?"#f87171":"#fb923c"})`,
+                transition:"width 1s ease"}}/>
             </div>
+            <p style={{fontSize:".68rem",color:S.mu,marginTop:5}}>اشترك للوصول لجميع أبواب المنصة بدون حدود</p>
           </div>
-          <button className="btn btn-p" style={{padding:"9px 18px",fontSize:".78rem",fontWeight:800}}
+          <button
+            style={{padding:"11px 26px",borderRadius:14,cursor:"pointer",flexShrink:0,
+              background:"linear-gradient(135deg,#f97316,#ea580c)",border:"none",
+              color:"#fff",fontFamily:"Cairo,sans-serif",fontSize:".85rem",fontWeight:800,
+              boxShadow:"0 4px 18px rgba(249,115,22,.38)",transition:"all .2s"}}
+            onMouseEnter={e=>{e.currentTarget.style.transform="translateY(-2px)";e.currentTarget.style.boxShadow="0 7px 24px rgba(249,115,22,.50)";}}
+            onMouseLeave={e=>{e.currentTarget.style.transform="";e.currentTarget.style.boxShadow="0 4px 18px rgba(249,115,22,.38)";}}
             onClick={()=>go("paywall")}>فتح الكامل ←</button>
         </div>
       )}
@@ -3562,7 +3649,6 @@ function Dashboard({go,user,trial,mistakes,settings,setSettings,getTopicProgress
     </div>
   );
 }
-
 
 function Bank({settings,setSettings,go,trial={}}){  useEffect(()=>{window.scrollTo({top:0,behavior:"instant"});if(trial.status==='expired'||trial.status==='cancelled'){go("expired");}
       else if(!trial.isSubscribed&&trial.used>=trial.limit){go("paywall");}},[]); return(<div style={{display:"grid",gap:14}}><div className="gl" style={{padding:"30px"}}><span className="badge b-o" style={{marginBottom:11}}>بنك الأسئلة</span><h1 style={{fontSize:"1.75rem",fontWeight:900,color:"#fff",marginBottom:7}}>اختر مسارك ثم ابدأ</h1></div><div className="rg-3 bank-grid" style={{gap:14}}><div className="gl" style={{padding:"18px"}}><p style={{fontSize:".68rem",color:"#f97316",fontWeight:700,letterSpacing:".08em",marginBottom:11}}>القسم</p>{["كمي","لفظي"].map(s=>(<button key={s} className={`sc ${settings.section===s?"on":""}`} style={{marginBottom:8}} onClick={()=>setSettings(p=>({...p,section:s,topic:TOPICS[s][0]}))}><p style={{fontWeight:800,color:"#fff"}}>{s}</p></button>))}</div><div className="gl" style={{padding:"18px"}}><p style={{fontSize:".68rem",color:"#f97316",fontWeight:700,letterSpacing:".08em",marginBottom:11}}>الصعوبة</p>{[{v:"سهل",d:"بداية هادئة"},{v:"متوسط",d:"تثبيت"},{v:"صعب",d:"تحدٍّ"}].map(d=>(<button key={d.v} className={`sc ${settings.difficulty===d.v?"on":""}`} style={{marginBottom:8}} onClick={()=>setSettings(p=>({...p,difficulty:d.v}))}><p style={{fontWeight:800,color:"#fff"}}>{d.v}</p><p style={{marginTop:3,fontSize:".76rem",color:"#64748b"}}>{d.d}</p></button>))}</div><div className="gl" style={{padding:"18px"}}><p style={{fontSize:".68rem",color:"#f97316",fontWeight:700,letterSpacing:".08em",marginBottom:11}}>الباب</p><div style={{maxHeight:260,overflowY:"auto",display:"flex",flexDirection:"column",gap:6}}>{TOPICS[settings.section].map(t=>(<button key={t} className={`sc ${settings.topic===t?"on":""}`} style={{padding:"10px 13px"}} onClick={()=>setSettings(p=>({...p,topic:t}))}><div style={{display:"flex",alignItems:"center",gap:7}}>{GEO.includes(t)&&<span style={{fontSize:".6rem",padding:"1px 6px",borderRadius:99,background:"rgba(167,139,250,.12)",border:"1px solid rgba(167,139,250,.2)",color:"#c4b5fd"}}>📐</span>}<p style={{fontWeight:700,color:"#fff",fontSize:".84rem"}}>{t}</p></div></button>))}</div></div></div>
@@ -4182,15 +4268,12 @@ function Roadmap({go,setSettings,openLesson,trial={},getTopicProgress}){
                     </p>
                   </div>
                 )}
-                {/* Single button — شرح الباب فقط */}
                 <div>
                   <button onClick={()=>(trial.isSubscribed||trial.isAdmin)?openLesson(t):go("paywall")} style={{
                     width:"100%",padding:"8px 6px",borderRadius:9,cursor:"pointer",
-                    border:`1px solid ${grp.color}30`,
-                    background:`${grp.color}0a`,color:grp.color,
-                    fontSize:".73rem",fontWeight:700,fontFamily:"Cairo,sans-serif",
-                    transition:"all .18s"
-                  }}
+                    border:`1px solid ${grp.color}30`,background:`${grp.color}0a`,
+                    color:grp.color,fontSize:".73rem",fontWeight:700,
+                    fontFamily:"Cairo,sans-serif",transition:"all .18s"}}
                   onMouseEnter={e=>{e.currentTarget.style.background=`${grp.color}18`;}}
                   onMouseLeave={e=>{e.currentTarget.style.background=`${grp.color}0a`;}}>
                     {(trial.isSubscribed||trial.isAdmin)?"📖 اعرف الباب":"🔒 اعرف الباب"}
@@ -4203,54 +4286,34 @@ function Roadmap({go,setSettings,openLesson,trial={},getTopicProgress}){
         </div>
       ))}
 
-      {/* ─── اختبار شامل للقسم ─── */}
-      <div style={{
-        padding:"24px 28px", borderRadius:18,
+      {/* اختبار شامل */}
+      <div style={{padding:"22px 26px",borderRadius:18,
         background:`linear-gradient(135deg,${meta.bg},rgba(5,9,26,.95))`,
-        border:`1.5px solid ${meta.color}35`,
-        display:"flex", flexDirection:"column", gap:14,
-        boxShadow:`0 8px 32px ${meta.color}12`
-      }}>
+        border:`1.5px solid ${meta.color}35`,display:"flex",flexDirection:"column",gap:14}}>
         <div style={{display:"flex",alignItems:"center",gap:12}}>
-          <div style={{
-            width:48,height:48,borderRadius:14,flexShrink:0,
+          <div style={{width:46,height:46,borderRadius:13,flexShrink:0,
             background:`${meta.color}18`,border:`1.5px solid ${meta.color}35`,
-            display:"flex",alignItems:"center",justifyContent:"center",fontSize:"1.4rem"
-          }}>🏆</div>
+            display:"flex",alignItems:"center",justifyContent:"center",fontSize:"1.3rem"}}>🏆</div>
           <div>
             <p style={{fontWeight:900,color:"#fff",fontSize:"1rem"}}>
               اختبار شامل — {active==="كمي"?"القسم الكمي":"القسم اللفظي"}
             </p>
-            <p style={{fontSize:".75rem",color:"#64748b",marginTop:3}}>
-              {active==="كمي"
-                ?"أسئلة مختلطة من جميع أبواب الكمي — اختبر نفسك الآن"
-                :"أسئلة مختلطة من جميع أبواب اللفظي — اختبر نفسك الآن"}
+            <p style={{fontSize:".74rem",color:"#64748b",marginTop:3}}>
+              {active==="كمي"?"أسئلة مختلطة من جميع أبواب الكمي":"أسئلة مختلطة من جميع أبواب اللفظي"}
             </p>
           </div>
         </div>
-        <button
-          onClick={()=>{
-            if(!trial.isSubscribed&&!trial.isAdmin){go("paywall");return;}
-            setSettings(p=>({...p,
-              topic:"__comprehensive__",
-              comprehensiveSection:active,
-              section:active,
-              difficulty:"متوسط"
-            }));
-            go("session");
-          }}
-          style={{
-            width:"100%",padding:"14px",borderRadius:12,cursor:"pointer",
-            background:`linear-gradient(135deg,${meta.color}22,${meta.color}11)`,
-            border:`1.5px solid ${meta.color}50`,
-            color:meta.color,fontSize:".88rem",fontWeight:900,
-            fontFamily:"Cairo,sans-serif",letterSpacing:.3,transition:"all .2s"
-          }}
+        <button onClick={()=>{
+          if(!trial.isSubscribed&&!trial.isAdmin){go("paywall");return;}
+          setSettings(p=>({...p,topic:"__comprehensive__",comprehensiveSection:active,section:active,difficulty:"متوسط"}));
+          go("session");
+        }} style={{width:"100%",padding:"13px",borderRadius:12,cursor:"pointer",
+          background:`linear-gradient(135deg,${meta.color}22,${meta.color}11)`,
+          border:`1.5px solid ${meta.color}50`,color:meta.color,
+          fontSize:".88rem",fontWeight:900,fontFamily:"Cairo,sans-serif",transition:"all .2s"}}
           onMouseEnter={e=>e.currentTarget.style.opacity=".8"}
           onMouseLeave={e=>e.currentTarget.style.opacity="1"}>
-          {(trial.isSubscribed||trial.isAdmin)
-            ?`🎯 ابدأ الاختبار الشامل ← ${active==="كمي"?"الكمي":"اللفظي"}`
-            :"🔒 الاختبار الشامل — للمشتركين"}
+          {(trial.isSubscribed||trial.isAdmin)?`🎯 ابدأ الاختبار الشامل ← ${active==="كمي"?"الكمي":"اللفظي"}`:"🔒 الاختبار الشامل — للمشتركين"}
         </button>
       </div>
 
@@ -4274,7 +4337,7 @@ function UpgradePrompt({feature,go}){
           {feature} — للمشتركين فقط
         </h2>
         <p style={{color:"#64748b",fontSize:".88rem",lineHeight:1.8,maxWidth:360}}>
-          هذه الميزة متاحة ضمن باقة التأسيسي والاحترافي.<br/>
+          هذه الميزة متاحة ضمن الباقة الأساسية والمميزة.<br/>
           اشترك الآن للوصول إلى كامل المنصة.
         </p>
       </div>
@@ -4475,7 +4538,7 @@ function Paywall({trial,subscribe,back,go}){
                 color:pwBasic===k?"#f97316":"#64748b",fontSize:".62rem",fontWeight:pwBasic===k?700:400,
                 transition:"all .2s",
               }}>
-                {k==="1m"?"شهر":"3 أشهر"}
+                {k==="1m"?"شهر":k==="3m"?"3 أشهر":"6 أشهر"}
                 {badge&&<span style={{display:"block",fontSize:".5rem",color:"#4ade80"}}>⭐</span>}
               </button>
             ))}
@@ -4527,7 +4590,7 @@ function Paywall({trial,subscribe,back,go}){
                 color:pwExam===k?"#a78bfa":"#64748b",fontSize:".62rem",fontWeight:pwExam===k?700:400,
                 transition:"all .2s",
               }}>
-                {k==="1m"?"شهر":"3 أشهر"}
+                {k==="1m"?"شهر":k==="3m"?"3 أشهر":"6 أشهر"}
                 {badge&&<span style={{display:"block",fontSize:".5rem",color:"#4ade80"}}>⭐</span>}
               </button>
             ))}
@@ -4654,8 +4717,8 @@ function Terms({go}){
     ]},
     {title:"الباقات والأسعار",items:[
       "الباقة المجانية: 25 سؤال تجربة — تُستخدم مرة واحدة فقط ولا يمكن تجديدها.",
-      "باقة التأسيسي: 59 ريال/شهر — أو 149 ريال/3 أشهر.",
-      "باقة الاحترافي: 99 ريال/شهر — أو 249 ريال/3 أشهر.",
+      "الباقة التأسيسية: 59 ريال/شهر — أو 149 ريال/3 أشهر — أو 249 ريال/6 أشهر.",
+      "الباقة الاحترافية: 99 ريال/شهر — أو 249 ريال/3 أشهر — أو 399 ريال/6 أشهر.",
       "جميع الأسعار شاملة ضريبة القيمة المضافة (15%) ما لم يُذكر غير ذلك.",
       "تُعالَج المدفوعات عبر Moyasar المرخصة من البنك المركزي السعودي (ساما)."
     ]},
