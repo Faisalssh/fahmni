@@ -1398,14 +1398,28 @@ function TeacherSummary({topic,history,onContinue,onReview,plan="free"}){
 }
 
 /* ═══════════════════ REVIEW MODE ═══════════════════ */
-function ReviewMode({mistakes,go,onRedo}){
+function ReviewMode({mistakes,go,onRedo,onClearAll}){
   useEffect(()=>{window.scrollTo({top:0,behavior:"instant"});},[]);
   const[active,setActive]=useState(null);
   const[redone,setRedone]=useState([]);
   const total=mistakes.length,solved=redone.length;
   return(<div style={{display:"grid",gap:16}}>
     <div className="gl gl-pad-lg" style={{padding:"32px"}}>
-      <span className="badge b-r" style={{marginBottom:12}}>📋 وضع المراجعة</span>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",flexWrap:"wrap",gap:12,marginBottom:12}}>
+        <span className="badge b-r">📋 وضع المراجعة</span>
+        {total>0&&(
+          <button
+            onClick={()=>{if(window.confirm("هل تريد مسح جميع الأخطاء؟ لا يمكن التراجع."))onClearAll&&onClearAll();}}
+            style={{padding:"6px 14px",borderRadius:99,cursor:"pointer",
+              background:"rgba(248,113,113,.08)",border:"1px solid rgba(248,113,113,.25)",
+              color:"#f87171",fontFamily:"Cairo,sans-serif",fontSize:".72rem",fontWeight:700,
+              transition:"all .18s"}}
+            onMouseEnter={e=>{e.currentTarget.style.background="rgba(248,113,113,.18)";}}
+            onMouseLeave={e=>{e.currentTarget.style.background="rgba(248,113,113,.08)";}}>
+            🗑 مسح الجميع
+          </button>
+        )}
+      </div>
       <h1 style={{fontSize:"1.8rem",fontWeight:900,color:"#fff",marginBottom:8}}>الأسئلة التي أخطأت فيها</h1>
       <p style={{color:"#64748b",lineHeight:1.8}}>راجع كل سؤال بهدوء وافهم لماذا أخطأت.</p>
       <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:12,marginTop:20}}>
@@ -5325,7 +5339,7 @@ export default function Fahmni(){
       return <SimMode settings={settings} go={go} updateUser={updateUser} addMistake={addMistake} trial={trial}/>;
     case"review":
       if(!trial.isAdmin&&(!trial.isSubscribed||trial.status==='expired')) return <UpgradePrompt feature="وضع المراجعة" go={go}/>;
-      return <ReviewMode mistakes={mistakes} go={go} onRedo={()=>go("session")}/>;
+      return <ReviewMode mistakes={mistakes} go={go} onRedo={()=>go("session")} onClearAll={()=>setMistakes([])}/>;
     case"pricing":return <Pricing go={go} setCheckoutPlan={setCheckoutPlan} setCheckoutPeriod={setCheckoutPeriod}/>;
     case"checkout":return <Checkout go={go} trial={trial} selectedPlan={checkoutPlan} selectedPeriod={checkoutPeriod}/>;
     case"paywall":return <Paywall trial={trial} go={go} subscribe={(plan,period)=>{setCheckoutPlan(plan||"basic");setCheckoutPeriod(period||"3m");go("checkout");}} back={()=>go("pricing")}/>;
