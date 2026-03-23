@@ -2236,9 +2236,17 @@ function Session({settings,go,updateUser,trial,setTrial,addMistake,plan="free",s
 
   const fetchQ=useCallback(async()=>{
     if(!trial.isAdmin&&!trial.isSubscribed&&trial.used>=trial.limit){go("paywall");return;}
-    // اختر باباً عشوائياً جديداً مختلفاً عن الحالي
+    // تحديد pool الأبواب حسب القسم المحدد (مكس = الكل، كمي = كمي فقط، لفظي = لفظي فقط)
+    const isComprehensive = settings.topic==="__comprehensive__";
+    const sessionSec = settings.sessionSection; // "كمي" | "لفظي" | null (= مكس)
+    const topicPool = isComprehensive
+      ? (TOPICS[settings.comprehensiveSection||settings.section]||ALL_TOPICS)
+      : sessionSec
+        ? TOPICS[sessionSec]||ALL_TOPICS
+        : ALL_TOPICS;
+
     const nextTopic=(()=>{
-      const pool=ALL_TOPICS.filter(t=>t!==curTopic);
+      const pool=topicPool.filter(t=>t!==curTopic);
       const t=pool[Math.floor(Math.random()*pool.length)];
       setCurTopic(t);
       return t;
@@ -3419,7 +3427,7 @@ function Dashboard({go,user,trial,mistakes,settings,setSettings,getTopicProgress
           {/* Grade badge + CTA */}
           <div style={{display:"flex",gap:10,flexWrap:"wrap",alignItems:"center"}}>
             <button
-              onClick={()=>go("session")}
+              onClick={()=>{setSettings(p=>({...p,sessionSection:null}));go("session");}}
               style={{
                 padding:"13px 32px",borderRadius:14,cursor:"pointer",
                 background:"linear-gradient(135deg,#f97316,#ea580c)",
@@ -3535,7 +3543,7 @@ function Dashboard({go,user,trial,mistakes,settings,setSettings,getTopicProgress
               </p>
             </div>
             <div style={{display:"flex",gap:8}}>
-              <button onClick={()=>go("session")} style={{
+              <button onClick={()=>{setSettings(p=>({...p,sessionSection:null}));go("session");}} style={{
                 padding:"10px 20px",borderRadius:12,cursor:"pointer",
                 background:"rgba(34,211,238,.12)",border:"1.5px solid rgba(34,211,238,.35)",
                 color:"#22d3ee",fontFamily:"Cairo,sans-serif",fontSize:".82rem",fontWeight:800,
@@ -3573,7 +3581,8 @@ function Dashboard({go,user,trial,mistakes,settings,setSettings,getTopicProgress
         {[
           {icon:"🤖",label:"جلسة AI",sub:"سؤال + شرح",page:"session",locked:false,
            bg:"linear-gradient(135deg,rgba(249,115,22,.12),rgba(249,115,22,.04))",
-           border:"rgba(249,115,22,.25)",color:"#f97316"},
+           border:"rgba(249,115,22,.25)",color:"#f97316",
+           onTap:()=>setSettings(p=>({...p,sessionSection:null}))},
           {icon:"📋",label:"مراجعة",sub:`${wrongCount} سؤال`,page:"review",locked:!isSub,
            bg:"linear-gradient(135deg,rgba(248,113,113,.1),rgba(248,113,113,.03))",
            border:"rgba(248,113,113,.22)",color:"#f87171"},
@@ -3581,7 +3590,7 @@ function Dashboard({go,user,trial,mistakes,settings,setSettings,getTopicProgress
            bg:"linear-gradient(135deg,rgba(34,211,238,.1),rgba(34,211,238,.03))",
            border:"rgba(34,211,238,.22)",color:"#22d3ee"},
         ].map((m,i)=>(
-          <div key={i} onClick={()=>go(m.page)} style={{
+          <div key={i} onClick={()=>{if(m.onTap)m.onTap();go(m.page);}} style={{
             padding:"18px 14px",borderRadius:18,cursor:"pointer",textAlign:"center",
             background:m.bg,border:`1.5px solid ${m.border}`,
             opacity:m.locked?.55:1,position:"relative",
@@ -3637,7 +3646,7 @@ function Dashboard({go,user,trial,mistakes,settings,setSettings,getTopicProgress
             const isLk=!isSub&&GEO.includes(topic);
             return(
               <div key={topic}
-                onClick={()=>{if(isLk){go("paywall");return;}if(setSettings)setSettings(p=>({...p,topic,section:secTab}));go("roadmap");}}
+                onClick={()=>{if(isLk){go("paywall");return;}if(setSettings)setSettings(p=>({...p,topic,section:secTab,sessionSection:secTab}));go("roadmap");}}
                 style={{padding:"12px 14px",borderRadius:13,cursor:"pointer",position:"relative",
                   background:isAct?sc.bg:"rgba(255,255,255,.025)",
                   border:`1px solid ${isAct?sc.border:"rgba(255,255,255,.07)"}`,
@@ -5014,7 +5023,7 @@ export default function Fahmni(){
     }catch(e){return null;}
   }); // {token, userId, name, email}
   const[user,setUser]=useState({name:"",streak:0,totalSolved:0,correct:0});
-  const[settings,setSettings]=useState({section:"كمي",difficulty:"متوسط",topic:"النسبة والتناسب",comprehensiveSection:null});
+  const[settings,setSettings]=useState({section:"كمي",difficulty:"متوسط",topic:"النسبة والتناسب",comprehensiveSection:null,sessionSection:null});
   const[checkoutPlan,setCheckoutPlan]=useState("basic");
   const[checkoutPeriod,setCheckoutPeriod]=useState("3m");
   // Admin access is determined ONLY from RPC get_my_access() → trial.isAdmin
@@ -5324,7 +5333,8 @@ export default function Fahmni(){
           onWatchVideo={(videoId)=>onWatchVideo(lessonTopic,videoId)}
           onClose={()=>go("roadmap")}
           onStartPractice={()=>{
-            setSettings(p=>({...p,topic:lessonTopic,section:deriveSec(lessonTopic),difficulty:"متوسط"}));
+            const sec=deriveSec(lessonTopic);
+            setSettings(p=>({...p,topic:lessonTopic,section:sec,sessionSection:sec,difficulty:"متوسط"}));
             go("diagnostic");
           }}/>
       : <Roadmap go={go} setSettings={setSettings} openLesson={openLesson} trial={trial} getTopicProgress={getTopicProgress}/>;
