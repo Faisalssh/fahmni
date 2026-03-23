@@ -1456,43 +1456,47 @@ function ReviewMode({mistakes,go,onRedo}){
   أدبي  → 110 سؤال (30 كمي + 90 لفظي) · 150 دقيقة
   توليد الأسئلة: سؤال بسؤال (prefetch التالي أثناء الإجابة)
 */
-const QIYYAS={
-  علمي: {total:120, quant:52, verbal:68, minutes:150, label:"المسار العلمي"},
-  أدبي: {total:120, quant:30, verbal:90, minutes:150, label:"المسار الأدبي"},
+/* ─── إعدادات الاختبار الموحّد ─── */
+const SIM_CONFIG={
+  quant:  40,   // عدد أسئلة الكمي
+  verbal: 40,   // عدد أسئلة اللفظي
+  get total(){ return this.quant+this.verbal; },
+  minutes:120,  // وقت الاختبار بالدقائق
 };
 
-function buildTopicPlan(track){
-  const{quant,verbal}=QIYYAS[track];
+function buildSimPlan(){
   const qTopics=TOPICS.كمي, vTopics=TOPICS.لفظي;
   const plan=[];
-  for(let i=0;i<quant;i++) plan.push({sec:"كمي",topic:qTopics[i%qTopics.length]});
-  for(let i=0;i<verbal;i++) plan.push({sec:"لفظي",topic:vTopics[i%vTopics.length]});
-  /* خلط عشوائي (Fisher-Yates) */
+  for(let i=0;i<SIM_CONFIG.quant;i++)  plan.push({sec:"كمي",  topic:qTopics[i%qTopics.length]});
+  for(let i=0;i<SIM_CONFIG.verbal;i++) plan.push({sec:"لفظي", topic:vTopics[i%vTopics.length]});
   for(let i=plan.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[plan[i],plan[j]]=[plan[j],plan[i]];}
   return plan;
 }
 
-function SimMode({settings,go,updateUser,addMistake,trial={}}){  useEffect(()=>{window.scrollTo({top:0,behavior:"instant"});if(!trial.isAdmin&&(trial.status==='expired'||trial.status==='cancelled')){go("expired");}
-      else if(!trial.isAdmin&&!trial.isSubscribed&&trial.used>=trial.limit){go("paywall");}},[]); 
+function SimMode({settings,go,updateUser,addMistake,trial={}}){
+  useEffect(()=>{
+    window.scrollTo({top:0,behavior:"instant"});
+    if(!trial.isAdmin&&(trial.status==='expired'||trial.status==='cancelled')){go("expired");}
+    else if(!trial.isAdmin&&!trial.isSubscribed&&trial.used>=trial.limit){go("paywall");}
+  },[]);
+
   const[phase,setPhase]=useState("setup");
-  const[difficulty,setDifficulty]=useState("متوسط");
-  const[track,setTrack]=useState("علمي");
-  const[plan,setPlan]=useState([]);      // [{sec,topic}] × 120
+  const[plan,setPlan]=useState([]);
   const[idx,setIdx]=useState(0);
-  const[curQ,setCurQ]=useState(null);    // السؤال الحالي
-  const[nextQData,setNextQData]=useState(null); // prefetch
+  const[curQ,setCurQ]=useState(null);
+  const[nextQData,setNextQData]=useState(null);
   const[loadingQ,setLoadingQ]=useState(false);
   const[sel,setSel]=useState(null);
-  const[answers,setAnswers]=useState([]); // [{chosen,correct,ok,topic,q,options,steps,tip}]
+  const[answers,setAnswers]=useState([]);
   const[qTimes,setQTimes]=useState([]);
   const[qStart,setQStart]=useState(0);
-  const[timeLeft,setTimeLeft]=useState(9000);
+  const[timeLeft,setTimeLeft]=useState(SIM_CONFIG.minutes*60);
   const[showCard,setShowCard]=useState(false);
   const[startLoading,setStartLoading]=useState(false);
   const sounds=useNatureSounds();
   const fmt=s=>`${String(Math.floor(s/60)).padStart(2,"0")}:${String(s%60).padStart(2,"0")}`;
-  const totalQ=QIYYAS[track].total;
-  const timeTotal=QIYYAS[track].minutes*60;
+  const totalQ=SIM_CONFIG.total;
+  const timeTotal=SIM_CONFIG.minutes*60;
 
   /* ── countdown timer ── */
   useEffect(()=>{
@@ -1502,21 +1506,47 @@ function SimMode({settings,go,updateUser,addMistake,trial={}}){  useEffect(()=>{
     return()=>clearTimeout(id);
   },[phase,timeLeft]);
 
-  /* ── fetch a single question for given plan item ── */
-  const fetchOne=async(item,diff)=>{
-    return await genQuestion({topic:item.topic,difficulty:diff});
+  /* ── fetch one question from DB (no difficulty filter) ── */
+  const fetchOne=async(item)=>{
+    /* محاولة السحب من قاعدة البيانات أولاً */
+    if(!IS_ARTIFACT){
+      try{
+        const res=await fetch(
+          `${SUPABASE_URL}/rest/v1/questions?section=eq.${encodeURIComponent(item.sec)}&active=eq.true&limit=1&order=random()`,
+          {headers:{...sbH(""),"apikey":SUPABASE_ANON}}
+        );
+        if(res.ok){
+          const rows=await res.json();
+          if(rows&&rows.length){
+            const r=rows[0];
+            return{
+              question:r.question_text||"",
+              image_url:r.image_url||null,
+              options:Array.isArray(r.options)?r.options:JSON.parse(r.options||"[]"),
+              correct:r.correct??0,
+              steps:Array.isArray(r.steps)?r.steps:JSON.parse(r.steps||"[]"),
+              tip:r.tip||"",
+              topic:r.topic||item.topic,
+              sec:item.sec,
+              fromDB:true
+            };
+          }
+        }
+      }catch(_){}
+    }
+    /* fallback إلى AI إذا لم تجد */
+    return await genQuestion({topic:item.topic,difficulty:"متوسط"});
   };
 
   /* ── start exam ── */
   const startSim=async()=>{
     setStartLoading(true);
-    const p=buildTopicPlan(track);
+    const p=buildSimPlan();
     setPlan(p);
     try{
-      const first=await fetchOne(p[0],difficulty);
-      setCurQ({...first,topic:p[0].topic,sec:p[0].sec});
-      /* prefetch second */
-      if(p.length>1) fetchOne(p[1],difficulty).then(q=>setNextQData({...q,topic:p[1].topic,sec:p[1].sec}));
+      const first=await fetchOne(p[0]);
+      setCurQ({...first,topic:first.topic||p[0].topic,sec:p[0].sec});
+      if(p.length>1) fetchOne(p[1]).then(q=>setNextQData({...q,topic:q.topic||p[1].topic,sec:p[1].sec}));
     }catch(e){setStartLoading(false);return;}
     setIdx(0);setSel(null);setAnswers([]);setQTimes([]);
     setTimeLeft(timeTotal);setQStart(Date.now());
@@ -1533,28 +1563,23 @@ function SimMode({settings,go,updateUser,addMistake,trial={}}){  useEffect(()=>{
     const newTimes=[...curTimes,t];
     setAnswers(newAnswers);setQTimes(newTimes);
     if(!ok) addMistake({ok,q:curQ.question,topic:curQ.topic,section:curQ.sec,
-      chosen:curQ.options[chosenSel],correctAns:curQ.options[curQ.correct],
+      chosen:curQ.options?.[chosenSel],correctAns:curQ.options?.[curQ.correct],
       steps:curQ.steps,tip:curQ.tip});
     updateUser(ok);
-
     const next=curIdx+1;
     if(next>=totalQ){doFinish(newAnswers);return;}
-    setIdx(next);setSel(null);setQStart(Date.now());
-    setLoadingQ(false);
-
-    /* use prefetched or fetch fresh */
+    setIdx(next);setSel(null);setQStart(Date.now());setLoadingQ(false);
     if(nextQData){
       setCurQ(nextQData);setNextQData(null);
-      /* prefetch next+1 */
       if(next+1<curPlan.length)
-        fetchOne(curPlan[next+1],difficulty).then(q=>setNextQData({...q,topic:curPlan[next+1].topic,sec:curPlan[next+1].sec})).catch(()=>{});
-    } else {
+        fetchOne(curPlan[next+1]).then(q=>setNextQData({...q,topic:q.topic||curPlan[next+1].topic,sec:curPlan[next+1].sec})).catch(()=>{});
+    }else{
       setLoadingQ(true);
       try{
-        const q=await fetchOne(curPlan[next],difficulty);
-        setCurQ({...q,topic:curPlan[next].topic,sec:curPlan[next].sec});
+        const q=await fetchOne(curPlan[next]);
+        setCurQ({...q,topic:q.topic||curPlan[next].topic,sec:curPlan[next].sec});
         if(next+1<curPlan.length)
-          fetchOne(curPlan[next+1],difficulty).then(q2=>setNextQData({...q2,topic:curPlan[next+1].topic,sec:curPlan[next+1].sec})).catch(()=>{});
+          fetchOne(curPlan[next+1]).then(q2=>setNextQData({...q2,topic:q2.topic||curPlan[next+1].topic,sec:curPlan[next+1].sec})).catch(()=>{});
       }catch(e){}finally{setLoadingQ(false);}
     }
   };
@@ -1562,12 +1587,13 @@ function SimMode({settings,go,updateUser,addMistake,trial={}}){  useEffect(()=>{
   const doFinish=(ans=answers)=>{setPhase("done");};
 
   const correct=answers.filter(a=>a.ok).length;
-  const acc=answers.length?Math.round((correct/answers.length)*100):0;
   const avgT=qTimes.length?Math.round(qTimes.reduce((a,b)=>a+b,0)/qTimes.length):0;
 
   /* ══════ SETUP ══════ */
-  if(phase==="setup")return(
+  if(phase==="setup") return(
     <div style={{display:"grid",gap:16}}>
+
+      {/* Header */}
       <div className="gl" style={{padding:"34px 32px"}}>
         <span className="badge b-v" style={{marginBottom:13}}>⚡ وضع المحاكاة</span>
         <h1 style={{fontSize:"1.8rem",fontWeight:900,color:"#fff",marginBottom:8}}>
@@ -1579,63 +1605,44 @@ function SimMode({settings,go,updateUser,addMistake,trial={}}){  useEffect(()=>{
         </p>
       </div>
 
-      {/* Track info cards */}
-      <div className="rg-2 sim-tracks" style={{gap:12}}>
-        {Object.entries(QIYYAS).map(([k,v])=>(
-          <button key={k} onClick={()=>setTrack(k)} style={{
-            padding:"20px",borderRadius:16,cursor:"pointer",textAlign:"right",
-            border:`2px solid ${track===k?"rgba(249,115,22,.5)":"rgba(255,255,255,.07)"}`,
-            background:track===k?"rgba(249,115,22,.08)":"rgba(255,255,255,.03)",
-            transition:"all .2s"
+      {/* Info cards */}
+      <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(180px,1fr))",gap:12}}>
+        {[
+          {icon:"🔢",label:"القسم الكمي",val:`${SIM_CONFIG.quant} سؤال`,color:"#f97316"},
+          {icon:"📝",label:"القسم اللفظي",val:`${SIM_CONFIG.verbal} سؤال`,color:"#22d3ee"},
+          {icon:"📊",label:"إجمالي الأسئلة",val:`${SIM_CONFIG.total} سؤال`,color:"#a78bfa"},
+          {icon:"⏱",label:"مدة الاختبار",val:`${SIM_CONFIG.minutes} دقيقة`,color:"#4ade80"},
+        ].map(({icon,label,val,color})=>(
+          <div key={label} style={{
+            padding:"20px 18px",borderRadius:16,textAlign:"center",
+            background:`${color}09`,border:`1.5px solid ${color}25`,
           }}>
-            <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:14}}>
-              <span style={{
-                padding:"3px 10px",borderRadius:99,fontSize:".65rem",fontWeight:700,
-                background:track===k?"rgba(249,115,22,.2)":"rgba(255,255,255,.06)",
-                border:`1px solid ${track===k?"rgba(249,115,22,.4)":"rgba(255,255,255,.1)"}`,
-                color:track===k?"#f97316":"#64748b"
-              }}>{track===k?"✓ محدد":k}</span>
-              <span style={{fontSize:"1.5rem"}}>{k==="علمي"?"🔬":"📚"}</span>
-            </div>
-            <p style={{fontWeight:900,color:"#fff",fontSize:"1.1rem",marginBottom:10}}>{v.label}</p>
-            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:7}}>
-              {[["الأسئلة",`${v.total} سؤال`],["الوقت",`${v.minutes} دقيقة`],["التوزيع",`${v.quant}ك·${v.verbal}ل`]].map(([lbl,val])=>(
-                <div key={lbl} style={{padding:"8px",borderRadius:10,background:"rgba(255,255,255,.04)",textAlign:"center"}}>
-                  <p style={{fontSize:".6rem",color:"#475569",marginBottom:3}}>{lbl}</p>
-                  <p style={{fontSize:".78rem",fontWeight:800,color:"#e2e8f0"}}>{val}</p>
-                </div>
-              ))}
-            </div>
-          </button>
+            <div style={{fontSize:"1.8rem",marginBottom:10}}>{icon}</div>
+            <p style={{fontSize:".72rem",color:"#64748b",marginBottom:5}}>{label}</p>
+            <p style={{fontSize:"1.1rem",fontWeight:900,color}}>{val}</p>
+          </div>
         ))}
       </div>
 
-      {/* Difficulty only */}
-      <div className="gl" style={{padding:"22px"}}>
-        <p style={{fontSize:".68rem",color:"#f97316",fontWeight:700,letterSpacing:".08em",marginBottom:14}}>
-          مستوى الصعوبة
-        </p>
-        <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:10}}>
-          {[
-            {v:"سهل",d:"للمراجعة والتأسيس",icon:"🌱",color:"#4ade80"},
-            {v:"متوسط",d:"مثل قياس الفعلي",icon:"⚡",color:"#f97316"},
-            {v:"صعب",d:"للمتحدي والتميز",icon:"🔥",color:"#f87171"},
-          ].map(({v,d,icon,color})=>(
-            <button key={v} onClick={()=>setDifficulty(v)} style={{
-              padding:"18px 14px",borderRadius:14,cursor:"pointer",textAlign:"center",
-              border:`2px solid ${difficulty===v?color+"55":"rgba(255,255,255,.07)"}`,
-              background:difficulty===v?color+"0d":"rgba(255,255,255,.03)",
-              transition:"all .2s"
-            }}>
-              <div style={{fontSize:"1.6rem",marginBottom:8}}>{icon}</div>
-              <p style={{fontWeight:900,color:difficulty===v?color:"#fff",fontSize:".9rem",marginBottom:4}}>{v}</p>
-              <p style={{fontSize:".72rem",color:"#475569",lineHeight:1.5}}>{d}</p>
-            </button>
-          ))}
+      {/* Note */}
+      <div style={{
+        padding:"16px 20px",borderRadius:14,
+        background:"rgba(167,139,250,.07)",border:"1px solid rgba(167,139,250,.2)",
+        display:"flex",gap:12,alignItems:"flex-start"
+      }}>
+        <span style={{fontSize:"1.1rem",marginTop:1}}>ℹ️</span>
+        <div>
+          <p style={{fontSize:".82rem",color:"#c4b5fd",fontWeight:700,marginBottom:4}}>
+            الأسئلة تُسحب مباشرة من قاعدة البيانات
+          </p>
+          <p style={{fontSize:".75rem",color:"#64748b",lineHeight:1.7}}>
+            {SIM_CONFIG.quant} سؤال كمي + {SIM_CONFIG.verbal} سؤال لفظي — مخلوطة عشوائياً.
+            لا يوجد فلترة للصعوبة.
+          </p>
         </div>
       </div>
 
-      {/* Start button */}
+      {/* Start */}
       <div style={{
         padding:"22px 26px",borderRadius:18,
         background:"linear-gradient(135deg,rgba(167,139,250,.1),rgba(249,115,22,.06))",
@@ -1644,15 +1651,15 @@ function SimMode({settings,go,updateUser,addMistake,trial={}}){  useEffect(()=>{
       }}>
         <div>
           <p style={{fontWeight:900,color:"#c4b5fd",fontSize:"1rem"}}>
-            {QIYYAS[track].total} سؤال · {QIYYAS[track].minutes} دقيقة · {difficulty}
+            {SIM_CONFIG.total} سؤال · {SIM_CONFIG.minutes} دقيقة
           </p>
           <p style={{fontSize:".78rem",color:"#475569",marginTop:4}}>
-            {QIYYAS[track].quant} كمي + {QIYYAS[track].verbal} لفظي — مخلوطة عشوائياً
+            {SIM_CONFIG.quant} كمي + {SIM_CONFIG.verbal} لفظي — مخلوطة عشوائياً
           </p>
         </div>
         <button className="btn btn-p" style={{padding:"13px 30px",fontSize:"1rem"}}
           disabled={startLoading} onClick={startSim}>
-          {startLoading?<><div className="spin"/> يحضّر أول سؤال...</>:"ابدأ الاختبار ←"}
+          {startLoading?<><div className="spin"/> يحضّر أول سؤال...</>:"ابدأ المحاكاة ←"}
         </button>
       </div>
     </div>
@@ -1662,11 +1669,9 @@ function SimMode({settings,go,updateUser,addMistake,trial={}}){  useEffect(()=>{
   if(phase==="running"){
     const secColor=curQ?.sec==="كمي"?"#f97316":"#22d3ee";
     const timePct=(timeLeft/timeTotal)*100;
-    const timeWarning=timeLeft<600; // أقل من 10 دقائق
+    const timeWarning=timeLeft<600;
     return(
       <div className="rg-sim" style={{gap:13}}>
-
-        {/* Main */}
         <div style={{display:"flex",flexDirection:"column",gap:13}}>
 
           {/* Top bar */}
@@ -1684,7 +1689,6 @@ function SimMode({settings,go,updateUser,addMistake,trial={}}){  useEffect(()=>{
                 </span>
               </div>
             </div>
-            {/* Progress bar */}
             <div className="pt">
               <div style={{height:"100%",borderRadius:99,
                 background:`linear-gradient(90deg,${secColor},${secColor}88)`,
@@ -1696,33 +1700,33 @@ function SimMode({settings,go,updateUser,addMistake,trial={}}){  useEffect(()=>{
           {loadingQ?(
             <div className="gl" style={{padding:"60px",textAlign:"center"}}>
               <div className="spin spin-lg" style={{margin:"0 auto 14px"}}/>
-              <p style={{color:"#64748b"}}>يولّد السؤال التالي...</p>
+              <p style={{color:"#64748b"}}>يحضّر السؤال التالي...</p>
             </div>
           ):(
             <div className="gl si" style={{padding:"28px",minHeight:280}}>
               {curQ?.shape&&<ShapeRender shape={curQ.shape}/>}
-              <p style={{fontSize:".7rem",color:"#475569",marginBottom:10,fontWeight:600}}>
-                سؤال {idx+1} من {totalQ}
-              </p>
-              <h2 style={{fontSize:"1.12rem",fontWeight:800,color:"#fff",lineHeight:1.9,marginBottom:22}}>
-                {curQ?.question||curQ?.question_text||""}
-              </h2>
+              {curQ?.image_url&&(
+                <img src={curQ.image_url} alt="سؤال"
+                  style={{width:"100%",maxHeight:280,objectFit:"contain",borderRadius:10,
+                    border:"1px solid rgba(255,255,255,.08)",marginBottom:16}}/>
+              )}
+              {curQ?.question&&(
+                <h2 style={{fontSize:"1.12rem",fontWeight:800,color:"#fff",lineHeight:1.9,marginBottom:22}}>
+                  {curQ.question}
+                </h2>
+              )}
               <div style={{display:"flex",flexDirection:"column",gap:9}}>
                 {(curQ?.options||[]).filter(Boolean).map((opt,i)=>(
                   <button key={i} className={`ans ${sel===i?"sel":""}`}
-                    onClick={()=>setSel(i)}
-                    style={{transition:"all .15s"}}>
+                    onClick={()=>setSel(i)} style={{transition:"all .15s"}}>
                     <span>{opt}</span>
                     <div className="opt-l">{['أ','ب','ج','د'][i]}</div>
                   </button>
                 ))}
               </div>
               <div style={{marginTop:20,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-                <p style={{fontSize:".73rem",color:"#334155"}}>
-                  {sel===null?"اختر إجابة للمتابعة":""}
-                </p>
-                <button className="btn btn-p"
-                  disabled={sel===null||loadingQ}
+                <p style={{fontSize:".73rem",color:"#334155"}}>{sel===null?"اختر إجابة للمتابعة":""}</p>
+                <button className="btn btn-p" disabled={sel===null||loadingQ}
                   style={{padding:"11px 24px"}}
                   onClick={()=>goNext(sel,plan,idx,answers,qTimes)}>
                   {idx===totalQ-1?"أنهِ الاختبار ←":"التالي →"}
@@ -1734,8 +1738,6 @@ function SimMode({settings,go,updateUser,addMistake,trial={}}){  useEffect(()=>{
 
         {/* Sidebar */}
         <div style={{display:"flex",flexDirection:"column",gap:11,alignSelf:"start",position:"sticky",top:20}}>
-
-          {/* Timer */}
           <div className="gl" style={{padding:"18px 16px",textAlign:"center",
             border:`1.5px solid ${timeWarning?"rgba(248,113,113,.3)":"rgba(255,255,255,.07)"}`,
             background:timeWarning?"rgba(248,113,113,.05)":"rgba(5,9,26,.8)"}}>
@@ -1743,35 +1745,49 @@ function SimMode({settings,go,updateUser,addMistake,trial={}}){  useEffect(()=>{
               color:timeWarning?"#f87171":"#f97316",marginBottom:7}}>
               {timeWarning?"⚠ الوقت ينفد":"⏱ الوقت المتبقي"}
             </p>
-            <p style={{
-              fontSize:"2.6rem",fontWeight:900,letterSpacing:"0.04em",
+            <p style={{fontSize:"2.6rem",fontWeight:900,letterSpacing:"0.04em",
               fontFamily:"monospace",lineHeight:1,
-              color:timeLeft<300?"#f87171":timeWarning?"#f97316":"#fff"
-            }}>{fmt(timeLeft)}</p>
+              color:timeLeft<300?"#f87171":timeWarning?"#f97316":"#fff"}}>
+              {fmt(timeLeft)}
+            </p>
             <div className="pt" style={{marginTop:10}}>
               <div style={{height:"100%",borderRadius:99,transition:"width 1s linear",
                 width:`${timePct}%`,
-                background:timeWarning?"linear-gradient(90deg,#f87171,#fb923c)":"linear-gradient(90deg,#f97316,#22d3ee)"
-              }}/>
+                background:timeWarning?"linear-gradient(90deg,#f87171,#fb923c)":"linear-gradient(90deg,#f97316,#22d3ee)"}}/>
             </div>
             <p style={{fontSize:".67rem",color:"#334155",marginTop:6}}>
-              {QIYYAS[track].minutes} دقيقة إجمالاً
+              {SIM_CONFIG.minutes} دقيقة إجمالاً
             </p>
           </div>
 
-          {/* Progress stats */}
           <div className="gl" style={{padding:"14px"}}>
             <p style={{fontSize:".65rem",color:"#64748b",fontWeight:700,marginBottom:11}}>التقدم</p>
             <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:12}}>
-              {[["المجاب",`${answers.length}`,"#f97316"],[`المتبقي`,`${totalQ-answers.length}`,"#475569"]].map(([l,v,c])=>(
+              {[["المجاب",`${answers.length}`,"#f97316"],["المتبقي",`${totalQ-answers.length}`,"#475569"]].map(([l,v,c])=>(
                 <div key={l} style={{padding:"9px",borderRadius:10,background:"rgba(255,255,255,.04)",textAlign:"center"}}>
                   <p style={{fontSize:".6rem",color:"#475569",marginBottom:3}}>{l}</p>
                   <p style={{fontSize:"1.1rem",fontWeight:900,color:c}}>{v}</p>
                 </div>
               ))}
             </div>
-            {/* Question grid (mini) */}
-            <div style={{display:"grid",gridTemplateColumns:"repeat(6,1fr)",gap:3,maxHeight:100,overflowY:"auto"}}>
+            {/* كمي vs لفظي mini progress */}
+            {[{sec:"كمي",color:"#f97316"},{sec:"لفظي",color:"#22d3ee"}].map(({sec,color})=>{
+              const done=answers.filter(a=>a.sec===sec).length;
+              const total=plan.filter(p=>p.sec===sec).length||SIM_CONFIG[sec==="كمي"?"quant":"verbal"];
+              return(
+                <div key={sec} style={{marginBottom:8}}>
+                  <div style={{display:"flex",justifyContent:"space-between",marginBottom:3}}>
+                    <span style={{fontSize:".6rem",color}}>{sec}</span>
+                    <span style={{fontSize:".6rem",color:"#475569"}}>{done}/{total}</span>
+                  </div>
+                  <div style={{height:4,borderRadius:99,background:"rgba(255,255,255,.06)"}}>
+                    <div style={{height:"100%",borderRadius:99,background:color,
+                      width:`${Math.round((done/total)*100)}%`,transition:"width .4s"}}/>
+                  </div>
+                </div>
+              );
+            })}
+            <div style={{display:"grid",gridTemplateColumns:"repeat(6,1fr)",gap:3,marginTop:8,maxHeight:100,overflowY:"auto"}}>
               {Array.from({length:Math.min(totalQ,60)}).map((_,i)=>(
                 <div key={i} style={{
                   height:18,borderRadius:4,fontSize:".55rem",
@@ -1781,7 +1797,6 @@ function SimMode({settings,go,updateUser,addMistake,trial={}}){  useEffect(()=>{
                   color:i===idx?"#f97316":i<answers.length?"#86efac":"#334155"
                 }}>{i+1}</div>
               ))}
-              {totalQ>60&&<div style={{height:18,borderRadius:4,background:"rgba(255,255,255,.04)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:".55rem",color:"#334155"}}>…</div>}
             </div>
           </div>
 
@@ -1797,102 +1812,100 @@ function SimMode({settings,go,updateUser,addMistake,trial={}}){  useEffect(()=>{
   /* ══════ DONE ══════ */
   if(phase==="done"){
     const qCorrect=answers.filter(a=>a.sec==="كمي"&&a.ok).length;
-    const qTotal=answers.filter(a=>a.sec==="كمي").length;
+    const qTotal=  answers.filter(a=>a.sec==="كمي").length;
     const vCorrect=answers.filter(a=>a.sec==="لفظي"&&a.ok).length;
-    const vTotal=answers.filter(a=>a.sec==="لفظي").length;
+    const vTotal=  answers.filter(a=>a.sec==="لفظي").length;
+    const totalCorrect=qCorrect+vCorrect;
+    const totalAnswered=answers.length;
     const timeTaken=timeTotal-timeLeft;
+    const pct=n=>totalAnswered?Math.round((n/totalAnswered)*100):0;
+    const qPct=qTotal?Math.round((qCorrect/qTotal)*100):0;
+    const vPct=vTotal?Math.round((vCorrect/vTotal)*100):0;
+    const totalPct=totalAnswered?Math.round((totalCorrect/totalAnswered)*100):0;
     return(
       <div style={{display:"grid",gap:14}}>
-        {showCard&&<ResultCard stats={{topic:track,section:"محاكاة",correct,total:answers.length,avgTime:avgT}} onClose={()=>setShowCard(false)}/>}
+        {showCard&&<ResultCard stats={{topic:"محاكاة قياس",section:"محاكاة",correct:totalCorrect,total:totalAnswered,avgTime:avgT}} onClose={()=>setShowCard(false)}/>}
 
         {/* Header */}
-        <div className="gl gl-pad-lg" style={{padding:"34px 30px"}}>
+        <div className="gl gl-pad-lg" style={{padding:"34px 30px",textAlign:"center"}}>
           <span className="badge b-g" style={{marginBottom:12}}>✓ انتهى الاختبار</span>
-          <h1 style={{fontSize:"1.85rem",fontWeight:900,color:"#fff",marginBottom:18}}>
-            نتائج محاكاة قياس
-          </h1>
-          <div style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:11}}>
-            {[
-              ["الدقة الكلية",`${acc}%`,acc>=75?"#4ade80":acc>=50?"#f97316":"#f87171","⭐"],
-              ["الصحيح/الكلي",`${correct}/${answers.length}`,"#22d3ee","✓"],
-              ["الوقت المستغرق",fmt(timeTaken),"#a78bfa","⏱"],
-              ["متوسط/سؤال",`${avgT}ث`,"#f97316","⚡"],
-            ].map(([l,v,c,ic],i)=>(
-              <div key={i} className={`gl2 stat au d${i+1}`} style={{padding:"16px 18px"}}>
-                <p style={{fontSize:".65rem",color:"#475569",marginBottom:6}}>{ic} {l}</p>
-                <p style={{fontSize:"1.3rem",fontWeight:900,color:c}}>{v}</p>
-              </div>
-            ))}
-          </div>
+          <h1 style={{fontSize:"1.8rem",fontWeight:900,color:"#fff",marginBottom:8}}>نتيجة المحاكاة</h1>
+          <p style={{color:"#64748b",fontSize:".88rem"}}>
+            أجبت على {totalAnswered} سؤالاً في {Math.floor(timeTaken/60)} دقيقة و{timeTaken%60} ثانية
+          </p>
         </div>
 
-        {/* Section breakdown */}
-        <div className="rg-2" style={{display:"grid",gap:12}}>
+        {/* الدرجة الكلية */}
+        <div style={{
+          padding:"28px",borderRadius:18,textAlign:"center",
+          background:`linear-gradient(135deg,rgba(167,139,250,.12),rgba(249,115,22,.08))`,
+          border:"1.5px solid rgba(167,139,250,.3)"
+        }}>
+          <p style={{fontSize:".8rem",color:"#94a3b8",marginBottom:6}}>الدرجة الكلية</p>
+          <p style={{fontSize:"3.5rem",fontWeight:900,color:totalPct>=70?"#4ade80":totalPct>=50?"#f97316":"#f87171",lineHeight:1}}>
+            {totalPct}%
+          </p>
+          <p style={{fontSize:".9rem",color:"#94a3b8",marginTop:8}}>
+            {totalCorrect} / {totalAnswered} إجابة صحيحة
+          </p>
+        </div>
+
+        {/* كمي + لفظي منفصلَين */}
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
           {[
-            {sec:"كمي",label:"القسم الكمي",cor:qCorrect,tot:qTotal,color:"#f97316",icon:"🔢"},
-            {sec:"لفظي",label:"القسم اللفظي",cor:vCorrect,tot:vTotal,color:"#22d3ee",icon:"📝"},
-          ].map(({sec,label,cor,tot,color,icon})=>(
-            <div key={sec} className="gl" style={{padding:"20px",border:`1px solid ${color}20`}}>
-              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
-                <div style={{display:"flex",gap:8,alignItems:"center"}}>
-                  <span>{icon}</span>
-                  <p style={{fontWeight:800,color:"#fff",fontSize:".9rem"}}>{label}</p>
-                </div>
-                <span style={{fontWeight:900,color,fontSize:"1.1rem"}}>
-                  {tot?Math.round((cor/tot)*100):0}%
-                </span>
+            {label:"القسم الكمي",icon:"🔢",correct:qCorrect,total:qTotal,pct:qPct,color:"#f97316"},
+            {label:"القسم اللفظي",icon:"📝",correct:vCorrect,total:vTotal,pct:vPct,color:"#22d3ee"},
+          ].map(({label,icon,correct,total,pct,color})=>(
+            <div key={label} style={{
+              padding:"22px 18px",borderRadius:16,textAlign:"center",
+              background:`${color}09`,border:`1.5px solid ${color}30`
+            }}>
+              <div style={{fontSize:"1.6rem",marginBottom:8}}>{icon}</div>
+              <p style={{fontSize:".75rem",color:"#64748b",marginBottom:6}}>{label}</p>
+              <p style={{fontSize:"2.2rem",fontWeight:900,color,lineHeight:1}}>{pct}%</p>
+              <p style={{fontSize:".72rem",color:"#475569",marginTop:6}}>
+                {correct} / {total} صح
+              </p>
+              {/* progress bar */}
+              <div style={{marginTop:10,height:5,borderRadius:99,background:"rgba(255,255,255,.06)"}}>
+                <div style={{height:"100%",borderRadius:99,background:color,width:`${pct}%`,transition:"width .6s"}}/>
               </div>
-              <div className="pt" style={{marginBottom:8}}>
-                <div style={{height:"100%",borderRadius:99,background:color,
-                  width:`${tot?Math.round((cor/tot)*100):0}%`,transition:"width .6s ease"}}/>
-              </div>
-              <p style={{fontSize:".75rem",color:"#64748b"}}>{cor} صحيح من {tot} سؤال</p>
             </div>
           ))}
         </div>
 
-        {/* Question breakdown */}
-        <div className="gl" style={{padding:"22px"}}>
-          <p style={{fontSize:".68rem",color:"#f97316",fontWeight:700,letterSpacing:".08em",marginBottom:13}}>
-            ▸ تفصيل الأسئلة
-          </p>
-          <div style={{display:"flex",flexDirection:"column",gap:7,maxHeight:300,overflowY:"auto"}}>
-            {answers.map((a,i)=>(
-              <div key={i} style={{
-                display:"flex",alignItems:"flex-start",gap:10,padding:"10px 13px",borderRadius:11,
-                background:a.ok?"rgba(74,222,128,.06)":"rgba(248,113,113,.06)",
-                border:`1px solid ${a.ok?"rgba(74,222,128,.18)":"rgba(248,113,113,.18)"}`
-              }}>
-                <span style={{fontWeight:900,color:a.ok?"#86efac":"#fca5a5",fontSize:".8rem",flexShrink:0,marginTop:2}}>
-                  {a.ok?"✓":"✗"}
-                </span>
-                <div style={{flex:1,minWidth:0}}>
-                  <div style={{display:"flex",gap:6,marginBottom:4,flexWrap:"wrap"}}>
-                    <span style={{fontSize:".6rem",padding:"1px 7px",borderRadius:99,
-                      background:a.sec==="كمي"?"rgba(249,115,22,.12)":"rgba(34,211,238,.1)",
-                      color:a.sec==="كمي"?"#f97316":"#22d3ee",fontWeight:700}}>
-                      {a.topic}
-                    </span>
-                    <span style={{fontSize:".6rem",color:"#334155"}}>{qTimes[i]||"—"}ث</span>
-                  </div>
-                  <p style={{fontSize:".78rem",color:"#94a3b8",lineHeight:1.5,
-                    overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>
-                    {a.q?.slice(0,80)}…
-                  </p>
-                  {!a.ok&&<p style={{fontSize:".7rem",color:"#6ee7b7",marginTop:4}}>
-                    الصحيحة: {a.options?.[a.correct]}
-                  </p>}
-                </div>
+        {/* ملخص سريع */}
+        <div className="gl" style={{padding:"20px 24px"}}>
+          <p style={{fontWeight:800,color:"#fff",marginBottom:14,fontSize:".9rem"}}>📊 ملخص الأداء</p>
+          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(120px,1fr))",gap:10}}>
+            {[
+              ["⏱ متوسط السؤال",`${avgT} ث`,"#94a3b8"],
+              ["✅ إجمالي الصح",`${totalCorrect}`,"#4ade80"],
+              ["❌ إجمالي الخطأ",`${totalAnswered-totalCorrect}`,"#f87171"],
+              ["📐 الكمي",`${qPct}%`,"#f97316"],
+              ["📝 اللفظي",`${vPct}%`,"#22d3ee"],
+            ].map(([l,v,c])=>(
+              <div key={l} style={{padding:"12px",borderRadius:12,background:"rgba(255,255,255,.04)",textAlign:"center"}}>
+                <p style={{fontSize:".65rem",color:"#475569",marginBottom:4}}>{l}</p>
+                <p style={{fontSize:"1.1rem",fontWeight:900,color:c}}>{v}</p>
               </div>
             ))}
           </div>
         </div>
 
-        <div style={{display:"flex",gap:10,justifyContent:"flex-end",flexWrap:"wrap"}}>
-          <button className="btn btn-g" onClick={()=>go("review")}>📋 راجع الأخطاء</button>
-          <button className="btn btn-v" onClick={()=>setShowCard(true)}>🎴 بطاقة النتيجة</button>
-          <button className="btn btn-p" onClick={()=>{setPhase("setup");setAnswers([]);setIdx(0);setCurQ(null);setNextQData(null);}}>
-            محاكاة جديدة ←
+        {/* أزرار */}
+        <div style={{display:"flex",gap:10,flexWrap:"wrap"}}>
+          <button className="btn btn-p" style={{flex:1,padding:"13px",justifyContent:"center"}}
+            onClick={()=>{setPhase("setup");setAnswers([]);setIdx(0);setCurQ(null);setNextQData(null);setTimeLeft(timeTotal);}}>
+            ← محاكاة جديدة
+          </button>
+          <button className="btn" style={{flex:1,padding:"13px",justifyContent:"center"}}
+            onClick={()=>setShowCard(true)}>
+            📊 بطاقة النتيجة
+          </button>
+          <button className="btn" style={{flex:1,padding:"13px",justifyContent:"center"}}
+            onClick={()=>go("roadmap")}>
+            🗺️ خريطة المسار
           </button>
         </div>
       </div>
