@@ -934,7 +934,10 @@ function checkRateLimit(userId){
   return true;
 }
 
+const AI_ENABLED = false; // ← true لتفعيل توليد AI / false لإيقافه مؤقتاً
+
 const callClaude=async(prompt,maxTok=600,userId=null)=>{
+  if(!AI_ENABLED) throw Object.assign(new Error("توليد AI متوقف مؤقتاً."),{aiDisabled:true});
   // Rate limit check
   if(!checkRateLimit(userId)){
     throw Object.assign(new Error("وصلت للحد الأقصى من الطلبات (50 طلب/ساعة). انتظر قليلاً."),{rateLimited:true});
