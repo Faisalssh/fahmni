@@ -1284,7 +1284,7 @@ function PlacementQuiz({profile,onFinish,go}){
         <div style={{display:"flex",gap:8,marginBottom:18}}><span className={`badge ${q.sec==="كمي"?"b-o":"b-c"}`}>{q.sec}</span>{revealed&&<span className={`badge pi ${ok?"b-g":"b-r"}`}>{ok?"✓ صحيح":"✗ خطأ"}</span>}</div>
         <h2 style={{fontSize:"1.1rem",fontWeight:800,color:"#fff",lineHeight:1.8,marginBottom:22}}>{q.q}</h2>
         <div style={{display:"flex",flexDirection:"column",gap:9}}>
-          {q.opts.map((opt,i)=>{const chosen=sel===i,showOk=revealed&&i===q.correct,showBad=revealed&&chosen&&i!==q.correct;return(<button key={i} className={`ans ${showOk?"ok":showBad?"bad":chosen?"sel":""} ${revealed?"lk":""}`} onClick={()=>{if(!revealed)setSel(i);}}><span>{opt}</span><div className="opt-l">{String.fromCharCode(0x0627+i)}</div></button>);})}
+          {q.opts.map((opt,i)=>{const chosen=sel===i,showOk=revealed&&i===q.correct,showBad=revealed&&chosen&&i!==q.correct;return(<button key={i} className={`ans ${showOk?"ok":showBad?"bad":chosen?"sel":""} ${revealed?"lk":""}`} onClick={()=>{if(!revealed)setSel(i);}}><span>{opt}</span><div className="opt-l">{['أ','ب','ج','د'][i]}</div></button>);})}
         </div>
         {revealed&&<div className="au" style={{marginTop:14,padding:"13px 16px",borderRadius:14,background:ok?"rgba(74,222,128,.07)":"rgba(248,113,113,.07)",border:`1px solid ${ok?"rgba(74,222,128,.2)":"rgba(248,113,113,.2)"}`}}><p style={{fontSize:".72rem",fontWeight:700,color:ok?"#86efac":"#fca5a5",marginBottom:4}}>{ok?"✓ ممتاز!":"✗ الإجابة الصحيحة: "+q.opts[q.correct]}</p><p style={{fontSize:".82rem",lineHeight:1.8,color:"#94a3b8"}}>{q.why}</p></div>}
         <div style={{marginTop:20,display:"flex",justifyContent:"flex-end"}}>{!revealed?<button className="btn btn-p" disabled={sel===null} onClick={check}>تحقق</button>:<button className="btn btn-p" onClick={advance}>{isLast?"اعرض النتيجة ←":"التالي →"}</button>}</div>
@@ -1316,7 +1316,7 @@ function DiagnosticQ({topic,section,onResult,onSkip}){
         <button className="btn btn-g" style={{fontSize:".78rem"}} onClick={onSkip}>تخطى</button>
       </div>
       <h2 style={{fontSize:"1.1rem",fontWeight:800,color:"#fff",lineHeight:1.8,marginBottom:22}}>{q.question||q.question_text||""}</h2>
-      <div style={{display:"flex",flexDirection:"column",gap:9}}>{(q.options||[]).filter(Boolean).map((opt,i)=>{const chosen=sel===i,showOk=revealed&&i===q.correct,showBad=revealed&&chosen&&i!==q.correct;return(<button key={i} className={`ans ${showOk?"ok":showBad?"bad":chosen?"sel":""} ${revealed?"lk":""}`} onClick={()=>{if(!revealed)setSel(i);}}><span>{opt}</span><div className="opt-l">{String.fromCharCode(0x0627+i)}</div></button>);})}</div>
+      <div style={{display:"flex",flexDirection:"column",gap:9}}>{(q.options||[]).filter(Boolean).map((opt,i)=>{const chosen=sel===i,showOk=revealed&&i===q.correct,showBad=revealed&&chosen&&i!==q.correct;return(<button key={i} className={`ans ${showOk?"ok":showBad?"bad":chosen?"sel":""} ${revealed?"lk":""}`} onClick={()=>{if(!revealed)setSel(i);}}><span>{opt}</span><div className="opt-l">{['أ','ب','ج','د'][i]}</div></button>);})}</div>
       {revealed&&(<div className="au" style={{marginTop:14,padding:"14px 18px",borderRadius:14,background:ok?"rgba(74,222,128,.07)":"rgba(248,113,113,.06)",border:`1px solid ${ok?"rgba(74,222,128,.2)":"rgba(248,113,113,.2)"}`}}>
         <p style={{fontSize:".8rem",lineHeight:1.8,color:"#94a3b8",marginBottom:12}}>{q.explanation}</p>
         <div style={{display:"flex",gap:10,flexWrap:"wrap",alignItems:"center"}}>
@@ -1713,7 +1713,7 @@ function SimMode({settings,go,updateUser,addMistake,trial={}}){  useEffect(()=>{
                     onClick={()=>setSel(i)}
                     style={{transition:"all .15s"}}>
                     <span>{opt}</span>
-                    <div className="opt-l">{String.fromCharCode(0x0627+i)}</div>
+                    <div className="opt-l">{['أ','ب','ج','د'][i]}</div>
                   </button>
                 ))}
               </div>
@@ -2190,9 +2190,14 @@ function Session({settings,go,updateUser,trial,setTrial,addMistake,plan="free",s
 
   const fetchQ=useCallback(async()=>{
     if(!trial.isAdmin&&!trial.isSubscribed&&trial.used>=trial.limit){go("paywall");return;}
-    // اختر باباً عشوائياً جديداً مختلفاً عن الحالي
+    // تحديد مصدر الأبواب: شامل لقسم معين أم عشوائي من الكل
+    const isComprehensive = settings.topic==="__comprehensive__";
+    const topicPool = isComprehensive
+      ? TOPICS[settings.comprehensiveSection||settings.section]||ALL_TOPICS
+      : ALL_TOPICS;
+
     const nextTopic=(()=>{
-      const pool=ALL_TOPICS.filter(t=>t!==curTopic);
+      const pool=topicPool.filter(t=>t!==curTopic);
       const t=pool[Math.floor(Math.random()*pool.length)];
       setCurTopic(t);
       return t;
@@ -2345,7 +2350,7 @@ function Session({settings,go,updateUser,trial,setTrial,addMistake,plan="free",s
                 onClick={()=>pickAnswer(i)}
                 style={{position:"relative"}}>
                 <span>{opt}</span>
-                <div className="opt-l">{String.fromCharCode(0x0627+i)}</div>
+                <div className="opt-l">{['أ','ب','ج','د'][i]}</div>
                 {showOk&&<span style={{position:"absolute",left:14,top:"50%",transform:"translateY(-50%)",fontSize:"1rem"}}>✓</span>}
                 {showBad&&<span style={{position:"absolute",left:14,top:"50%",transform:"translateY(-50%)",fontSize:"1rem"}}>✗</span>}
               </button>
@@ -4182,10 +4187,10 @@ function Roadmap({go,setSettings,openLesson,trial={},getTopicProgress}){
                     </p>
                   </div>
                 )}
-                {/* Two buttons */}
-                <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:7}}>
+                {/* Single button — شرح الباب فقط */}
+                <div>
                   <button onClick={()=>(trial.isSubscribed||trial.isAdmin)?openLesson(t):go("paywall")} style={{
-                    padding:"8px 6px",borderRadius:9,cursor:"pointer",
+                    width:"100%",padding:"8px 6px",borderRadius:9,cursor:"pointer",
                     border:`1px solid ${grp.color}30`,
                     background:`${grp.color}0a`,color:grp.color,
                     fontSize:".73rem",fontWeight:700,fontFamily:"Cairo,sans-serif",
@@ -4195,17 +4200,6 @@ function Roadmap({go,setSettings,openLesson,trial={},getTopicProgress}){
                   onMouseLeave={e=>{e.currentTarget.style.background=`${grp.color}0a`;}}>
                     {(trial.isSubscribed||trial.isAdmin)?"📖 اعرف الباب":"🔒 اعرف الباب"}
                   </button>
-                  <button onClick={()=>(trial.isSubscribed||trial.isAdmin)?launch(t):go("paywall")} style={{
-                    padding:"8px 6px",borderRadius:9,cursor:"pointer",
-                    border:"1px solid rgba(249,115,22,.3)",
-                    background:"rgba(249,115,22,.08)",color:"#f97316",
-                    fontSize:".73rem",fontWeight:700,fontFamily:"Cairo,sans-serif",
-                    transition:"all .18s"
-                  }}
-                  onMouseEnter={e=>{e.currentTarget.style.background="rgba(249,115,22,.18)";}}
-                  onMouseLeave={e=>{e.currentTarget.style.background="rgba(249,115,22,.08)";}}>
-                    {(trial.isSubscribed||trial.isAdmin)?"🎯 تدرّب":"🔒 تدرّب"}
-                  </button>
                 </div>
               </div>
               );
@@ -4213,6 +4207,57 @@ function Roadmap({go,setSettings,openLesson,trial={},getTopicProgress}){
           </div>
         </div>
       ))}
+
+      {/* ─── اختبار شامل للقسم ─── */}
+      <div style={{
+        padding:"24px 28px", borderRadius:18,
+        background:`linear-gradient(135deg,${meta.bg},rgba(5,9,26,.95))`,
+        border:`1.5px solid ${meta.color}35`,
+        display:"flex", flexDirection:"column", gap:14,
+        boxShadow:`0 8px 32px ${meta.color}12`
+      }}>
+        <div style={{display:"flex",alignItems:"center",gap:12}}>
+          <div style={{
+            width:48,height:48,borderRadius:14,flexShrink:0,
+            background:`${meta.color}18`,border:`1.5px solid ${meta.color}35`,
+            display:"flex",alignItems:"center",justifyContent:"center",fontSize:"1.4rem"
+          }}>🏆</div>
+          <div>
+            <p style={{fontWeight:900,color:"#fff",fontSize:"1rem"}}>
+              اختبار شامل — {active==="كمي"?"القسم الكمي":"القسم اللفظي"}
+            </p>
+            <p style={{fontSize:".75rem",color:"#64748b",marginTop:3}}>
+              {active==="كمي"
+                ?"أسئلة مختلطة من جميع أبواب الكمي — اختبر نفسك الآن"
+                :"أسئلة مختلطة من جميع أبواب اللفظي — اختبر نفسك الآن"}
+            </p>
+          </div>
+        </div>
+        <button
+          onClick={()=>{
+            if(!trial.isSubscribed&&!trial.isAdmin){go("paywall");return;}
+            setSettings(p=>({...p,
+              topic:"__comprehensive__",
+              comprehensiveSection:active,
+              section:active,
+              difficulty:"متوسط"
+            }));
+            go("session");
+          }}
+          style={{
+            width:"100%",padding:"14px",borderRadius:12,cursor:"pointer",
+            background:`linear-gradient(135deg,${meta.color}22,${meta.color}11)`,
+            border:`1.5px solid ${meta.color}50`,
+            color:meta.color,fontSize:".88rem",fontWeight:900,
+            fontFamily:"Cairo,sans-serif",letterSpacing:.3,transition:"all .2s"
+          }}
+          onMouseEnter={e=>e.currentTarget.style.opacity=".8"}
+          onMouseLeave={e=>e.currentTarget.style.opacity="1"}>
+          {(trial.isSubscribed||trial.isAdmin)
+            ?`🎯 ابدأ الاختبار الشامل ← ${active==="كمي"?"الكمي":"اللفظي"}`
+            :"🔒 الاختبار الشامل — للمشتركين"}
+        </button>
+      </div>
 
       {/* Footer CTA */}
       <SiteFooter go={go}/>
@@ -4791,7 +4836,7 @@ export default function Fahmni(){
     }catch(e){return null;}
   }); // {token, userId, name, email}
   const[user,setUser]=useState({name:"",streak:0,totalSolved:0,correct:0});
-  const[settings,setSettings]=useState({section:"كمي",difficulty:"متوسط",topic:"النسبة والتناسب"});
+  const[settings,setSettings]=useState({section:"كمي",difficulty:"متوسط",topic:"النسبة والتناسب",comprehensiveSection:null});
   const[checkoutPlan,setCheckoutPlan]=useState("basic");
   const[checkoutPeriod,setCheckoutPeriod]=useState("3m");
   // Admin access is determined ONLY from RPC get_my_access() → trial.isAdmin
