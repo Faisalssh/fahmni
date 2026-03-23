@@ -3340,6 +3340,12 @@ function Dashboard({go,user,trial,mistakes,settings,setSettings,getTopicProgress
 
   const grade = acc>=85?"ممتاز":acc>=70?"جيد جداً":acc>=55?"جيد":acc>0?"تحتاج تطوير":null;
   const gradeColor = acc>=85?"#4ade80":acc>=70?"#22d3ee":acc>=55?"#f97316":"#f87171";
+  const[secTab,setSecTab]=useState("كمي");
+  const secConfig={
+    "كمي":{color:"#f97316",bg:"rgba(249,115,22,.08)",border:"rgba(249,115,22,.3)",topics:TOPICS["كمي"],icon:"🔢"},
+    "لفظي":{color:"#22d3ee",bg:"rgba(34,211,238,.08)",border:"rgba(34,211,238,.3)",topics:TOPICS["لفظي"],icon:"📝"},
+  };
+  const sc=secConfig[secTab];
 
   const statCards = [
     {label:"سؤال حُلَّ",  value:user.totalSolved, icon:"📚", color:"#22d3ee"},
@@ -3581,89 +3587,70 @@ function Dashboard({go,user,trial,mistakes,settings,setSettings,getTopicProgress
         ))}
       </div>
 
-            {/* ══════ TOPICS — كمي + لفظي بتبويب ══════ */}
-      {(()=>{
-        const[secTab,setSecTab]=React.useState("كمي");
-        const secConfig={
-          "كمي":{color:"#f97316",bg:"rgba(249,115,22,.08)",border:"rgba(249,115,22,.3)",topics:TOPICS["كمي"],icon:"🔢"},
-          "لفظي":{color:"#22d3ee",bg:"rgba(34,211,238,.08)",border:"rgba(34,211,238,.3)",topics:TOPICS["لفظي"],icon:"📝"},
-        };
-        const sc=secConfig[secTab];
-        return(
-          <div style={{padding:"22px",borderRadius:20,background:"rgba(10,18,40,.9)",border:"1px solid rgba(255,255,255,.07)"}}>
-            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}>
-              <div style={{display:"flex",gap:6,background:"rgba(255,255,255,.04)",borderRadius:12,padding:4}}>
-                {["كمي","لفظي"].map(sec=>{
-                  const on=secTab===sec;
-                  const cfg=secConfig[sec];
-                  return(
-                    <button key={sec} onClick={()=>setSecTab(sec)} style={{
-                      padding:"7px 18px",borderRadius:9,border:"none",cursor:"pointer",
-                      fontFamily:"Cairo,sans-serif",fontSize:".78rem",fontWeight:on?800:600,
-                      background:on?cfg.bg:"transparent",color:on?cfg.color:"#475569",transition:"all .18s"}}>
-                      {cfg.icon} {sec}
-                    </button>
-                  );
-                })}
-              </div>
-              <button onClick={()=>go("roadmap")} style={{
-                padding:"6px 16px",borderRadius:99,cursor:"pointer",
-                background:`${sc.color}12`,border:`1px solid ${sc.color}30`,
-                color:sc.color,fontFamily:"Cairo,sans-serif",fontSize:".7rem",fontWeight:700,transition:"all .18s"}}
-                onMouseEnter={e=>{e.currentTarget.style.background=`${sc.color}22`;}}
-                onMouseLeave={e=>{e.currentTarget.style.background=`${sc.color}12`;}}>
-                عرض الكل ←
-              </button>
-            </div>
-            <div style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:8}}>
-              {sc.topics.map((topic,i)=>{
-                const prog  = getTopicProgress?getTopicProgress(topic):null;
-                const done  = prog?.done||0;
-                const total = prog?.total||0;
-                const pct   = prog?.pct||0;
-                const isAct = topic===lastTopic;
-                const isLk  = !isSub&&GEO.includes(topic);
-                return(
-                  <div key={topic}
-                    onClick={()=>{if(isLk){go("paywall");return;}if(setSettings)setSettings(p=>({...p,topic,section:secTab}));go("roadmap");}}
-                    style={{padding:"12px 14px",borderRadius:13,cursor:"pointer",position:"relative",
-                      background:isAct?sc.bg:"rgba(255,255,255,.025)",
-                      border:`1px solid ${isAct?sc.border:"rgba(255,255,255,.07)"}`,
-                      opacity:isLk?.55:1,transition:"all .18s"}}
-                    onMouseEnter={e=>{if(!isLk){e.currentTarget.style.background=isAct?`${sc.color}18`:"rgba(255,255,255,.05)";e.currentTarget.style.transform="translateY(-2px)";}}}
-                    onMouseLeave={e=>{e.currentTarget.style.background=isAct?sc.bg:"rgba(255,255,255,.025)";e.currentTarget.style.transform="";}}>
-                    {pct===100&&(
-                      <span style={{position:"absolute",top:7,left:8,fontSize:".55rem",fontWeight:800,color:"#4ade80",
-                        background:"rgba(74,222,128,.1)",border:"1px solid rgba(74,222,128,.25)",padding:"2px 7px",borderRadius:99}}>✓</span>
-                    )}
-                    {isAct&&pct<100&&(
-                      <span style={{position:"absolute",top:7,left:8,fontSize:".55rem",fontWeight:800,color:sc.color,
-                        background:`${sc.color}12`,border:`1px solid ${sc.color}30`,padding:"2px 7px",borderRadius:99}}>جارٍ</span>
-                    )}
-                    <p style={{fontSize:".82rem",fontWeight:800,color:"#f1f5f9",
-                      marginBottom:total>0?7:0,lineHeight:1.4,paddingLeft:(isAct||pct===100)?46:0}}>{topic}</p>
-                    {total>0?(
-                      <>
-                        <div style={{height:4,borderRadius:99,background:"rgba(255,255,255,.06)",overflow:"hidden",marginBottom:4}}>
-                          <div style={{height:"100%",borderRadius:99,width:`${pct}%`,
-                            background:pct===100?"linear-gradient(90deg,#4ade80,#22d3ee)":`linear-gradient(90deg,${sc.color},${sc.color}88)`,
-                            transition:"width .9s ease"}}/>
-                        </div>
-                        <div style={{display:"flex",justifyContent:"space-between"}}>
-                          <span style={{fontSize:".6rem",color:"#334155"}}>{done}/{total} فيديو</span>
-                          {pct>0&&<span style={{fontSize:".62rem",fontWeight:700,color:pct===100?"#4ade80":sc.color}}>{pct}%</span>}
-                        </div>
-                      </>
-                    ):(
-                      <p style={{fontSize:".62rem",color:"#334155"}}>لم يُبدأ بعد</p>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
+                  {/* ══════ TOPICS — كمي + لفظي ══════ */}
+      <div style={{padding:"22px",borderRadius:20,background:"rgba(10,18,40,.9)",border:"1px solid rgba(255,255,255,.07)"}}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}>
+          <div style={{display:"flex",gap:6,background:"rgba(255,255,255,.04)",borderRadius:12,padding:4}}>
+            {["كمي","لفظي"].map(sec=>{
+              const on=secTab===sec;
+              const cfg=secConfig[sec];
+              return(
+                <button key={sec} onClick={()=>setSecTab(sec)} style={{
+                  padding:"8px 22px",borderRadius:9,border:"none",cursor:"pointer",
+                  fontFamily:"Cairo,sans-serif",fontSize:".82rem",fontWeight:on?800:600,
+                  background:on?cfg.bg:"transparent",color:on?cfg.color:"#475569",
+                  boxShadow:on?`0 0 0 1.5px ${cfg.color}50`:"none",
+                  transition:"all .2s"}}>
+                  {cfg.icon} {sec}
+                </button>
+              );
+            })}
           </div>
-        );
-      })()}
+          <button onClick={()=>go("roadmap")} style={{
+            padding:"6px 16px",borderRadius:99,cursor:"pointer",
+            background:`${sc.color}12`,border:`1px solid ${sc.color}30`,
+            color:sc.color,fontFamily:"Cairo,sans-serif",fontSize:".7rem",fontWeight:700,transition:"all .18s"}}
+            onMouseEnter={e=>{e.currentTarget.style.background=`${sc.color}22`;}}
+            onMouseLeave={e=>{e.currentTarget.style.background=`${sc.color}12`;}}>
+            عرض الكل ←
+          </button>
+        </div>
+        <div style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:8}}>
+          {sc.topics.map((topic,i)=>{
+            const prog=getTopicProgress?getTopicProgress(topic):null;
+            const done=prog?.done||0, total=prog?.total||0, pct=prog?.pct||0;
+            const isAct=topic===lastTopic;
+            const isLk=!isSub&&GEO.includes(topic);
+            return(
+              <div key={topic}
+                onClick={()=>{if(isLk){go("paywall");return;}if(setSettings)setSettings(p=>({...p,topic,section:secTab}));go("roadmap");}}
+                style={{padding:"12px 14px",borderRadius:13,cursor:"pointer",position:"relative",
+                  background:isAct?sc.bg:"rgba(255,255,255,.025)",
+                  border:`1px solid ${isAct?sc.border:"rgba(255,255,255,.07)"}`,
+                  opacity:isLk?.55:1,transition:"all .18s"}}
+                onMouseEnter={e=>{if(!isLk){e.currentTarget.style.background=isAct?`${sc.color}18`:"rgba(255,255,255,.05)";e.currentTarget.style.transform="translateY(-2px)";}}}
+                onMouseLeave={e=>{e.currentTarget.style.background=isAct?sc.bg:"rgba(255,255,255,.025)";e.currentTarget.style.transform="";}}>
+                {pct===100&&<span style={{position:"absolute",top:7,left:8,fontSize:".55rem",fontWeight:800,color:"#4ade80",background:"rgba(74,222,128,.1)",border:"1px solid rgba(74,222,128,.25)",padding:"2px 7px",borderRadius:99}}>✓</span>}
+                {isAct&&pct<100&&<span style={{position:"absolute",top:7,left:8,fontSize:".55rem",fontWeight:800,color:sc.color,background:`${sc.color}12`,border:`1px solid ${sc.color}30`,padding:"2px 7px",borderRadius:99}}>جارٍ</span>}
+                <p style={{fontSize:".82rem",fontWeight:800,color:"#f1f5f9",marginBottom:total>0?7:0,lineHeight:1.4,paddingLeft:(isAct||pct===100)?46:0}}>{topic}</p>
+                {total>0?(
+                  <>
+                    <div style={{height:4,borderRadius:99,background:"rgba(255,255,255,.06)",overflow:"hidden",marginBottom:4}}>
+                      <div style={{height:"100%",borderRadius:99,width:`${pct}%`,
+                        background:pct===100?"linear-gradient(90deg,#4ade80,#22d3ee)":`linear-gradient(90deg,${sc.color},${sc.color}88)`,
+                        transition:"width .9s ease"}}/>
+                    </div>
+                    <div style={{display:"flex",justifyContent:"space-between"}}>
+                      <span style={{fontSize:".6rem",color:"#334155"}}>{done}/{total} فيديو</span>
+                      {pct>0&&<span style={{fontSize:".62rem",fontWeight:700,color:pct===100?"#4ade80":sc.color}}>{pct}%</span>}
+                    </div>
+                  </>
+                ):(<p style={{fontSize:".62rem",color:"#334155"}}>لم يُبدأ بعد</p>)}
+              </div>
+            );
+          })}
+        </div>
+      </div>
 
       {/* ══════ MISTAKES + TRIAL ══════ */}
       {wrongCount>0&&isSub&&(
