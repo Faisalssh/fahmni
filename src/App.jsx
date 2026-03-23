@@ -3329,217 +3329,283 @@ function Dashboard({go,user,trial,mistakes,settings,setSettings,getTopicProgress
   const isNew      = user.totalSolved === 0;
   const isSub      = trial.isSubscribed || trial.isAdmin;
   const trialLeft  = trial.limit - trial.used;
-  const trialPct   = Math.min(100, Math.round((trial.used / trial.limit)*100));
+  const trialPct   = Math.min(100,Math.round((trial.used/trial.limit)*100));
   const lastTopic  = settings?.topic || "النسبة والتناسب";
   const lastProg   = getTopicProgress ? getTopicProgress(lastTopic) : null;
-  const lpDone     = lastProg?.done  || 0;
+  const lpPct      = lastProg?.pct || 0;
+  const lpDone     = lastProg?.done || 0;
   const lpTotal    = lastProg?.total || 0;
-  const lpPct      = lastProg?.pct   || 0;
   const qTopics    = TOPICS["كمي"].filter(t=>VIDEO_LESSONS[t]);
   const totalWatched = Object.values(watchedVideos).reduce((s,a)=>s+(Array.isArray(a)?a.length:0),0);
-  const gradeLabel = acc>=85?"ممتاز ✦":acc>=70?"جيد جداً":acc>=55?"جيد":acc>0?"يحتاج تطوير":null;
+
+  const grade = acc>=85?"ممتاز":acc>=70?"جيد جداً":acc>=55?"جيد":acc>0?"تحتاج تطوير":null;
   const gradeColor = acc>=85?"#4ade80":acc>=70?"#22d3ee":acc>=55?"#f97316":"#f87171";
-  const dateStr    = new Date().toLocaleDateString("ar-SA",{weekday:"long",day:"numeric",month:"long"});
-  const S = {
-    card:"rgba(255,255,255,.025)",border:"rgba(255,255,255,.07)",
-    bg:"rgba(10,18,40,.95)",bg2:"rgba(5,9,26,.8)",
-    or:"#f97316",cy:"#22d3ee",gr:"#4ade80",pu:"#a78bfa",
-    mu:"#475569",su:"#94a3b8",di:"#334155",
-  };
+
+  const statCards = [
+    {label:"سؤال حُلَّ",  value:user.totalSolved, icon:"📚", color:"#22d3ee"},
+    {label:"إجابة صحيحة", value:user.correct,      icon:"✅", color:"#4ade80"},
+    {label:"فيديو شُوهد", value:totalWatched,       icon:"🎬", color:"#a78bfa"},
+    {label:"دقة الإجابات",value:`${acc}%`,          icon:"🎯", color:gradeColor},
+  ];
 
   return(
-    <div style={{display:"flex",flexDirection:"column",gap:18,paddingBottom:8}}>
+    <div style={{display:"flex",flexDirection:"column",gap:16}}>
 
-      {/* ══ HEADER ══ */}
+      {/* ══════ HERO WELCOME ══════ */}
       <div style={{
-        padding:"28px 28px 24px",
-        background:"linear-gradient(135deg,rgba(249,115,22,.08) 0%,rgba(10,18,40,.97) 65%)",
-        border:"1.5px solid rgba(249,115,22,.18)",borderRadius:22,
-        position:"relative",overflow:"hidden"
+        borderRadius:24,overflow:"hidden",position:"relative",
+        background:"linear-gradient(135deg,#0d1829 0%,#05091a 100%)",
+        border:"1px solid rgba(249,115,22,.2)",
+        padding:"32px 28px 28px",
       }}>
-        <div style={{position:"absolute",top:-60,right:-60,width:220,height:220,borderRadius:"50%",
-          background:"radial-gradient(circle,rgba(249,115,22,.12),transparent 70%)",pointerEvents:"none"}}/>
-        <div style={{position:"relative"}}>
+        {/* decorative blobs */}
+        <div style={{position:"absolute",top:-80,right:-80,width:280,height:280,borderRadius:"50%",
+          background:"radial-gradient(circle,rgba(249,115,22,.14) 0%,transparent 70%)",pointerEvents:"none"}}/>
+        <div style={{position:"absolute",bottom:-60,left:-60,width:220,height:220,borderRadius:"50%",
+          background:"radial-gradient(circle,rgba(34,211,238,.08) 0%,transparent 70%)",pointerEvents:"none"}}/>
 
-          {/* top row */}
-          <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",flexWrap:"wrap",gap:14,marginBottom:22}}>
+        <div style={{position:"relative",zIndex:1}}>
+          {/* Date + name */}
+          <p style={{fontSize:".68rem",color:"#475569",fontWeight:600,marginBottom:8,letterSpacing:".06em"}}>
+            {new Date().toLocaleDateString("ar-SA",{weekday:"long",day:"numeric",month:"long"})}
+          </p>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",flexWrap:"wrap",gap:16,marginBottom:24}}>
             <div>
-              <p style={{fontSize:".66rem",color:S.mu,fontWeight:600,letterSpacing:".07em",marginBottom:6}}>{dateStr}</p>
-              <h1 style={{fontSize:"1.65rem",fontWeight:900,color:"#fff",lineHeight:1.2,marginBottom:8}}>
-                مرحباً، <span style={{color:S.or}}>{user.name||"طالب"}</span>
+              <h1 style={{fontSize:"clamp(1.4rem,3vw,2rem)",fontWeight:900,color:"#fff",lineHeight:1.15,marginBottom:8}}>
+                مرحباً، <span style={{
+                  background:"linear-gradient(135deg,#f97316,#fb923c)",
+                  WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent"
+                }}>{user.name||"طالب"}</span>
               </h1>
-              <p style={{fontSize:".82rem",color:S.su,lineHeight:1.75,maxWidth:420}}>
-                {isNew?"ابدأ جلستك الأولى — كل خطوة تقربك من هدفك":
-                 acc>=80?"أداؤك متميز — حافظ على هذا المستوى":
-                 acc>=60?"تقدم جيد — واصل التدريب اليومي":
-                 "كل جلسة تحدث فرقاً — استمر"}
+              <p style={{fontSize:".84rem",color:"#64748b",lineHeight:1.7,maxWidth:380}}>
+                {isNew?"🚀 ابدأ جلستك الأولى الآن — طريقك للقدرات يبدأ من هنا":
+                 acc>=75?"🏆 أداؤك ممتاز — استمر وستصل لهدفك قريباً":
+                 "📈 كل يوم تتدرب فيه يرفع فرصتك في الاختبار"}
               </p>
             </div>
-            <div style={{display:"flex",flexDirection:"column",gap:8,alignItems:"flex-end"}}>
-              {user.streak>0&&(
-                <div style={{padding:"10px 18px",borderRadius:14,background:"rgba(249,115,22,.08)",
-                  border:"1px solid rgba(249,115,22,.22)",textAlign:"center",minWidth:72}}>
-                  <p style={{fontSize:"1.55rem",fontWeight:900,color:S.or,lineHeight:1}}>{user.streak}</p>
-                  <p style={{fontSize:".58rem",color:S.mu,fontWeight:700,marginTop:3}}>يوم متواصل</p>
-                </div>
-              )}
-              {gradeLabel&&(
-                <div style={{padding:"5px 14px",borderRadius:99,
-                  background:`${gradeColor}14`,border:`1px solid ${gradeColor}30`,
-                  fontSize:".68rem",fontWeight:800,color:gradeColor}}>{gradeLabel}</div>
-              )}
-              <button
-                style={{padding:"11px 22px",borderRadius:13,cursor:"pointer",
-                  background:"linear-gradient(135deg,#f97316,#ea580c)",border:"none",
-                  color:"#fff",fontFamily:"Cairo,sans-serif",fontSize:".85rem",fontWeight:800,
-                  boxShadow:"0 4px 18px rgba(249,115,22,.38)",transition:"all .2s"}}
-                onMouseEnter={e=>{e.currentTarget.style.transform="translateY(-2px)";e.currentTarget.style.boxShadow="0 7px 24px rgba(249,115,22,.50)";}}
-                onMouseLeave={e=>{e.currentTarget.style.transform="";e.currentTarget.style.boxShadow="0 4px 18px rgba(249,115,22,.38)";}}
-                onClick={()=>go("session")}>
-                ابدأ الاختبار ←
-              </button>
-            </div>
+            {user.streak>0&&(
+              <div style={{
+                padding:"14px 20px",borderRadius:18,textAlign:"center",
+                background:"linear-gradient(135deg,rgba(249,115,22,.15),rgba(249,115,22,.05))",
+                border:"1.5px solid rgba(249,115,22,.3)",
+                boxShadow:"0 4px 20px rgba(249,115,22,.15)",
+              }}>
+                <p style={{fontSize:"2rem",fontWeight:900,color:"#f97316",lineHeight:1}}>{user.streak}</p>
+                <p style={{fontSize:".62rem",color:"#94a3b8",fontWeight:700,marginTop:4}}>يوم متواصل 🔥</p>
+              </div>
+            )}
           </div>
 
-          {/* accuracy + stats */}
-          {!isNew&&(
-            <>
-              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:7}}>
-                <span style={{fontSize:".7rem",color:S.su,fontWeight:600}}>دقة الإجابات الكلية</span>
-                <span style={{fontSize:".82rem",fontWeight:900,
-                  color:acc>=70?S.gr:acc>=50?S.or:"#f87171"}}>{acc}%</span>
+          {/* Grade badge + CTA */}
+          <div style={{display:"flex",gap:10,flexWrap:"wrap",alignItems:"center"}}>
+            <button
+              onClick={()=>go("session")}
+              style={{
+                padding:"13px 32px",borderRadius:14,cursor:"pointer",
+                background:"linear-gradient(135deg,#f97316,#ea580c)",
+                border:"none",color:"#fff",fontFamily:"Cairo,sans-serif",
+                fontSize:".9rem",fontWeight:900,letterSpacing:".02em",
+                boxShadow:"0 6px 24px rgba(249,115,22,.45)",
+                transition:"all .2s",
+              }}
+              onMouseEnter={e=>{e.currentTarget.style.transform="translateY(-2px)";e.currentTarget.style.boxShadow="0 10px 30px rgba(249,115,22,.55)";}}
+              onMouseLeave={e=>{e.currentTarget.style.transform="";e.currentTarget.style.boxShadow="0 6px 24px rgba(249,115,22,.45)";}}>
+              ابدأ الاختبار الآن ←
+            </button>
+            <button
+              onClick={()=>go("roadmap")}
+              style={{
+                padding:"13px 22px",borderRadius:14,cursor:"pointer",
+                background:"rgba(255,255,255,.05)",
+                border:"1px solid rgba(255,255,255,.12)",
+                color:"#94a3b8",fontFamily:"Cairo,sans-serif",
+                fontSize:".84rem",fontWeight:700,transition:"all .2s",
+              }}
+              onMouseEnter={e=>{e.currentTarget.style.background="rgba(255,255,255,.1)";e.currentTarget.style.color="#fff";}}
+              onMouseLeave={e=>{e.currentTarget.style.background="rgba(255,255,255,.05)";e.currentTarget.style.color="#94a3b8";}}>
+              📖 خريطة المسار
+            </button>
+            {grade&&(
+              <div style={{padding:"6px 16px",borderRadius:99,
+                background:`${gradeColor}15`,border:`1px solid ${gradeColor}35`,
+                fontSize:".72rem",fontWeight:800,color:gradeColor}}>
+                {grade}
               </div>
-              <div style={{height:7,borderRadius:99,background:"rgba(255,255,255,.06)",overflow:"hidden",marginBottom:22}}>
-                <div style={{height:"100%",borderRadius:99,width:`${acc}%`,
-                  background:acc>=70?"linear-gradient(90deg,#4ade80,#22d3ee)":
-                             acc>=50?"linear-gradient(90deg,#f97316,#fb923c)":
-                             "linear-gradient(90deg,#f87171,#fb7185)",
-                  transition:"width 1.4s cubic-bezier(.22,1,.36,1)"}}/>
-              </div>
-              <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:11}}>
-                {[
-                  {icon:"📚",v:user.totalSolved,l:"سؤال حُلَّ",c:S.cy},
-                  {icon:"✅",v:user.correct,l:"إجابة صحيحة",c:S.gr},
-                  {icon:"🎥",v:totalWatched,l:"فيديو شُوهد",c:S.pu},
-                ].map(({icon,v,l,c},i)=>(
-                  <div key={i} style={{padding:"16px 12px",background:S.card,
-                    border:`1px solid ${S.border}`,borderRadius:16,textAlign:"center"}}>
-                    <p style={{fontSize:".9rem",marginBottom:6}}>{icon}</p>
-                    <p style={{fontSize:"1.5rem",fontWeight:900,color:c,lineHeight:1,
-                      animation:"numPop .4s cubic-bezier(.34,1.56,.64,1) both",
-                      animationDelay:`${i*.09}s`}}>{v}</p>
-                    <p style={{fontSize:".62rem",color:S.mu,fontWeight:600,marginTop:5}}>{l}</p>
-                  </div>
-                ))}
-              </div>
-            </>
-          )}
+            )}
+          </div>
         </div>
       </div>
 
-      {/* ══ CONTINUE LEARNING ══ */}
-      <div style={{
-        padding:"22px 24px",
-        background:"linear-gradient(135deg,rgba(34,211,238,.06) 0%,rgba(10,18,40,.97) 70%)",
-        border:"1.5px solid rgba(34,211,238,.16)",borderRadius:20,
-        position:"relative",overflow:"hidden"
-      }}>
-        <div style={{position:"absolute",bottom:-50,left:-50,width:180,height:180,borderRadius:"50%",
-          background:"radial-gradient(circle,rgba(34,211,238,.07),transparent 70%)",pointerEvents:"none"}}/>
-        <div style={{position:"relative"}}>
-          <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:12}}>
-            <div style={{width:3,height:16,borderRadius:99,background:S.cy}}/>
-            <p style={{fontSize:".68rem",fontWeight:700,color:S.cy,letterSpacing:".08em"}}>استمر من هنا</p>
-          </div>
-          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:14}}>
-            <div style={{flex:1,minWidth:150}}>
-              <h2 style={{fontSize:"1.12rem",fontWeight:900,color:"#fff",marginBottom:4}}>{lastTopic}</h2>
-              <p style={{fontSize:".75rem",color:S.su}}>
-                {lpTotal>0?`${lpDone} من ${lpTotal} فيديو مكتمل`:"ابدأ الشرح والتدريب"}
-              </p>
-            </div>
-            <div style={{display:"flex",gap:8,flexShrink:0}}>
-              <button
-                style={{padding:"10px 20px",borderRadius:12,cursor:"pointer",
-                  background:"rgba(34,211,238,.1)",border:"1.5px solid rgba(34,211,238,.3)",
-                  color:S.cy,fontFamily:"Cairo,sans-serif",fontSize:".84rem",fontWeight:800,transition:"all .2s"}}
-                onMouseEnter={e=>{e.currentTarget.style.background="rgba(34,211,238,.18)";e.currentTarget.style.transform="translateY(-2px)";}}
-                onMouseLeave={e=>{e.currentTarget.style.background="rgba(34,211,238,.1)";e.currentTarget.style.transform="";}}
-                onClick={()=>go("session")}>كمّل التدريب ←</button>
-              <button
-                style={{padding:"10px 14px",borderRadius:12,cursor:"pointer",
-                  background:S.card,border:`1px solid ${S.border}`,
-                  color:S.su,fontFamily:"Cairo,sans-serif",fontSize:".82rem",fontWeight:700,transition:"all .2s"}}
-                onMouseEnter={e=>{e.currentTarget.style.background="rgba(255,255,255,.06)";e.currentTarget.style.color="#fff";}}
-                onMouseLeave={e=>{e.currentTarget.style.background=S.card;e.currentTarget.style.color=S.su;}}
-                onClick={()=>go("roadmap")}>📖 الشرح</button>
-            </div>
-          </div>
-          {lpTotal>0&&(
-            <div style={{marginTop:16}}>
-              <div style={{display:"flex",justifyContent:"space-between",marginBottom:5}}>
-                <span style={{fontSize:".63rem",color:S.di,fontWeight:600}}>تقدم هذا الباب</span>
-                <span style={{fontSize:".66rem",color:S.cy,fontWeight:700}}>{lpPct}%</span>
-              </div>
-              <div style={{height:5,borderRadius:99,background:"rgba(255,255,255,.06)",overflow:"hidden"}}>
-                <div style={{height:"100%",borderRadius:99,width:`${lpPct}%`,
-                  background:"linear-gradient(90deg,#22d3ee,#f97316)",transition:"width 1s ease"}}/>
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* ══ TOOLS ══ */}
-      <div style={{padding:"22px",background:S.bg,border:`1px solid ${S.border}`,borderRadius:20}}>
-        <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:16}}>
-          <div style={{width:3,height:16,borderRadius:99,background:S.or}}/>
-          <p style={{fontSize:".68rem",fontWeight:700,color:S.mu,letterSpacing:".08em"}}>أدوات التدريب</p>
-        </div>
-        <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:10}}>
-          {[
-            {icon:"🤖",title:"جلسة AI",desc:"سؤال + شرح فوري",page:"session",locked:false,color:S.or},
-            {icon:"📋",title:"مراجعة الأخطاء",desc:`${wrongCount} سؤال`,page:"review",locked:!isSub,color:"#f87171"},
-            {icon:"⚡",title:"محاكاة الاختبار",desc:"120 سؤال",page:"sim",locked:!isSub,color:S.cy},
-          ].map((m,i)=>(
-            <div key={i} onClick={()=>go(m.page)} style={{
-              padding:"20px 14px",borderRadius:16,cursor:"pointer",textAlign:"center",
-              background:S.card,border:`1px solid ${S.border}`,
-              opacity:m.locked?.6:1,position:"relative",transition:"all .2s",
+      {/* ══════ STAT CARDS 2×2 ══════ */}
+      {!isNew&&(
+        <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(140px,1fr))",gap:11}}>
+          {statCards.map(({label,value,icon,color},i)=>(
+            <div key={i} style={{
+              padding:"20px 16px",borderRadius:18,textAlign:"center",
+              background:"rgba(10,18,40,.9)",
+              border:`1px solid ${color}22`,
+              boxShadow:`0 4px 16px ${color}0d`,
+              transition:"transform .2s,box-shadow .2s",
+              cursor:"default",
             }}
-            onMouseEnter={e=>{if(!m.locked){e.currentTarget.style.background=`${m.color}0d`;e.currentTarget.style.borderColor=`${m.color}38`;e.currentTarget.style.transform="translateY(-3px)";}}}
-            onMouseLeave={e=>{e.currentTarget.style.background=S.card;e.currentTarget.style.borderColor=S.border;e.currentTarget.style.transform="";}}>
-              {m.locked&&(
-                <span style={{position:"absolute",top:8,left:8,fontSize:".55rem",color:S.di,
-                  padding:"1px 6px",borderRadius:99,background:"rgba(255,255,255,.04)",
-                  border:`1px solid ${S.border}`}}>🔒</span>
-              )}
-              <div style={{width:46,height:46,borderRadius:14,margin:"0 auto 10px",
-                background:`${m.color}12`,border:`1.5px solid ${m.color}28`,
-                display:"flex",alignItems:"center",justifyContent:"center",fontSize:"1.2rem"}}>{m.icon}</div>
-              <p style={{fontSize:".85rem",fontWeight:800,color:"#fff",marginBottom:4}}>{m.title}</p>
-              <p style={{fontSize:".68rem",color:S.mu,lineHeight:1.4}}>{m.desc}</p>
+            onMouseEnter={e=>{e.currentTarget.style.transform="translateY(-4px)";e.currentTarget.style.boxShadow=`0 8px 24px ${color}22`;}}
+            onMouseLeave={e=>{e.currentTarget.style.transform="";e.currentTarget.style.boxShadow=`0 4px 16px ${color}0d`;}}>
+              <div style={{
+                width:44,height:44,borderRadius:13,margin:"0 auto 12px",
+                background:`${color}14`,border:`1.5px solid ${color}30`,
+                display:"flex",alignItems:"center",justifyContent:"center",fontSize:"1.2rem",
+              }}>{icon}</div>
+              <p style={{fontSize:"1.6rem",fontWeight:900,color,lineHeight:1,
+                animation:"numPop .5s cubic-bezier(.34,1.56,.64,1) both",
+                animationDelay:`${i*.08}s`}}>{value}</p>
+              <p style={{fontSize:".63rem",color:"#475569",fontWeight:600,marginTop:6}}>{label}</p>
             </div>
           ))}
         </div>
+      )}
+
+      {/* ══════ ACCURACY BAR (full width) ══════ */}
+      {!isNew&&(
+        <div style={{
+          padding:"18px 22px",borderRadius:18,
+          background:"rgba(10,18,40,.9)",border:"1px solid rgba(255,255,255,.07)",
+        }}>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
+            <div>
+              <p style={{fontSize:".75rem",fontWeight:700,color:"#e2e8f0",marginBottom:2}}>الدقة الكلية</p>
+              <p style={{fontSize:".68rem",color:"#475569"}}>
+                {user.correct} إجابة صحيحة من {user.totalSolved} سؤال
+              </p>
+            </div>
+            <span style={{fontSize:"2rem",fontWeight:900,color:gradeColor,lineHeight:1}}>{acc}%</span>
+          </div>
+          <div style={{height:10,borderRadius:99,background:"rgba(255,255,255,.06)",overflow:"hidden"}}>
+            <div style={{
+              height:"100%",borderRadius:99,width:`${acc}%`,
+              background:acc>=70?"linear-gradient(90deg,#4ade80,#22d3ee)":
+                         acc>=50?"linear-gradient(90deg,#f97316,#fbbf24)":
+                         "linear-gradient(90deg,#f87171,#fb923c)",
+              transition:"width 1.5s cubic-bezier(.22,1,.36,1)",
+              boxShadow:acc>=50?`0 0 12px ${gradeColor}55`:"none",
+            }}/>
+          </div>
+        </div>
+      )}
+
+      {/* ══════ CURRENT TOPIC CARD ══════ */}
+      <div style={{
+        padding:"22px 24px",borderRadius:20,
+        background:"linear-gradient(135deg,rgba(34,211,238,.07) 0%,rgba(5,9,26,.97) 100%)",
+        border:"1.5px solid rgba(34,211,238,.18)",
+        position:"relative",overflow:"hidden",
+      }}>
+        <div style={{position:"absolute",top:-40,left:-40,width:160,height:160,borderRadius:"50%",
+          background:"radial-gradient(circle,rgba(34,211,238,.1),transparent 70%)",pointerEvents:"none"}}/>
+        <div style={{position:"relative"}}>
+          <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:14}}>
+            <span style={{display:"inline-block",width:8,height:8,borderRadius:"50%",
+              background:"#22d3ee",boxShadow:"0 0 8px #22d3ee"}}/>
+            <p style={{fontSize:".7rem",fontWeight:700,color:"#22d3ee",letterSpacing:".08em"}}>الباب الحالي</p>
+          </div>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:14,marginBottom:lpTotal>0?16:0}}>
+            <div style={{flex:1,minWidth:160}}>
+              <h2 style={{fontSize:"1.2rem",fontWeight:900,color:"#fff",marginBottom:5,lineHeight:1.3}}>{lastTopic}</h2>
+              <p style={{fontSize:".76rem",color:"#64748b"}}>
+                {lpTotal>0?`${lpDone} من ${lpTotal} فيديو · ${lpPct}% مكتمل`:"لم تبدأ الفيديوهات بعد"}
+              </p>
+            </div>
+            <div style={{display:"flex",gap:8}}>
+              <button onClick={()=>go("session")} style={{
+                padding:"10px 20px",borderRadius:12,cursor:"pointer",
+                background:"rgba(34,211,238,.12)",border:"1.5px solid rgba(34,211,238,.35)",
+                color:"#22d3ee",fontFamily:"Cairo,sans-serif",fontSize:".82rem",fontWeight:800,
+                transition:"all .2s"}}
+                onMouseEnter={e=>{e.currentTarget.style.background="rgba(34,211,238,.22)";e.currentTarget.style.transform="translateY(-2px)";}}
+                onMouseLeave={e=>{e.currentTarget.style.background="rgba(34,211,238,.12)";e.currentTarget.style.transform="";}}
+              >كمّل التدريب ←</button>
+              <button onClick={()=>go("roadmap")} style={{
+                padding:"10px 14px",borderRadius:12,cursor:"pointer",
+                background:"rgba(255,255,255,.04)",border:"1px solid rgba(255,255,255,.1)",
+                color:"#64748b",fontFamily:"Cairo,sans-serif",fontSize:".8rem",fontWeight:700,
+                transition:"all .2s"}}
+                onMouseEnter={e=>{e.currentTarget.style.color="#fff";e.currentTarget.style.background="rgba(255,255,255,.08)";}}
+                onMouseLeave={e=>{e.currentTarget.style.color="#64748b";e.currentTarget.style.background="rgba(255,255,255,.04)";}}
+              >الشرح</button>
+            </div>
+          </div>
+          {lpTotal>0&&(
+            <div>
+              <div style={{height:6,borderRadius:99,background:"rgba(255,255,255,.06)",overflow:"hidden"}}>
+                <div style={{height:"100%",borderRadius:99,
+                  width:`${lpPct}%`,
+                  background:"linear-gradient(90deg,#22d3ee,#a78bfa)",
+                  transition:"width 1.2s ease",
+                  boxShadow:lpPct>0?"0 0 10px rgba(34,211,238,.4)":"none",
+                }}/>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
 
-      {/* ══ TOPICS ══ */}
-      <div style={{padding:"22px",background:S.bg,border:`1px solid ${S.border}`,borderRadius:20}}>
-        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}>
-          <div style={{display:"flex",alignItems:"center",gap:8}}>
-            <div style={{width:3,height:16,borderRadius:99,background:S.pu}}/>
-            <p style={{fontSize:".68rem",fontWeight:700,color:S.mu,letterSpacing:".08em"}}>أبواب المسار الكمي</p>
+      {/* ══════ TOOLS ROW ══════ */}
+      <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:11}}>
+        {[
+          {icon:"🤖",label:"جلسة AI",sub:"سؤال + شرح",page:"session",locked:false,
+           bg:"linear-gradient(135deg,rgba(249,115,22,.12),rgba(249,115,22,.04))",
+           border:"rgba(249,115,22,.25)",color:"#f97316"},
+          {icon:"📋",label:"مراجعة",sub:`${wrongCount} سؤال`,page:"review",locked:!isSub,
+           bg:"linear-gradient(135deg,rgba(248,113,113,.1),rgba(248,113,113,.03))",
+           border:"rgba(248,113,113,.22)",color:"#f87171"},
+          {icon:"⚡",label:"محاكاة",sub:"120 سؤال",page:"sim",locked:!isSub,
+           bg:"linear-gradient(135deg,rgba(34,211,238,.1),rgba(34,211,238,.03))",
+           border:"rgba(34,211,238,.22)",color:"#22d3ee"},
+        ].map((m,i)=>(
+          <div key={i} onClick={()=>go(m.page)} style={{
+            padding:"18px 14px",borderRadius:18,cursor:"pointer",textAlign:"center",
+            background:m.bg,border:`1.5px solid ${m.border}`,
+            opacity:m.locked?.55:1,position:"relative",
+            transition:"all .2s",
+          }}
+          onMouseEnter={e=>{if(!m.locked){e.currentTarget.style.transform="translateY(-4px)";e.currentTarget.style.boxShadow=`0 8px 24px ${m.color}22`;}}}
+          onMouseLeave={e=>{e.currentTarget.style.transform="";e.currentTarget.style.boxShadow="";}}>
+            {m.locked&&(
+              <span style={{position:"absolute",top:8,left:8,fontSize:".55rem",
+                background:"rgba(255,255,255,.06)",border:"1px solid rgba(255,255,255,.1)",
+                color:"#475569",padding:"2px 7px",borderRadius:99}}>🔒</span>
+            )}
+            <div style={{fontSize:"1.5rem",marginBottom:10}}>{m.icon}</div>
+            <p style={{fontSize:".85rem",fontWeight:900,color:"#fff",marginBottom:3}}>{m.label}</p>
+            <p style={{fontSize:".66rem",color:"#475569"}}>{m.sub}</p>
           </div>
-          <button
-            style={{padding:"6px 14px",borderRadius:99,cursor:"pointer",
-              background:"rgba(167,139,250,.08)",border:"1px solid rgba(167,139,250,.2)",
-              color:S.pu,fontFamily:"Cairo,sans-serif",fontSize:".7rem",fontWeight:700,transition:"all .18s"}}
-            onMouseEnter={e=>{e.currentTarget.style.background="rgba(167,139,250,.16)";}}
-            onMouseLeave={e=>{e.currentTarget.style.background="rgba(167,139,250,.08)";}}
-            onClick={()=>go("roadmap")}>عرض الكل ←</button>
+        ))}
+      </div>
+
+      {/* ══════ TOPICS GRID ══════ */}
+      <div style={{
+        padding:"22px",borderRadius:20,
+        background:"rgba(10,18,40,.9)",border:"1px solid rgba(255,255,255,.07)",
+      }}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}>
+          <div style={{display:"flex",alignItems:"center",gap:10}}>
+            <div style={{
+              width:32,height:32,borderRadius:9,
+              background:"rgba(167,139,250,.12)",border:"1px solid rgba(167,139,250,.25)",
+              display:"flex",alignItems:"center",justifyContent:"center",fontSize:".9rem"
+            }}>🗺️</div>
+            <p style={{fontWeight:800,color:"#e2e8f0",fontSize:".88rem"}}>أبواب المسار الكمي</p>
+          </div>
+          <button onClick={()=>go("roadmap")} style={{
+            padding:"6px 16px",borderRadius:99,cursor:"pointer",
+            background:"rgba(167,139,250,.08)",border:"1px solid rgba(167,139,250,.2)",
+            color:"#a78bfa",fontFamily:"Cairo,sans-serif",fontSize:".7rem",fontWeight:700,
+            transition:"background .18s"}}
+            onMouseEnter={e=>{e.currentTarget.style.background="rgba(167,139,250,.18)";}}
+            onMouseLeave={e=>{e.currentTarget.style.background="rgba(167,139,250,.08)";}}>
+            عرض الكل ←
+          </button>
         </div>
-        <div style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:9}}>
+        <div style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:8}}>
           {qTopics.slice(0,8).map((topic,i)=>{
             const prog   = getTopicProgress?getTopicProgress(topic):null;
             const done   = prog?.done||0;
@@ -3551,41 +3617,49 @@ function Dashboard({go,user,trial,mistakes,settings,setSettings,getTopicProgress
               <div key={topic}
                 onClick={()=>{if(isLock){go("paywall");return;}if(setSettings)setSettings(p=>({...p,topic,section:"كمي"}));go("roadmap");}}
                 style={{
-                  padding:"13px 14px",
-                  background:isAct?"rgba(249,115,22,.07)":S.card,
-                  border:`1px solid ${isAct?"rgba(249,115,22,.28)":S.border}`,
-                  borderRadius:14,cursor:"pointer",position:"relative",
-                  opacity:isLock?.6:1,transition:"all .18s",
+                  padding:"12px 14px",borderRadius:13,cursor:"pointer",position:"relative",
+                  background:isAct?"rgba(249,115,22,.08)":"rgba(255,255,255,.025)",
+                  border:`1px solid ${isAct?"rgba(249,115,22,.3)":"rgba(255,255,255,.07)"}`,
+                  opacity:isLock?.55:1,transition:"all .18s",
                 }}
-                onMouseEnter={e=>{if(!isLock){e.currentTarget.style.background=isAct?"rgba(249,115,22,.12)":"rgba(255,255,255,.04)";e.currentTarget.style.transform="translateY(-2px)";}}}
-                onMouseLeave={e=>{e.currentTarget.style.background=isAct?"rgba(249,115,22,.07)":S.card;e.currentTarget.style.transform="";}}>
+                onMouseEnter={e=>{if(!isLock){e.currentTarget.style.background=isAct?"rgba(249,115,22,.14)":"rgba(255,255,255,.05)";e.currentTarget.style.transform="translateY(-2px)";}}}
+                onMouseLeave={e=>{e.currentTarget.style.background=isAct?"rgba(249,115,22,.08)":"rgba(255,255,255,.025)";e.currentTarget.style.transform="";}}>
                 {pct===100&&(
-                  <span style={{position:"absolute",top:7,left:8,fontSize:".55rem",fontWeight:800,color:S.gr,
-                    padding:"2px 7px",borderRadius:99,background:"rgba(74,222,128,.1)",
-                    border:"1px solid rgba(74,222,128,.22)"}}>✓</span>
+                  <span style={{
+                    position:"absolute",top:7,left:8,
+                    fontSize:".56rem",fontWeight:800,color:"#4ade80",
+                    background:"rgba(74,222,128,.1)",border:"1px solid rgba(74,222,128,.25)",
+                    padding:"2px 7px",borderRadius:99
+                  }}>✓ مكتمل</span>
                 )}
-                {isAct&&pct<100&&!isLock&&(
-                  <div style={{position:"absolute",top:10,left:10,width:5,height:5,
-                    borderRadius:"50%",background:S.or,boxShadow:`0 0 7px ${S.or}`}}/>
+                {isAct&&pct<100&&(
+                  <span style={{
+                    position:"absolute",top:7,left:8,
+                    fontSize:".56rem",fontWeight:800,color:"#f97316",
+                    background:"rgba(249,115,22,.1)",border:"1px solid rgba(249,115,22,.25)",
+                    padding:"2px 7px",borderRadius:99
+                  }}>جارٍ</span>
                 )}
-                <p style={{fontSize:".82rem",fontWeight:800,color:"#fff",
-                  marginBottom:total>0?7:0,lineHeight:1.4,
-                  paddingLeft:(isAct||pct===100)?14:0}}>{topic}</p>
+                <p style={{
+                  fontSize:".83rem",fontWeight:800,color:"#f1f5f9",
+                  marginBottom:total>0?8:0,lineHeight:1.4,
+                  paddingLeft:(isAct||pct===100)?50:0
+                }}>{topic}</p>
                 {total>0?(
                   <>
-                    <div style={{height:3,borderRadius:99,background:"rgba(255,255,255,.06)",overflow:"hidden",marginBottom:4}}>
+                    <div style={{height:4,borderRadius:99,background:"rgba(255,255,255,.06)",overflow:"hidden",marginBottom:4}}>
                       <div style={{height:"100%",borderRadius:99,width:`${pct}%`,
                         background:pct===100?"linear-gradient(90deg,#4ade80,#22d3ee)":
-                                   pct>0?"linear-gradient(90deg,#f97316,#fb923c)":"transparent",
-                        transition:"width .8s"}}/>
+                                   pct>0?"linear-gradient(90deg,#f97316,#fbbf24)":"transparent",
+                        transition:"width .9s ease"}}/>
                     </div>
-                    <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-                      <p style={{fontSize:".6rem",color:S.di}}>{done}/{total} فيديو</p>
-                      {pct>0&&<span style={{fontSize:".62rem",color:pct===100?S.gr:S.or,fontWeight:700}}>{pct}%</span>}
+                    <div style={{display:"flex",justifyContent:"space-between"}}>
+                      <span style={{fontSize:".6rem",color:"#334155"}}>{done}/{total} فيديو</span>
+                      {pct>0&&<span style={{fontSize:".62rem",fontWeight:700,color:pct===100?"#4ade80":"#f97316"}}>{pct}%</span>}
                     </div>
                   </>
                 ):(
-                  <p style={{fontSize:".62rem",color:S.di}}>لم يُبدأ بعد</p>
+                  <p style={{fontSize:".62rem",color:"#334155"}}>لم يُبدأ بعد</p>
                 )}
               </div>
             );
@@ -3593,55 +3667,63 @@ function Dashboard({go,user,trial,mistakes,settings,setSettings,getTopicProgress
         </div>
       </div>
 
-      {/* ══ MISTAKES ══ */}
+      {/* ══════ MISTAKES + TRIAL ══════ */}
       {wrongCount>0&&isSub&&(
-        <div style={{padding:"16px 20px",borderRadius:16,
-          background:"rgba(248,113,113,.04)",border:"1px solid rgba(248,113,113,.15)",
-          display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:12}}>
-          <div style={{display:"flex",alignItems:"center",gap:12}}>
-            <div style={{width:42,height:42,borderRadius:12,flexShrink:0,
-              background:"rgba(248,113,113,.1)",border:"1px solid rgba(248,113,113,.22)",
-              display:"flex",alignItems:"center",justifyContent:"center",fontSize:"1.1rem"}}>📋</div>
+        <div style={{
+          padding:"16px 20px",borderRadius:16,
+          background:"rgba(248,113,113,.05)",border:"1px solid rgba(248,113,113,.18)",
+          display:"flex",justifyContent:"space-between",alignItems:"center",gap:14,flexWrap:"wrap",
+        }}>
+          <div style={{display:"flex",alignItems:"center",gap:13}}>
+            <div style={{width:44,height:44,borderRadius:13,flexShrink:0,
+              background:"rgba(248,113,113,.1)",border:"1px solid rgba(248,113,113,.25)",
+              display:"flex",alignItems:"center",justifyContent:"center",fontSize:"1.2rem"}}>📋</div>
             <div>
-              <p style={{fontWeight:700,color:"#fca5a5",fontSize:".85rem"}}>{wrongCount} سؤال في قائمة المراجعة</p>
-              <p style={{fontSize:".7rem",color:S.mu,marginTop:2}}>راجع أخطاءك لتثبيت الفهم وتحسين النتيجة.</p>
+              <p style={{fontWeight:800,color:"#fca5a5",fontSize:".86rem",marginBottom:2}}>
+                {wrongCount} سؤال في قائمة المراجعة
+              </p>
+              <p style={{fontSize:".7rem",color:"#475569"}}>راجع أخطاءك قبل الاختبار الحقيقي</p>
             </div>
           </div>
-          <button
-            style={{padding:"9px 20px",borderRadius:12,cursor:"pointer",flexShrink:0,
-              background:"rgba(248,113,113,.1)",border:"1px solid rgba(248,113,113,.28)",
-              color:"#fca5a5",fontFamily:"Cairo,sans-serif",fontSize:".8rem",fontWeight:700,transition:"all .2s"}}
-            onMouseEnter={e=>{e.currentTarget.style.background="rgba(248,113,113,.2)";}}
-            onMouseLeave={e=>{e.currentTarget.style.background="rgba(248,113,113,.1)";}}
-            onClick={()=>go("review")}>ابدأ المراجعة ←</button>
+          <button onClick={()=>go("review")} style={{
+            padding:"10px 22px",borderRadius:12,cursor:"pointer",flexShrink:0,
+            background:"rgba(248,113,113,.12)",border:"1.5px solid rgba(248,113,113,.3)",
+            color:"#fca5a5",fontFamily:"Cairo,sans-serif",fontSize:".8rem",fontWeight:800,
+            transition:"all .2s"}}
+            onMouseEnter={e=>{e.currentTarget.style.background="rgba(248,113,113,.22)";}}
+            onMouseLeave={e=>{e.currentTarget.style.background="rgba(248,113,113,.12)";}}>
+            ابدأ المراجعة ←
+          </button>
         </div>
       )}
 
-      {/* ══ TRIAL BANNER ══ */}
       {!isSub&&(
-        <div style={{padding:"18px 22px",borderRadius:18,
-          background:"linear-gradient(135deg,rgba(249,115,22,.07),rgba(10,18,40,.98))",
-          border:"1.5px solid rgba(249,115,22,.2)",
-          display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:14}}>
-          <div style={{flex:1,minWidth:180}}>
-            <p style={{fontWeight:800,color:"#fdba74",fontSize:".84rem",marginBottom:7}}>
+        <div style={{
+          padding:"20px 24px",borderRadius:18,
+          background:"linear-gradient(135deg,rgba(249,115,22,.09),rgba(5,9,26,.98))",
+          border:"1.5px solid rgba(249,115,22,.22)",
+          display:"flex",justifyContent:"space-between",alignItems:"center",gap:16,flexWrap:"wrap",
+        }}>
+          <div style={{flex:1,minWidth:200}}>
+            <p style={{fontWeight:900,color:"#fdba74",fontSize:".88rem",marginBottom:8}}>
               التجربة المجانية — {trialLeft} سؤال متبقٍ
             </p>
-            <div style={{height:6,borderRadius:99,background:"rgba(255,255,255,.06)",overflow:"hidden"}}>
+            <div style={{height:7,borderRadius:99,background:"rgba(255,255,255,.07)",overflow:"hidden",marginBottom:6}}>
               <div style={{height:"100%",borderRadius:99,width:`${trialPct}%`,
-                background:`linear-gradient(90deg,#f97316,${trialPct>80?"#f87171":"#fb923c"})`,
-                transition:"width 1s ease"}}/>
+                background:"linear-gradient(90deg,#f97316,#fbbf24)",
+                transition:"width 1s ease",boxShadow:"0 0 10px rgba(249,115,22,.4)"}}/>
             </div>
-            <p style={{fontSize:".68rem",color:S.mu,marginTop:5}}>اشترك للوصول لجميع أبواب المنصة بدون حدود</p>
+            <p style={{fontSize:".7rem",color:"#475569"}}>اشترك للوصول لجميع الأبواب بدون حدود</p>
           </div>
-          <button
-            style={{padding:"11px 26px",borderRadius:14,cursor:"pointer",flexShrink:0,
-              background:"linear-gradient(135deg,#f97316,#ea580c)",border:"none",
-              color:"#fff",fontFamily:"Cairo,sans-serif",fontSize:".85rem",fontWeight:800,
-              boxShadow:"0 4px 18px rgba(249,115,22,.38)",transition:"all .2s"}}
-            onMouseEnter={e=>{e.currentTarget.style.transform="translateY(-2px)";e.currentTarget.style.boxShadow="0 7px 24px rgba(249,115,22,.50)";}}
-            onMouseLeave={e=>{e.currentTarget.style.transform="";e.currentTarget.style.boxShadow="0 4px 18px rgba(249,115,22,.38)";}}
-            onClick={()=>go("paywall")}>فتح الكامل ←</button>
+          <button onClick={()=>go("paywall")} style={{
+            padding:"12px 28px",borderRadius:14,cursor:"pointer",flexShrink:0,
+            background:"linear-gradient(135deg,#f97316,#ea580c)",border:"none",
+            color:"#fff",fontFamily:"Cairo,sans-serif",fontSize:".86rem",fontWeight:900,
+            boxShadow:"0 4px 20px rgba(249,115,22,.4)",transition:"all .2s"}}
+            onMouseEnter={e=>{e.currentTarget.style.transform="translateY(-2px)";e.currentTarget.style.boxShadow="0 8px 28px rgba(249,115,22,.55)";}}
+            onMouseLeave={e=>{e.currentTarget.style.transform="";e.currentTarget.style.boxShadow="0 4px 20px rgba(249,115,22,.4)";}}>
+            فتح الكامل ←
+          </button>
         </div>
       )}
 
@@ -3649,6 +3731,7 @@ function Dashboard({go,user,trial,mistakes,settings,setSettings,getTopicProgress
     </div>
   );
 }
+
 
 function Bank({settings,setSettings,go,trial={}}){  useEffect(()=>{window.scrollTo({top:0,behavior:"instant"});if(trial.status==='expired'||trial.status==='cancelled'){go("expired");}
       else if(!trial.isSubscribed&&trial.used>=trial.limit){go("paywall");}},[]); return(<div style={{display:"grid",gap:14}}><div className="gl" style={{padding:"30px"}}><span className="badge b-o" style={{marginBottom:11}}>بنك الأسئلة</span><h1 style={{fontSize:"1.75rem",fontWeight:900,color:"#fff",marginBottom:7}}>اختر مسارك ثم ابدأ</h1></div><div className="rg-3 bank-grid" style={{gap:14}}><div className="gl" style={{padding:"18px"}}><p style={{fontSize:".68rem",color:"#f97316",fontWeight:700,letterSpacing:".08em",marginBottom:11}}>القسم</p>{["كمي","لفظي"].map(s=>(<button key={s} className={`sc ${settings.section===s?"on":""}`} style={{marginBottom:8}} onClick={()=>setSettings(p=>({...p,section:s,topic:TOPICS[s][0]}))}><p style={{fontWeight:800,color:"#fff"}}>{s}</p></button>))}</div><div className="gl" style={{padding:"18px"}}><p style={{fontSize:".68rem",color:"#f97316",fontWeight:700,letterSpacing:".08em",marginBottom:11}}>الصعوبة</p>{[{v:"سهل",d:"بداية هادئة"},{v:"متوسط",d:"تثبيت"},{v:"صعب",d:"تحدٍّ"}].map(d=>(<button key={d.v} className={`sc ${settings.difficulty===d.v?"on":""}`} style={{marginBottom:8}} onClick={()=>setSettings(p=>({...p,difficulty:d.v}))}><p style={{fontWeight:800,color:"#fff"}}>{d.v}</p><p style={{marginTop:3,fontSize:".76rem",color:"#64748b"}}>{d.d}</p></button>))}</div><div className="gl" style={{padding:"18px"}}><p style={{fontSize:".68rem",color:"#f97316",fontWeight:700,letterSpacing:".08em",marginBottom:11}}>الباب</p><div style={{maxHeight:260,overflowY:"auto",display:"flex",flexDirection:"column",gap:6}}>{TOPICS[settings.section].map(t=>(<button key={t} className={`sc ${settings.topic===t?"on":""}`} style={{padding:"10px 13px"}} onClick={()=>setSettings(p=>({...p,topic:t}))}><div style={{display:"flex",alignItems:"center",gap:7}}>{GEO.includes(t)&&<span style={{fontSize:".6rem",padding:"1px 6px",borderRadius:99,background:"rgba(167,139,250,.12)",border:"1px solid rgba(167,139,250,.2)",color:"#c4b5fd"}}>📐</span>}<p style={{fontWeight:700,color:"#fff",fontSize:".84rem"}}>{t}</p></div></button>))}</div></div></div>
