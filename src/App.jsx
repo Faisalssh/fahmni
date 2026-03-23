@@ -5349,7 +5349,16 @@ export default function Fahmni(){
       return <SimMode settings={settings} go={go} updateUser={updateUser} addMistake={addMistake} trial={trial}/>;
     case"review":
       if(!trial.isAdmin&&(!trial.isSubscribed||trial.status==='expired')) return <UpgradePrompt feature="وضع المراجعة" go={go}/>;
-      return <ReviewMode mistakes={mistakes} go={go} onRedo={()=>go("session")} onClearAll={()=>setMistakes([])}/>;
+      return <ReviewMode mistakes={mistakes} go={go} onRedo={()=>go("session")} onClearAll={async()=>{
+        setMistakes([]);
+        if(session&&session.userId&&session.token&&!session.isGuest){
+          try{
+            await fetch(`${SUPABASE_URL}/rest/v1/saved_mistakes?user_id=eq.${session.userId}`,{
+              method:"DELETE",headers:{...sbH(session.token),"Content-Type":"application/json"}
+            });
+          }catch(e){console.error("clear mistakes DB error",e);}
+        }
+      }}/>;
     case"pricing":return <Pricing go={go} setCheckoutPlan={setCheckoutPlan} setCheckoutPeriod={setCheckoutPeriod}/>;
     case"checkout":return <Checkout go={go} trial={trial} selectedPlan={checkoutPlan} selectedPeriod={checkoutPeriod}/>;
     case"paywall":return <Paywall trial={trial} go={go} subscribe={(plan,period)=>{setCheckoutPlan(plan||"basic");setCheckoutPeriod(period||"3m");go("checkout");}} back={()=>go("pricing")}/>;
