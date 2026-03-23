@@ -888,7 +888,7 @@ const ADMIN_EMAIL="sirfaisalalshehri@gmail.com";
 const isAdminUser=(email)=>typeof email==="string"&&email.toLowerCase().trim()===ADMIN_EMAIL;
 
 /* ═══ PLAN HELPERS ═══════════════════════════════════════════
- *  free  → 10 سؤال مجاني فقط
+ * free  → 25 سؤال تجربة مجانية
  *  month → أسئلة غير محدودة + شرح + محاكاة + تتبع
  *  exam  → كل شيء + تحليل الضعف + خطة مذاكرة
  * ══════════════════════════════════════════════════════════ */
@@ -1238,7 +1238,7 @@ function Nav({isPub,go,userName,title,onLogout}){
               <button className="btn btn-g" style={{width:"100%",justifyContent:"center",padding:"14px",fontSize:".92rem"}}
                 onClick={()=>{go("login");setMenuOpen(false);}}>تسجيل الدخول</button>
               <button className="btn btn-p" style={{width:"100%",justifyContent:"center",padding:"14px",fontSize:".92rem"}}
-                onClick={()=>{go("signup");setMenuOpen(false);}}>ابدأ مجانًا — 10 سؤال ←</button>
+                onClick={()=>{go("signup");setMenuOpen(false);}}>ابدأ مجانًا — 25 سؤال ←</button>
               <button className="btn btn-g" style={{width:"100%",justifyContent:"center",padding:"12px",fontSize:".85rem",color:"#64748b"}}
                 onClick={()=>{go("pricing");setMenuOpen(false);}}>عرض الأسعار</button>
             </>
@@ -1906,11 +1906,10 @@ function Pricing({go,setCheckoutPlan,setCheckoutPeriod}){
 
   const DURATIONS={
     "1m":{label:"شهر",badge:null},
-    "3m":{label:"3 أشهر",badge:"الأكثر اختياراً"},
-    "6m":{label:"6 أشهر",badge:"أفضل قيمة"},
+    "3m":{label:"3 أشهر",badge:"الأوفر 💰"},
   };
-  const BASIC_PRICES={"1m":{price:59,monthly:59,save:null},"3m":{price:149,monthly:50,save:"وفّر 28 ريال"},"6m":{price:249,monthly:42,save:"وفّر 105 ريال"}};
-  const EXAM_PRICES={"1m":{price:99,monthly:99,save:null},"3m":{price:249,monthly:83,save:"وفّر 48 ريال"},"6m":{price:399,monthly:67,save:"وفّر 195 ريال"}};
+  const BASIC_PRICES={"1m":{price:59,monthly:59,save:null},"3m":{price:149,monthly:50,save:"وفّر 28 ريال"}};
+  const EXAM_PRICES={"1m":{price:99,monthly:99,save:null},"3m":{price:249,monthly:83,save:"وفّر 48 ريال"}};
 
   const DurTabs=({value,onChange,prices})=>(
     <div style={{display:"flex",gap:5,background:"rgba(255,255,255,.05)",borderRadius:10,padding:4,marginBottom:16}}>
@@ -1959,23 +1958,16 @@ function Pricing({go,setCheckoutPlan,setCheckoutPeriod}){
 
   const PLANS=[
     {
-      id:"free",name:"مجاني",price:0,per:"",color:"#22d3ee",
-      badge:"ابدأ هنا 🎁",badgeBg:"rgba(34,211,238,.12)",
-      features:["15 سؤال تجربة","استعراض بعض المفاهيم","خريطة مسار التعلم","تجربة واجهة الاختبار"],
-      locked:["أسئلة AI غير محدودة","شرح تفصيلي لكل سؤال","وضع المحاكاة","تحليل التقدم"],
-      btn:"ابدأ مجانًا ←",isPaid:false,highlight:false,
-    },
-    {
-      id:"month",name:"الأساسي",price:59,per:"شهر",color:"#f97316",
+      id:"month",name:"تأسيسي",price:59,per:"شهر",color:"#f97316",
       badge:"الأكثر شيوعاً ⭐",badgeBg:"rgba(249,115,22,.12)",
       features:["أسئلة AI غير محدودة","شرح مفصّل لكل سؤال","وضع المحاكاة الكامل ⚡","تتبع التقدم والدقة","بنك الأسئلة 18 باب","تايمر 90 ثانية ⏱","وضع المراجعة 📋","بطاقة النتيجة"],
       locked:[],btn:"اشترك الآن ←",isPaid:true,highlight:true,
     },
     {
-      id:"exam",name:"المميز",price:99,per:"شهر",color:"#a78bfa",
+      id:"exam",name:"احترافي",price:99,per:"شهر",color:"#a78bfa",
       badge:"⭐ الأكثر اختياراً",badgeBg:"rgba(167,139,250,.12)",
-      features:["كل مميزات الأساسي","AI مساعد شخصي متقدم","تحليل نقاط الضعف التفصيلي","خطة مذاكرة ذكية مخصصة","اختبارات غير محدودة","أولوية في الدعم 24/7","أفضل قيمة مقارنة بالشهري 💜"],
-      locked:[],btn:"اختر المميز ←",isPaid:true,highlight:false,isBest:true,
+      features:["كل مميزات التأسيسي","AI مساعد شخصي متقدم","تحليل نقاط الضعف التفصيلي","خطة مذاكرة ذكية مخصصة","اختبارات غير محدودة","أولوية في الدعم 24/7","أفضل قيمة مقارنة بالشهري 💜"],
+      locked:[],btn:"اشترك الآن ←",isPaid:true,highlight:false,isBest:true,
     },
   ];
 
@@ -2001,21 +1993,32 @@ function Pricing({go,setCheckoutPlan,setCheckoutPeriod}){
       </div>
 
       {/* Cards */}
-      <div className="pricing-grid" style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(230px,1fr))",gap:14}}>
+      <div className="pricing-grid" style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(260px,1fr))",gap:14,maxWidth:680,margin:"0 auto",width:"100%"}}>
+        {/* Free trial notice */}
+        <div style={{gridColumn:"1/-1",display:"flex",alignItems:"center",justifyContent:"center",gap:8,
+          padding:"10px 18px",borderRadius:12,
+          background:"rgba(34,211,238,.06)",border:"1px solid rgba(34,211,238,.18)"}}>
+          <span style={{fontSize:"1rem"}}>🎁</span>
+          <p style={{fontSize:".78rem",color:"#67e8f9"}}>
+            جرّب مجاناً — <strong>25 سؤال</strong> بدون بطاقة ائتمانية
+            <button onClick={()=>go("auth")} style={{
+              marginRight:10,padding:"4px 12px",borderRadius:99,
+              background:"rgba(34,211,238,.15)",border:"1px solid rgba(34,211,238,.3)",
+              color:"#22d3ee",fontSize:".72rem",fontWeight:700,cursor:"pointer",fontFamily:"Cairo,sans-serif"
+            }}>ابدأ مجانًا ←</button>
+          </p>
+        </div>
         {PLANS.map((p,i)=>{
-          const basicPriceData=BASIC_PRICES[basicDur];
-          const examPriceData=EXAM_PRICES[examDur];
+          const priceData=p.id==="month"?BASIC_PRICES[basicDur]:EXAM_PRICES[examDur];
           return(
           <div key={p.id} className={`gl au d${i+1}`} style={{
             padding:"clamp(20px,3vw,28px) clamp(16px,2.5vw,22px)",
             position:"relative",
-            border:`1.5px solid ${p.isBest?"rgba(167,139,250,.55)":p.highlight?"rgba(249,115,22,.4)":`${p.color}25`}`,
+            border:`1.5px solid ${p.isBest?"rgba(167,139,250,.55)":"rgba(249,115,22,.4)"}`,
             display:"flex",flexDirection:"column",gap:0,
             background:p.isBest?"linear-gradient(160deg,rgba(167,139,250,.07),rgba(5,9,26,.98))":"",
-            boxShadow:p.isBest?`0 12px 40px rgba(167,139,250,.18)`:p.highlight?`0 8px 28px rgba(249,115,22,.12)`:"",
-            opacity:p.isPaid?.85:1,
+            boxShadow:p.isBest?"0 12px 40px rgba(167,139,250,.18)":"0 8px 28px rgba(249,115,22,.12)",
           }}>
-            {/* Best badge */}
             {p.isBest&&(
               <div style={{position:"absolute",top:-13,left:"50%",transform:"translateX(-50%)",
                 whiteSpace:"nowrap",padding:"5px 16px",borderRadius:99,
@@ -2024,43 +2027,24 @@ function Pricing({go,setCheckoutPlan,setCheckoutPeriod}){
                 ✦ الأكثر اختياراً
               </div>
             )}
-
-            {/* Plan name */}
             <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:14}}>
               <div>
                 <p style={{fontSize:"1.1rem",fontWeight:900,color:"#fff",marginBottom:3}}>{p.name}</p>
                 <span style={{display:"inline-block",padding:"3px 10px",borderRadius:99,
                   background:p.badgeBg,fontSize:".62rem",fontWeight:700,color:p.color}}>
-                  {p.isBest?"المميز 👑":p.badge}
+                  {p.badge}
                 </span>
               </div>
-              {p.isPaid&&(
-                <div style={{padding:"4px 8px",borderRadius:8,
-                  background:"rgba(251,191,36,.1)",border:"1px solid rgba(251,191,36,.2)"}}>
-                  <span style={{fontSize:".55rem",color:"#fbbf24",fontWeight:700}}>🔒 قريباً</span>
-                </div>
-              )}
-            </div>
-
-            {/* Duration tabs for paid plans */}
-            {p.id==="month"&&<DurTabs value={basicDur} onChange={setBasicDur} prices={BASIC_PRICES}/>}
-            {p.id==="exam"&&<DurTabs value={examDur} onChange={setExamDur} prices={EXAM_PRICES}/>}
-
-            {/* Price */}
-            {p.isPaid?(
-              p.id==="month"
-                ?<PriceDisplay priceData={basicPriceData} color={p.color}/>
-                :<PriceDisplay priceData={examPriceData} color={p.color}/>
-            ):(
-              <div style={{marginBottom:14}}>
-                <div style={{display:"flex",alignItems:"baseline",gap:6}}>
-                  <span style={{fontSize:"clamp(2rem,4vw,2.6rem)",fontWeight:900,color:p.color,lineHeight:1}}>مجاني</span>
-                </div>
-                <p style={{fontSize:".7rem",color:"#64748b",marginTop:3}}>لا يحتاج بطاقة</p>
+              <div style={{padding:"4px 8px",borderRadius:8,
+                background:"rgba(251,191,36,.1)",border:"1px solid rgba(251,191,36,.2)"}}>
+                <span style={{fontSize:".55rem",color:"#fbbf24",fontWeight:700}}>🔒 قريباً</span>
               </div>
-            )}
-
-            {/* Features */}
+            </div>
+            {p.id==="month"
+              ?<DurTabs value={basicDur} onChange={setBasicDur} prices={BASIC_PRICES}/>
+              :<DurTabs value={examDur} onChange={setExamDur} prices={EXAM_PRICES}/>
+            }
+            <PriceDisplay priceData={priceData} color={p.color}/>
             <div style={{display:"flex",flexDirection:"column",gap:7,flex:1,marginBottom:20}}>
               {p.features.map((f,j)=>(
                 <div key={j} style={{display:"flex",alignItems:"center",gap:8}}>
@@ -2068,48 +2052,29 @@ function Pricing({go,setCheckoutPlan,setCheckoutPeriod}){
                   <span style={{fontSize:".78rem",color:"#cbd5e1"}}>{f}</span>
                 </div>
               ))}
-              {p.locked.map((f,j)=>(
-                <div key={j} style={{display:"flex",alignItems:"center",gap:8,opacity:.4}}>
-                  <span style={{color:"#475569",fontSize:".7rem",flexShrink:0}}>✕</span>
-                  <span style={{fontSize:".78rem",color:"#475569"}}>{f}</span>
-                </div>
-              ))}
             </div>
-
-            {/* CTA Button */}
-            {p.isPaid?(
-              <div>
-                <button
-                  onClick={()=>{
-                    const plan=p.id==="month"?"basic":"premium";
-                    const period=p.id==="month"?basicDur:examDur;
-                    setCheckoutPlan&&setCheckoutPlan(plan);
-                    setCheckoutPeriod&&setCheckoutPeriod(period);
-                    go("checkout");
-                  }}
-                  style={{
-                    width:"100%",padding:"13px",borderRadius:12,
-                    background:`linear-gradient(135deg,${p.color}22,${p.color}11)`,
-                    border:`1px solid ${p.color}44`,
-                    color:p.color,fontSize:".82rem",fontWeight:700,
-                    cursor:"pointer",letterSpacing:.3,fontFamily:"Cairo,sans-serif",
-                    transition:"all .2s",
-                  }}
-                  onMouseEnter={e=>e.currentTarget.style.opacity=".8"}
-                  onMouseLeave={e=>e.currentTarget.style.opacity="1"}>
-                  اشترك الآن ← (قريباً)
-                </button>
-                <p style={{textAlign:"center",fontSize:".6rem",color:"#334155",marginTop:8}}>
-                  سيتم تحويلك إلى بوابة دفع آمنة عند التفعيل · لا استرداد بعد إتمام الدفع
-                </p>
-              </div>
-            ):(
-              <button className="btn btn-p" style={{width:"100%",padding:"13px",borderRadius:12,fontWeight:700,fontSize:".82rem"}}
-                onClick={()=>go("auth")}>
-                {p.btn}
-              </button>
-            )}
-
+            <button
+              onClick={()=>{
+                const plan=p.id==="month"?"basic":"premium";
+                const period=p.id==="month"?basicDur:examDur;
+                setCheckoutPlan&&setCheckoutPlan(plan);
+                setCheckoutPeriod&&setCheckoutPeriod(period);
+                go("checkout");
+              }}
+              style={{
+                width:"100%",padding:"13px",borderRadius:12,
+                background:`linear-gradient(135deg,${p.color}22,${p.color}11)`,
+                border:`1px solid ${p.color}44`,
+                color:p.color,fontSize:".82rem",fontWeight:700,
+                cursor:"pointer",letterSpacing:.3,fontFamily:"Cairo,sans-serif",transition:"all .2s",
+              }}
+              onMouseEnter={e=>e.currentTarget.style.opacity=".8"}
+              onMouseLeave={e=>e.currentTarget.style.opacity="1"}>
+              اشترك الآن ← (قريباً)
+            </button>
+            <p style={{textAlign:"center",fontSize:".6rem",color:"#334155",marginTop:8}}>
+              سيتم تحويلك إلى بوابة دفع آمنة عند التفعيل · لا استرداد بعد إتمام الدفع
+            </p>
           </div>
         );})}
       </div>
@@ -2120,19 +2085,19 @@ function Pricing({go,setCheckoutPlan,setCheckoutPeriod}){
         <table style={{width:"100%",borderCollapse:"collapse",fontSize:".75rem"}}>
           <thead>
             <tr>
-              {["الميزة","مجاني","الأساسي","المميز"].map((h,i)=>(
-                <th key={i} style={{padding:"8px 10px",textAlign:"center",color:i===0?"#94a3b8":["#22d3ee","#f97316","#a78bfa"][i-1],fontWeight:700,borderBottom:"1px solid rgba(255,255,255,.06)"}}>{h}</th>
+              {["الميزة","تأسيسي","احترافي"].map((h,i)=>(
+                <th key={i} style={{padding:"8px 10px",textAlign:"center",color:i===0?"#94a3b8":["#f97316","#a78bfa"][i-1],fontWeight:700,borderBottom:"1px solid rgba(255,255,255,.06)"}}>{h}</th>
               ))}
             </tr>
           </thead>
           <tbody>
             {[
-              ["أسئلة AI","15 فقط","غير محدودة ✓","غير محدودة ✓"],
-              ["وضع المحاكاة","✕","✓","✓"],
-              ["شرح تفصيلي","✕","✓","✓"],
-              ["تحليل AI متقدم","✕","✕","✓"],
-              ["خطة مذاكرة ذكية","✕","✕","✓"],
-              ["الدعم","✕","عادي","24/7 أولوية"],
+              ["أسئلة AI","غير محدودة ✓","غير محدودة ✓"],
+              ["وضع المحاكاة","✓","✓"],
+              ["شرح تفصيلي","✓","✓"],
+              ["تحليل AI متقدم","✕","✓"],
+              ["خطة مذاكرة ذكية","✕","✓"],
+              ["الدعم","عادي","24/7 أولوية"],
             ].map((row,i)=>(
               <tr key={i} style={{background:i%2===0?"rgba(255,255,255,.02)":"transparent"}}>
                 {row.map((cell,j)=>(
@@ -2156,7 +2121,7 @@ function Pricing({go,setCheckoutPlan,setCheckoutPeriod}){
             ["كم عدد الأسئلة في منصة فهمني+؟","تحتوي المنصة على بنك أسئلة كبير يغطي جميع أبواب اختبار القدرات ويتم تحديثه باستمرار لتوفير تدريب متنوع وقريب من نمط الاختبار الحقيقي."],
             ["هل الأسئلة مشابهة لاختبار القدرات الحقيقي؟","تم تصميم الأسئلة بأسلوب تدريبي قريب من نمط اختبار القدرات من حيث طريقة التفكير ومستوى الصعوبة لمساعدتك على الاستعداد بثقة."],
             ["كيف تساعدني المنصة على رفع درجتي؟","توفر فهمني+ اختبارات محاكاة وتحليل أداء وتدريب على جميع الأبواب مما يساعدك على معرفة نقاط ضعفك والتدرب عليها حتى تتحسن درجتك."],
-            ["هل يمكنني تجربة المنصة قبل الاشتراك؟","نعم، يمكنك تجربة المنصة من خلال الباقة المجانية التي تحتوي على 15 سؤالاً للتعرف على طريقة التدريب قبل الاشتراك."],
+            ["هل يمكنني تجربة المنصة قبل الاشتراك؟","نعم، يمكنك تجربة المنصة من خلال الباقة المجانية التي تحتوي على 25 سؤالاً للتعرف على طريقة التدريب قبل الاشتراك."],
             ["لماذا التدريب عبر فهمني+ أفضل من الحل العشوائي؟","لأن المنصة تقدم تدريباً منظماً يشمل بنك أسئلة ومحاكاة للاختبار وتحليل للأداء مما يساعدك على الاستعداد بشكل أكثر فعالية."],
             ["ما سياسة الاسترداد؟","لا يتم استرداد رسوم الاشتراك بعد الدفع. ننصح باستخدام التجربة المجانية أولاً للتأكد من ملاءمة المنصة لاحتياجاتك."],
           ].map(([q,a],i)=>(
@@ -2182,7 +2147,7 @@ function Session({settings,go,updateUser,trial,setTrial,addMistake,plan="free",s
         method:'POST',headers:{...sbH(session.token),'Content-Type':'application/json'},body:'{}'
       }).then(r=>r.ok?r.json():null).then(access=>{
         if(access&&!access.isSubscribed&&!access.isAdmin){
-          if(trial.used>=(access.trialLimit||15)){go('paywall');}
+          if(trial.used>=(access.trialLimit||25)){go('paywall');}
         }
       }).catch(()=>{});
     }
@@ -2722,7 +2687,7 @@ function Landing({go}){
 
           <div className="landing-hero-btns" style={{display:"flex",gap:12,justifyContent:"center",flexWrap:"wrap",animation:"fadeUp .5s .2s both"}}>
             <button className="btn btn-p" style={{fontSize:"1rem",padding:"14px 32px",borderRadius:16}} onClick={()=>go("signup")}>
-              ابدأ مجانًا ← 10 سؤال
+              ابدأ مجانًا ← 25 سؤال
             </button>
             <button className="btn btn-g" style={{fontSize:".93rem",padding:"14px 24px",borderRadius:16}} onClick={()=>go("signup")}>
               جرّب سؤالاً الآن
@@ -2940,7 +2905,7 @@ function Landing({go}){
             جاهز ترفع درجتك في القدرات؟
           </h2>
           <p style={{color:"#64748b",marginBottom:24,fontSize:".9rem",lineHeight:1.8}}>
-            10 أسئلة مجاناً · لا يحتاج بطاقة · ابدأ الآن
+            25 سؤالاً مجاناً · لا يحتاج بطاقة · ابدأ الآن
           </p>
           <div className="landing-cta-btns" style={{display:"flex",gap:12,justifyContent:"center",flexWrap:"wrap"}}>
             <button className="btn btn-p" style={{fontSize:"1.05rem",padding:"15px 36px",borderRadius:16}} onClick={()=>go("signup")}>
@@ -3020,7 +2985,7 @@ const sbLoadProgress=async(userId,token)=>{
     const[profiles,mistakes]=await Promise.all([pRes.json(),mRes.json()]);
     const p=Array.isArray(profiles)&&profiles[0];
     const m=Array.isArray(mistakes)?mistakes.map(x=>{const s=x.question_snapshot||{};return{q:s.q||"",chosen:s.chosen||"",correctAns:s.correctAns||"",topic:s.topic||"",section:s.section||"",steps:s.steps||[],tip:s.tip||"",ok:false};}):[];
-    return{totalSolved:p?.total_solved||0,correct:p?.total_correct||0,streak:p?.current_streak||0,trialUsed:p?.trial_used||0,trialLimit:p?.trial_limit||20,plan:p?.plan||'free',subscribedUntil:p?.subscribed_until||null,placementDone:p?.placement_done||false,placementLevel:p?.placement_level||null,mistakes:m};
+    return{totalSolved:p?.total_solved||0,correct:p?.total_correct||0,streak:p?.current_streak||0,trialUsed:p?.trial_used||0,trialLimit:p?.trial_limit||25,plan:p?.plan||'free',subscribedUntil:p?.subscribed_until||null,placementDone:p?.placement_done||false,placementLevel:p?.placement_level||null,mistakes:m};
   }catch(e){return null;}
 };
 
@@ -3127,7 +3092,7 @@ const sbCreateProfile=async(userId,token,name)=>{
   try{
     await fetch(`${SUPABASE_URL}/rest/v1/profiles`,{
       method:"POST",headers:{...sbH(token),"Prefer":"resolution=ignore-duplicates"},
-      body:JSON.stringify({id:userId,full_name:name,total_solved:0,total_correct:0,current_streak:0,trial_used:0,trial_limit:15,plan:'free',placement_done:false,placement_level:null})
+      body:JSON.stringify({id:userId,full_name:name,total_solved:0,total_correct:0,current_streak:0,trial_used:0,trial_limit:25,plan:'free',placement_done:false,placement_level:null})
     });
   }catch(e){}
 };
@@ -3145,7 +3110,7 @@ function Auth({mode,go,onLogin}){
   const IS_ARTIFACT=typeof window!=="undefined"&&(window.location.hostname.includes("claude.ai")||window.location.hostname==="localhost");
 
 /* ═══ PLAN HELPERS ═══════════════════════════════════════════
- *  free  → 10 سؤال مجاني فقط
+ * free  → 25 سؤال تجربة مجانية
  *  month → أسئلة غير محدودة + شرح + محاكاة + تتبع
  *  exam  → كل شيء + تحليل الضعف + خطة مذاكرة
  * ══════════════════════════════════════════════════════════ */
@@ -4266,7 +4231,7 @@ function UpgradePrompt({feature,go}){
           {feature} — للمشتركين فقط
         </h2>
         <p style={{color:"#64748b",fontSize:".88rem",lineHeight:1.8,maxWidth:360}}>
-          هذه الميزة متاحة ضمن الباقة الأساسية والمميزة.<br/>
+          هذه الميزة متاحة ضمن باقة التأسيسي والاحترافي.<br/>
           اشترك الآن للوصول إلى كامل المنصة.
         </p>
       </div>
@@ -4332,11 +4297,11 @@ function Checkout({go,trial,selectedPlan,selectedPeriod}){
   useEffect(()=>{window.scrollTo({top:0,behavior:"instant"});},[]);
 
   const PLANS={
-    basic:{name:"الأساسي",color:"#f97316",prices:{"1m":59,"3m":149,"6m":249}},
-    premium:{name:"المميز",color:"#a78bfa",prices:{"1m":99,"3m":249,"6m":399}},
+    basic:{name:"تأسيسي",color:"#f97316",prices:{"1m":59,"3m":149}},
+    premium:{name:"احترافي",color:"#a78bfa",prices:{"1m":99,"3m":249}},
   };
-  const PERIODS={"1m":"شهر واحد","3m":"3 أشهر","6m":"6 أشهر"};
-  const MONTHLY={"1m":null,"3m":{"basic":50,"premium":83},"6m":{"basic":42,"premium":67}};
+  const PERIODS={"1m":"شهر واحد","3m":"3 أشهر"};
+  const MONTHLY={"1m":null,"3m":{"basic":50,"premium":83}};
 
   const plan = PLANS[selectedPlan||'basic'];
   const period = selectedPeriod||'3m';
@@ -4458,28 +4423,28 @@ function Paywall({trial,subscribe,back,go}){
           display:"flex",flexDirection:"column",gap:10}}>
           <span style={{fontSize:".62rem",fontWeight:700,color:"#f97316",
             background:"rgba(249,115,22,.12)",padding:"3px 10px",borderRadius:99,
-            border:"1px solid rgba(249,115,22,.25)",alignSelf:"flex-start"}}>الأساسي</span>
+            border:"1px solid rgba(249,115,22,.25)",alignSelf:"flex-start"}}>تأسيسي</span>
           <div style={{display:"flex",gap:4,background:"rgba(255,255,255,.04)",borderRadius:8,padding:3}}>
-            {[["1m","59",null],["3m","149","الأوفر"],["6m","249",null]].map(([k,pr,badge])=>(
+            {[["1m","59",null],["3m","149","الأوفر"]].map(([k,pr,badge])=>(
               <button key={k} onClick={()=>setPwBasic(k)} style={{
                 flex:1,padding:"5px 2px",borderRadius:6,border:"none",cursor:"pointer",fontFamily:"Cairo,sans-serif",
                 background:pwBasic===k?"rgba(249,115,22,.2)":"transparent",
                 color:pwBasic===k?"#f97316":"#64748b",fontSize:".62rem",fontWeight:pwBasic===k?700:400,
                 transition:"all .2s",
               }}>
-                {k==="1m"?"شهر":k==="3m"?"3 أشهر":"6 أشهر"}
+                {k==="1m"?"شهر":"3 أشهر"}
                 {badge&&<span style={{display:"block",fontSize:".5rem",color:"#4ade80"}}>⭐</span>}
               </button>
             ))}
           </div>
           <div style={{display:"flex",alignItems:"baseline",gap:5}}>
             <span style={{fontSize:"2rem",fontWeight:900,color:"#f97316",lineHeight:1}}>
-              {{"1m":"59","3m":"149","6m":"249"}[pwBasic]}
+              {{"1m":"59","3m":"149"}[pwBasic]}
             </span>
             <span style={{fontSize:".7rem",color:"#64748b"}}>ريال</span>
           </div>
           {pwBasic!=="1m"&&<p style={{fontSize:".62rem",color:"#4ade80",marginTop:-6}}>
-            يعادل {{"3m":"50","6m":"42"}[pwBasic]} ريال/شهر
+            يعادل {{"3m":"50"}[pwBasic]} ريال/شهر
           </p>}
           <div style={{display:"flex",flexDirection:"column",gap:7,flex:1}}>
             {["أسئلة AI غير محدودة","شرح كل سؤال","وضع المحاكاة","تتبع التقدم","بنك الأسئلة"].map((f,i)=>(
@@ -4510,31 +4475,31 @@ function Paywall({trial,subscribe,back,go}){
           </div>
           <span style={{fontSize:".62rem",fontWeight:700,color:"#a78bfa",
             background:"rgba(167,139,250,.12)",padding:"3px 10px",borderRadius:99,
-            border:"1px solid rgba(167,139,250,.25)",alignSelf:"flex-start"}}>المميز</span>
+            border:"1px solid rgba(167,139,250,.25)",alignSelf:"flex-start"}}>احترافي</span>
           <div style={{display:"flex",gap:4,background:"rgba(255,255,255,.04)",borderRadius:8,padding:3}}>
-            {[["1m","99",null],["3m","249","الأوفر"],["6m","399",null]].map(([k,pr,badge])=>(
+            {[["1m","99",null],["3m","249","الأوفر"]].map(([k,pr,badge])=>(
               <button key={k} onClick={()=>setPwExam(k)} style={{
                 flex:1,padding:"5px 2px",borderRadius:6,border:"none",cursor:"pointer",fontFamily:"Cairo,sans-serif",
                 background:pwExam===k?"rgba(167,139,250,.2)":"transparent",
                 color:pwExam===k?"#a78bfa":"#64748b",fontSize:".62rem",fontWeight:pwExam===k?700:400,
                 transition:"all .2s",
               }}>
-                {k==="1m"?"شهر":k==="3m"?"3 أشهر":"6 أشهر"}
+                {k==="1m"?"شهر":"3 أشهر"}
                 {badge&&<span style={{display:"block",fontSize:".5rem",color:"#4ade80"}}>⭐</span>}
               </button>
             ))}
           </div>
           <div style={{display:"flex",alignItems:"baseline",gap:5}}>
             <span style={{fontSize:"2rem",fontWeight:900,color:"#a78bfa",lineHeight:1}}>
-              {{"1m":"99","3m":"249","6m":"399"}[pwExam]}
+              {{"1m":"99","3m":"249"}[pwExam]}
             </span>
             <span style={{fontSize:".7rem",color:"#64748b"}}>ريال</span>
           </div>
           {pwExam!=="1m"&&<p style={{fontSize:".62rem",color:"#4ade80",marginTop:-6}}>
-            يعادل {{"3m":"83","6m":"67"}[pwExam]} ريال/شهر
+            يعادل {{"3m":"83"}[pwExam]} ريال/شهر
           </p>}
           <div style={{display:"flex",flexDirection:"column",gap:7,flex:1}}>
-            {["كل مميزات الأساسي","AI مساعد شخصي","تحليل نقاط الضعف","خطة مذاكرة ذكية","الأفضل قيمةً 💜"].map((f,i)=>(
+            {["كل مميزات التأسيسي","AI مساعد شخصي","تحليل نقاط الضعف","خطة مذاكرة ذكية","الأفضل قيمةً 💜"].map((f,i)=>(
               <div key={i} style={{display:"flex",alignItems:"center",gap:7}}>
                 <span style={{color:"#a78bfa",fontSize:".75rem",flexShrink:0}}>✓</span>
                 <span style={{fontSize:".76rem",color:"#cbd5e1"}}>{f}</span>
@@ -4605,7 +4570,7 @@ function Privacy({go}){
     {title:"ما المعلومات التي نجمعها؟",items:[
       "الاسم والبريد الإلكتروني عند إنشاء الحساب.",
       "بيانات الأداء: عدد الأسئلة المحلولة، الإجابات الصحيحة والخاطئة، الأبواب المدروسة، ونقاط الضعف.",
-      "معلومات الاشتراك: نوع الباقة (مجاني / أساسي / مميز)، مدة الاشتراك، وحالته.",
+      "معلومات الاشتراك: نوع الباقة (مجاني / تأسيسي / احترافي)، مدة الاشتراك، وحالته.",
       "بيانات الدفع تُعالَج حصراً عبر بوابة Moyasar المرخصة — لا نحتفظ بأي بيانات بطاقات.",
       "بيانات الاستخدام العامة مثل وقت الجلسات والأبواب المدروسة لتحسين تجربتك."
     ]},
@@ -4645,15 +4610,15 @@ function Terms({go}){
       "نحتفظ بحق تعديل هذه الشروط في أي وقت مع إشعار مسبق عبر البريد الإلكتروني أو داخل المنصة."
     ]},
     {title:"الباقات والأسعار",items:[
-      "الباقة المجانية: 15 سؤال تجربة — تُستخدم مرة واحدة فقط ولا يمكن تجديدها.",
-      "الباقة الأساسية: 59 ريال/شهر — أو 149 ريال/3 أشهر — أو 249 ريال/6 أشهر.",
-      "الباقة المميزة: 99 ريال/شهر — أو 249 ريال/3 أشهر — أو 399 ريال/6 أشهر.",
+      "الباقة المجانية: 25 سؤال تجربة — تُستخدم مرة واحدة فقط ولا يمكن تجديدها.",
+      "باقة التأسيسي: 59 ريال/شهر — أو 149 ريال/3 أشهر.",
+      "باقة الاحترافي: 99 ريال/شهر — أو 249 ريال/3 أشهر.",
       "جميع الأسعار شاملة ضريبة القيمة المضافة (15%) ما لم يُذكر غير ذلك.",
       "تُعالَج المدفوعات عبر Moyasar المرخصة من البنك المركزي السعودي (ساما)."
     ]},
     {title:"سياسة الاسترداد — مهم",items:[
       "🚫 لا يتم استرداد رسوم الاشتراك بعد إتمام الدفع تحت أي ظرف.",
-      "ننصح باستخدام التجربة المجانية (15 سؤال) قبل الاشتراك للتأكد من ملاءمة المنصة.",
+      "ننصح باستخدام التجربة المجانية (25 سؤال) قبل الاشتراك للتأكد من ملاءمة المنصة.",
       "في حال حدوث خلل تقني من جانبنا يمنع الوصول لأكثر من 72 ساعة متواصلة، يمكن دراسة تعويض بتمديد مدة الاشتراك فقط.",
       "للتواصل بشأن أي مشكلة في الدفع: fahmnipluss@gmail.com أو "
     ]},
@@ -4683,7 +4648,7 @@ function Refund({go}){
   return <LegalPage go={go} title="سياسة الاسترداد" badge="💳 الاسترداد" badgeClass="b-g" sections={[
     {title:"سياسة عدم الاسترداد",items:[
       "🚫 لا يتم استرداد رسوم الاشتراك بعد إتمام عملية الدفع تحت أي ظرف.",
-      "قبل الاشتراك، نوفر لك 15 سؤال تجربة مجانية للتأكد من ملاءمة المنصة لاحتياجاتك.",
+      "قبل الاشتراك، نوفر لك 25 سؤال تجربة مجانية للتأكد من ملاءمة المنصة لاحتياجاتك.",
       "نحرص على توفير وصف دقيق وشامل لكل باقة حتى تتخذ قرارك بوضوح تام."
     ]},
     {title:"الاستثناء الوحيد",items:[
@@ -4692,7 +4657,7 @@ function Refund({go}){
       "يُشترط الإبلاغ عن المشكلة خلال مدة الاشتراك على: fahmnipluss@gmail.com"
     ]},
     {title:"توصيتنا قبل الاشتراك",items:[
-      "استخدم التجربة المجانية (15 سؤال) لتتعرف على أسلوب المنصة وطريقة التدريب.",
+      "استخدم التجربة المجانية (25 سؤال) لتتعرف على أسلوب المنصة وطريقة التدريب.",
       "اقرأ وصف كل باقة بعناية وتأكد من اختيار المدة المناسبة لك.",
       "للاستفسار قبل الاشتراك: fahmnipluss@gmail.com — نرد خلال 24 ساعة."
     ]}
@@ -4828,7 +4793,7 @@ export default function Fahmni(){
   const[checkoutPeriod,setCheckoutPeriod]=useState("3m");
   // Admin access is determined ONLY from RPC get_my_access() → trial.isAdmin
   const[sessionLoading,setSessionLoading]=useState(true);
-  const[trial,setTrial]=useState({isSubscribed:false,used:0,limit:15,plan:'free',status:'inactive',freeTrialUsed:false,expiresAt:null,isAdmin:false});
+  const[trial,setTrial]=useState({isSubscribed:false,used:0,limit:25,plan:'free',status:'inactive',freeTrialUsed:false,expiresAt:null,isAdmin:false});
   const[mistakes,setMistakes]=useState([]);
   const[placementDone,setPlacementDone]=useState(false);
   const placementDoneRef=useRef(false);
@@ -4879,8 +4844,8 @@ export default function Fahmni(){
           let status='inactive';
           if(['month','exam'].includes(plan)&&expiresAt&&expiresAt>now) status='active';
           else if(['month','exam'].includes(plan)&&expiresAt&&expiresAt<=now) status='expired';
-          else if(plan==='free'&&!freeTrialUsed&&(prog.trialUsed||0)<(prog.trialLimit||15)) status='free_trial';
-          setTrial({isSubscribed:status==='active',used:prog.trialUsed||0,limit:prog.trialLimit||15,plan,status,freeTrialUsed,expiresAt,isAdmin:false});
+          else if(plan==='free'&&!freeTrialUsed&&(prog.trialUsed||0)<(prog.trialLimit||25)) status='free_trial';
+          setTrial({isSubscribed:status==='active',used:prog.trialUsed||0,limit:prog.trialLimit||25,plan,status,freeTrialUsed,expiresAt,isAdmin:false});
         }
       }catch(e){console.warn('Session restore failed:',e);}
       finally{setSessionLoading(false);}
@@ -4965,7 +4930,7 @@ export default function Fahmni(){
             setTrial({
               isSubscribed:access.isSubscribed||access.isAdmin,
               isAdmin:!!access.isAdmin,
-              used:access.trialUsed||0,limit:access.trialLimit||15,
+              used:access.trialUsed||0,limit:access.trialLimit||25,
               plan:access.isAdmin?'exam':access.plan||'free',
               status:access.isAdmin?'active':access.status||'inactive',
               freeTrialUsed:access.status==='expired'&&access.plan==='free',
@@ -4982,8 +4947,8 @@ export default function Fahmni(){
             let status='inactive';
             if(['month','exam'].includes(plan)&&expiresAt&&expiresAt>now) status='active';
             else if(['month','exam'].includes(plan)&&expiresAt&&expiresAt<=now) status='expired';
-            else if(plan==='free'&&!freeTrialUsed&&(prog.trialUsed||0)<(prog.trialLimit||15)) status='free_trial';
-            setTrial({isSubscribed:status==='active',used:prog.trialUsed||0,limit:prog.trialLimit||15,plan,status,freeTrialUsed,expiresAt});
+            else if(plan==='free'&&!freeTrialUsed&&(prog.trialUsed||0)<(prog.trialLimit||25)) status='free_trial';
+            setTrial({isSubscribed:status==='active',used:prog.trialUsed||0,limit:prog.trialLimit||25,plan,status,freeTrialUsed,expiresAt});
           }
         }
       }
@@ -5014,7 +4979,7 @@ export default function Fahmni(){
     setUser({name:"",streak:0,totalSolved:0,correct:0});
     placementDoneRef.current=false;setPlacementDone(false);
     setMistakes([]);
-    setTrial({isSubscribed:false,used:0,limit:15,plan:'free',status:'inactive',freeTrialUsed:false,expiresAt:null});
+    setTrial({isSubscribed:false,used:0,limit:25,plan:'free',status:'inactive',freeTrialUsed:false,expiresAt:null});
     go("landing");
   };
 
