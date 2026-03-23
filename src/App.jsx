@@ -4172,225 +4172,263 @@ function TopicLesson({topic,onClose,onStartPractice,go,watchedVideos=[],onWatchV
 function Roadmap({go,setSettings,openLesson,trial={},getTopicProgress}){
   const[active,setActive]=useState("كمي");
 
-  const launch=t=>{
-    setSettings(p=>({...p,topic:t,section:deriveSec(t),difficulty:"متوسط"}));
-    go("diagnostic");
-  };
-
   const SEC_META={
-    كمي:{
-      color:"#f97316", bg:"rgba(249,115,22,.07)", border:"rgba(249,115,22,.22)",
-      label:"القسم الكمي", sub:"رياضيات واستنتاج عددي",
+    كمي:{color:"#f97316",bg:"rgba(249,115,22,.07)",border:"rgba(249,115,22,.22)",
+      label:"القسم الكمي",sub:"رياضيات واستنتاج عددي",
       note:"العلمي: ~52 سؤال (40% حساب · 24% هندسة · 23% جبر · 13% تحليل)\nالأدبي: ~30 سؤال (حساب + هندسة + تحليل — بدون جبر)",
-      icon:"🔢",
-    },
-    لفظي:{
-      color:"#22d3ee", bg:"rgba(34,211,238,.06)", border:"rgba(34,211,238,.2)",
-      label:"القسم اللفظي", sub:"لغة عربية وفهم نصوص",
+      icon:"🔢",gradient:"linear-gradient(135deg,rgba(249,115,22,.1),rgba(249,115,22,.03))"},
+    لفظي:{color:"#22d3ee",bg:"rgba(34,211,238,.06)",border:"rgba(34,211,238,.2)",
+      label:"القسم اللفظي",sub:"لغة عربية وفهم نصوص",
       note:"العلمي: ~68 سؤال | الأدبي: ~90 سؤال\nالأقسام: إكمال الجمل · تناظر لفظي · استيعاب المقروء · خطأ سياقي",
-      icon:"📝",
-    }
+      icon:"📝",gradient:"linear-gradient(135deg,rgba(34,211,238,.1),rgba(34,211,238,.03))"},
   };
-
-  const meta = SEC_META[active];
-  const groups = TOPIC_GROUPS[active];
+  const meta  = SEC_META[active];
+  const groups= TOPIC_GROUPS[active];
+  const isSub = trial.isSubscribed||trial.isAdmin;
 
   return(
-    <div style={{display:"grid",gap:16}}>
+    <div style={{display:"flex",flexDirection:"column",gap:16}}>
 
-      {/* Header */}
-      <div className="gl" style={{padding:"28px 30px"}}>
-        <span className="badge b-v" style={{marginBottom:12}}>🗺️ خريطة المسار</span>
-        <h1 style={{fontSize:"1.75rem",fontWeight:900,color:"#fff",marginBottom:7}}>
-          جميع أبواب اختبار القدرات
-        </h1>
-        <p style={{color:"#64748b",lineHeight:1.8,marginBottom:18}}>
-          الأقسام الرسمية من المركز الوطني للقياس. اضغط على أي باب لتبدأ بسؤال تشخيصي.
-        </p>
-        {/* Section Tabs */}
-        <div style={{display:"flex",gap:10}}>
-          {["كمي","لفظي"].map(sec=>{
-            const m=SEC_META[sec];
-            const on=active===sec;
-            return(
-              <button key={sec} onClick={()=>setActive(sec)} style={{
-                flex:1, padding:"14px 18px", borderRadius:16, cursor:"pointer",
-                border:`2px solid ${on?m.color+"60":"rgba(255,255,255,.08)"}`,
-                background:on?m.bg:"rgba(255,255,255,.03)",
-                transition:"all .25s", textAlign:"right",
-              }}>
-                <div style={{display:"flex",alignItems:"center",gap:10}}>
-                  <span style={{fontSize:"1.5rem"}}>{m.icon}</span>
-                  <div>
-                    <p style={{fontWeight:900,color:on?m.color:"#fff",fontSize:".95rem"}}>{m.label}</p>
-                    <p style={{fontSize:".72rem",color:"#64748b",marginTop:2}}>{m.sub}</p>
+      {/* ══ HERO HEADER ══ */}
+      <div style={{
+        padding:"28px 28px 24px",borderRadius:22,
+        background:"linear-gradient(135deg,rgba(10,18,40,.98) 0%,rgba(5,9,26,1) 100%)",
+        border:"1px solid rgba(255,255,255,.07)",
+        position:"relative",overflow:"hidden",
+      }}>
+        <div style={{position:"absolute",top:-80,right:-80,width:260,height:260,borderRadius:"50%",
+          background:"radial-gradient(circle,rgba(167,139,250,.1),transparent 70%)",pointerEvents:"none"}}/>
+        <div style={{position:"relative"}}>
+          <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:10}}>
+            <div style={{width:38,height:38,borderRadius:11,
+              background:"rgba(167,139,250,.12)",border:"1.5px solid rgba(167,139,250,.25)",
+              display:"flex",alignItems:"center",justifyContent:"center",fontSize:"1.1rem"}}>🗺️</div>
+            <span style={{fontSize:".68rem",fontWeight:700,color:"#a78bfa",letterSpacing:".08em"}}>خريطة المسار</span>
+          </div>
+          <h1 style={{fontSize:"clamp(1.3rem,3vw,1.8rem)",fontWeight:900,color:"#fff",marginBottom:8,lineHeight:1.2}}>
+            جميع أبواب اختبار القدرات
+          </h1>
+          <p style={{fontSize:".82rem",color:"#475569",lineHeight:1.7,maxWidth:500,marginBottom:22}}>
+            الأقسام الرسمية من المركز الوطني للقياس · اضغط على أي باب لتبدأ الشرح
+          </p>
+
+          {/* Section Toggle Tabs */}
+          <div style={{display:"flex",gap:10}}>
+            {["كمي","لفظي"].map(sec=>{
+              const m=SEC_META[sec];
+              const on=active===sec;
+              return(
+                <button key={sec} onClick={()=>setActive(sec)} style={{
+                  flex:1,padding:"14px 18px",borderRadius:16,cursor:"pointer",
+                  border:`2px solid ${on?m.color+"55":"rgba(255,255,255,.07)"}`,
+                  background:on?m.gradient:"rgba(255,255,255,.02)",
+                  transition:"all .22s",textAlign:"right",
+                }}
+                onMouseEnter={e=>{if(!on){e.currentTarget.style.background="rgba(255,255,255,.04)";e.currentTarget.style.borderColor="rgba(255,255,255,.14)";}}}
+                onMouseLeave={e=>{if(!on){e.currentTarget.style.background="rgba(255,255,255,.02)";e.currentTarget.style.borderColor="rgba(255,255,255,.07)";}}}
+                >
+                  <div style={{display:"flex",alignItems:"center",gap:10}}>
+                    <div style={{width:38,height:38,borderRadius:11,flexShrink:0,
+                      background:on?`${m.color}18`:"rgba(255,255,255,.05)",
+                      border:`1.5px solid ${on?m.color+"35":"rgba(255,255,255,.08)"}`,
+                      display:"flex",alignItems:"center",justifyContent:"center",fontSize:"1.1rem"
+                    }}>{m.icon}</div>
+                    <div>
+                      <p style={{fontWeight:900,color:on?m.color:"#94a3b8",fontSize:".92rem"}}>{m.label}</p>
+                      <p style={{fontSize:".7rem",color:"#334155",marginTop:2}}>{m.sub}</p>
+                    </div>
+                    <span style={{
+                      marginRight:"auto",padding:"4px 11px",borderRadius:99,
+                      background:on?`${m.color}18`:"rgba(255,255,255,.04)",
+                      border:`1px solid ${on?m.color+"30":"rgba(255,255,255,.07)"}`,
+                      fontSize:".64rem",fontWeight:700,color:on?m.color:"#334155"
+                    }}>{TOPICS[sec].length} باب</span>
                   </div>
-                  <span style={{
-                    marginRight:"auto", padding:"3px 10px", borderRadius:99,
-                    background:on?m.color+"18":"rgba(255,255,255,.05)",
-                    border:`1px solid ${on?m.color+"35":"rgba(255,255,255,.08)"}`,
-                    fontSize:".65rem", fontWeight:700,
-                    color:on?m.color:"#475569"
-                  }}>{TOPICS[sec].length} باب</span>
-                </div>
-              </button>
-            );
-          })}
+                </button>
+              );
+            })}
+          </div>
         </div>
       </div>
 
-      {/* Section info bar */}
+      {/* ══ INFO BAR ══ */}
       <div style={{
-        padding:"13px 18px", borderRadius:14,
-        background:meta.bg, border:`1px solid ${meta.border}`,
-        display:"flex", alignItems:"flex-start", gap:10
+        padding:"12px 18px",borderRadius:14,
+        background:meta.bg,border:`1px solid ${meta.border}`,
+        display:"flex",alignItems:"center",gap:10,
       }}>
-        <span style={{fontSize:"1.1rem",marginTop:1}}>ℹ️</span>
+        <span style={{fontSize:"1rem",flexShrink:0}}>ℹ️</span>
         <div>
           {meta.note.split("\n").map((line,i)=>(
-            <p key={i} style={{fontSize:".78rem",color:"#94a3b8",lineHeight:1.7}}>{line}</p>
+            <p key={i} style={{fontSize:".76rem",color:"#64748b",lineHeight:1.7}}>{line}</p>
           ))}
         </div>
       </div>
 
-      {/* Topic Groups */}
+      {/* ══ TOPIC GROUPS ══ */}
       {groups.map((grp,gi)=>(
-        <div key={gi} className="gl" style={{padding:"20px",borderColor:`${grp.color}18`}}>
-
+        <div key={gi} style={{
+          padding:"20px",borderRadius:20,
+          background:"rgba(10,18,40,.92)",
+          border:`1px solid ${grp.color}18`,
+        }}>
           {/* Group header */}
-          <div style={{
-            display:"flex", alignItems:"center", gap:11,
-            marginBottom:14, paddingBottom:12,
-            borderBottom:`1px solid ${grp.color}18`
-          }}>
+          <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:16,
+            paddingBottom:14,borderBottom:`1px solid ${grp.color}14`}}>
             <div style={{
-              width:40, height:40, borderRadius:12,
-              background:`${grp.color}15`, border:`1.5px solid ${grp.color}30`,
-              display:"flex", alignItems:"center", justifyContent:"center",
-              fontSize:"1.15rem", flexShrink:0, lineHeight:1, overflow:"hidden"
-            }}>
-              <span style={{fontSize:"19px",lineHeight:"1"}}>{grp.icon}</span>
-            </div>
+              width:42,height:42,borderRadius:13,flexShrink:0,
+              background:`${grp.color}15`,border:`1.5px solid ${grp.color}30`,
+              display:"flex",alignItems:"center",justifyContent:"center",fontSize:"1.2rem"
+            }}>{grp.icon}</div>
             <div style={{flex:1}}>
               <div style={{display:"flex",alignItems:"center",gap:8,flexWrap:"wrap"}}>
-                <h2 style={{fontWeight:900,color:"#fff",fontSize:".93rem"}}>{grp.sub}</h2>
+                <h2 style={{fontWeight:900,color:"#fff",fontSize:".95rem"}}>{grp.sub}</h2>
                 <span style={{
-                  padding:"2px 9px", borderRadius:99, fontSize:".61rem", fontWeight:700,
-                  background:`${grp.color}14`, border:`1px solid ${grp.color}28`, color:grp.color
+                  padding:"3px 10px",borderRadius:99,fontSize:".62rem",fontWeight:700,
+                  background:`${grp.color}14`,border:`1px solid ${grp.color}28`,color:grp.color
                 }}>{grp.pct} من الأسئلة</span>
               </div>
             </div>
-            <span style={{fontSize:".7rem",color:"#475569"}}>{grp.topics.length} {grp.topics.length===1?"باب":"أبواب"}</span>
+            <span style={{fontSize:".7rem",color:"#334155",flexShrink:0}}>
+              {grp.topics.length} {grp.topics.length===1?"باب":"أبواب"}
+            </span>
           </div>
 
           {/* Topics grid */}
-          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(210px,1fr))",gap:10}}>
+          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(200px,1fr))",gap:10}}>
             {grp.topics.map(t=>{
               const prog=getTopicProgress?getTopicProgress(t):null;
+              const pct=prog?.pct||0;
               return(
-              <div key={t} style={{
-                padding:"14px 15px", borderRadius:14,
-                border:`1.5px solid rgba(255,255,255,.07)`,
-                background:"rgba(5,9,26,.5)",
-                display:"flex",flexDirection:"column",gap:10
-              }}>
-                {/* Top row */}
-                <div style={{display:"flex",alignItems:"flex-start",gap:10}}>
-                  <div style={{
-                    width:36,height:36,borderRadius:10,flexShrink:0,
-                    background:`${grp.color}18`,border:`1.5px solid ${grp.color}35`,
-                    display:"flex",alignItems:"center",justifyContent:"center",
-                    overflow:"hidden",flexDirection:"column"
-                  }}>
-                    <span style={{
-                      fontSize:"10px",fontWeight:900,color:grp.color,
-                      fontFamily:"Cairo,sans-serif",lineHeight:1,
-                      textAlign:"center",padding:"2px",
-                      whiteSpace:"nowrap",overflow:"hidden",
-                      maxWidth:34,display:"block"
-                    }}>{ICON_LABELS[t]||t.slice(0,3)}</span>
-                  </div>
-                  <div style={{flex:1,minWidth:0}}>
-                    <p style={{fontSize:".84rem",fontWeight:700,color:"#f1f5f9",lineHeight:1.4}}>{t}</p>
-                    <p style={{fontSize:".63rem",color:"#475569",marginTop:2}}>
-                      {CONCEPTS[t]?.trap?.replace("⚠ الفخ: ","").slice(0,35)+"…"}
-                    </p>
-                  </div>
-                  {prog&&<span style={{
-                    fontSize:".62rem",fontWeight:700,flexShrink:0,
-                    color:prog.pct===100?"#4ade80":prog.pct>0?grp.color:"#334155"
-                  }}>{prog.pct}%</span>}
-                </div>
-                {/* Progress bar — only for topics with videos */}
-                {prog&&(
-                  <div>
-                    <div style={{height:4,borderRadius:99,background:"rgba(255,255,255,.06)",overflow:"hidden"}}>
-                      <div style={{
-                        height:"100%",borderRadius:99,
-                        background:prog.pct===100?"#4ade80":grp.color,
-                        width:`${prog.pct}%`,transition:"width .5s ease"
-                      }}/>
+                <div key={t} style={{
+                  padding:"14px 15px",borderRadius:16,
+                  background:"rgba(5,9,26,.6)",
+                  border:`1px solid ${pct===100?"rgba(74,222,128,.2)":"rgba(255,255,255,.06)"}`,
+                  display:"flex",flexDirection:"column",gap:10,
+                  transition:"all .18s",
+                }}
+                onMouseEnter={e=>{e.currentTarget.style.background="rgba(255,255,255,.04)";e.currentTarget.style.transform="translateY(-2px)";}}
+                onMouseLeave={e=>{e.currentTarget.style.background="rgba(5,9,26,.6)";e.currentTarget.style.transform="";}}>
+
+                  {/* Topic info */}
+                  <div style={{display:"flex",alignItems:"flex-start",gap:10}}>
+                    <div style={{
+                      width:36,height:36,borderRadius:10,flexShrink:0,
+                      background:pct===100?"rgba(74,222,128,.12)":`${grp.color}14`,
+                      border:`1.5px solid ${pct===100?"rgba(74,222,128,.3)":grp.color+"28"}`,
+                      display:"flex",alignItems:"center",justifyContent:"center",
+                    }}>
+                      {pct===100
+                        ?<span style={{fontSize:"1rem"}}>✅</span>
+                        :<span style={{fontSize:"9px",fontWeight:900,color:grp.color,
+                          fontFamily:"Cairo,sans-serif",lineHeight:1,textAlign:"center",
+                          padding:"2px",whiteSpace:"nowrap",overflow:"hidden",maxWidth:32,display:"block"}}>
+                          {ICON_LABELS[t]||t.slice(0,3)}
+                        </span>
+                      }
                     </div>
-                    <p style={{fontSize:".58rem",color:"#334155",marginTop:3}}>
-                      {prog.done}/{prog.total} فيديو
-                    </p>
+                    <div style={{flex:1,minWidth:0}}>
+                      <p style={{fontSize:".84rem",fontWeight:800,color:"#f1f5f9",lineHeight:1.4,marginBottom:2}}>{t}</p>
+                      <p style={{fontSize:".62rem",color:"#334155",lineHeight:1.5}}>
+                        {CONCEPTS[t]?.trap?.replace("⚠ الفخ: ","").slice(0,40)+"…"}
+                      </p>
+                    </div>
+                    {prog&&(
+                      <span style={{
+                        fontSize:".65rem",fontWeight:800,flexShrink:0,
+                        color:pct===100?"#4ade80":pct>0?grp.color:"#334155"
+                      }}>{pct}%</span>
+                    )}
                   </div>
-                )}
-                <div>
-                  <button onClick={()=>(trial.isSubscribed||trial.isAdmin)?openLesson(t):go("paywall")} style={{
-                    width:"100%",padding:"8px 6px",borderRadius:9,cursor:"pointer",
-                    border:`1px solid ${grp.color}30`,background:`${grp.color}0a`,
-                    color:grp.color,fontSize:".73rem",fontWeight:700,
-                    fontFamily:"Cairo,sans-serif",transition:"all .18s"}}
-                  onMouseEnter={e=>{e.currentTarget.style.background=`${grp.color}18`;}}
-                  onMouseLeave={e=>{e.currentTarget.style.background=`${grp.color}0a`;}}>
-                    {(trial.isSubscribed||trial.isAdmin)?"📖 اعرف الباب":"🔒 اعرف الباب"}
+
+                  {/* Progress bar */}
+                  {prog&&(
+                    <div>
+                      <div style={{height:4,borderRadius:99,background:"rgba(255,255,255,.06)",overflow:"hidden"}}>
+                        <div style={{height:"100%",borderRadius:99,
+                          background:pct===100?"linear-gradient(90deg,#4ade80,#22d3ee)":`linear-gradient(90deg,${grp.color},${grp.color}88)`,
+                          width:`${pct}%`,transition:"width .6s ease",
+                          boxShadow:pct>0?`0 0 6px ${grp.color}44`:"none",
+                        }}/>
+                      </div>
+                      <p style={{fontSize:".58rem",color:"#334155",marginTop:3}}>
+                        {prog.done}/{prog.total} فيديو
+                      </p>
+                    </div>
+                  )}
+
+                  {/* CTA button */}
+                  <button
+                    onClick={()=>isSub?openLesson(t):go("paywall")}
+                    style={{
+                      width:"100%",padding:"9px 8px",borderRadius:10,cursor:"pointer",
+                      border:`1px solid ${grp.color}28`,
+                      background:isSub?`${grp.color}0d`:"rgba(255,255,255,.03)",
+                      color:isSub?grp.color:"#334155",
+                      fontSize:".74rem",fontWeight:700,fontFamily:"Cairo,sans-serif",
+                      transition:"all .18s",
+                    }}
+                    onMouseEnter={e=>{if(isSub){e.currentTarget.style.background=`${grp.color}1e`;e.currentTarget.style.borderColor=`${grp.color}45`;}}}
+                    onMouseLeave={e=>{e.currentTarget.style.background=isSub?`${grp.color}0d`:"rgba(255,255,255,.03)";e.currentTarget.style.borderColor=`${grp.color}28`;}}>
+                    {isSub?"📖 اعرف الباب":"🔒 اعرف الباب"}
                   </button>
                 </div>
-              </div>
               );
             })}
           </div>
         </div>
       ))}
 
-      {/* اختبار شامل */}
-      <div style={{padding:"22px 26px",borderRadius:18,
-        background:`linear-gradient(135deg,${meta.bg},rgba(5,9,26,.95))`,
-        border:`1.5px solid ${meta.color}35`,display:"flex",flexDirection:"column",gap:14}}>
-        <div style={{display:"flex",alignItems:"center",gap:12}}>
-          <div style={{width:46,height:46,borderRadius:13,flexShrink:0,
+      {/* ══ COMPREHENSIVE TEST ══ */}
+      <div style={{
+        padding:"24px 26px",borderRadius:20,
+        background:meta.gradient,
+        border:`1.5px solid ${meta.color}30`,
+        display:"flex",flexDirection:"column",gap:16,
+      }}>
+        <div style={{display:"flex",alignItems:"center",gap:14}}>
+          <div style={{
+            width:52,height:52,borderRadius:16,flexShrink:0,
             background:`${meta.color}18`,border:`1.5px solid ${meta.color}35`,
-            display:"flex",alignItems:"center",justifyContent:"center",fontSize:"1.3rem"}}>🏆</div>
+            display:"flex",alignItems:"center",justifyContent:"center",fontSize:"1.5rem",
+            boxShadow:`0 4px 16px ${meta.color}20`,
+          }}>🏆</div>
           <div>
-            <p style={{fontWeight:900,color:"#fff",fontSize:"1rem"}}>
+            <p style={{fontWeight:900,color:"#fff",fontSize:"1.05rem",marginBottom:4}}>
               اختبار شامل — {active==="كمي"?"القسم الكمي":"القسم اللفظي"}
             </p>
-            <p style={{fontSize:".74rem",color:"#64748b",marginTop:3}}>
-              {active==="كمي"?"أسئلة مختلطة من جميع أبواب الكمي":"أسئلة مختلطة من جميع أبواب اللفظي"}
+            <p style={{fontSize:".76rem",color:"#475569",lineHeight:1.6}}>
+              {active==="كمي"
+                ?"أسئلة عشوائية من جميع أبواب الكمي — اختبر نفسك بدون حدود"
+                :"أسئلة عشوائية من جميع أبواب اللفظي — اختبر نفسك بدون حدود"}
             </p>
           </div>
         </div>
-        <button onClick={()=>{
-          if(!trial.isSubscribed&&!trial.isAdmin){go("paywall");return;}
-          setSettings(p=>({...p,topic:"__comprehensive__",comprehensiveSection:active,section:active,difficulty:"متوسط"}));
-          go("session");
-        }} style={{width:"100%",padding:"13px",borderRadius:12,cursor:"pointer",
-          background:`linear-gradient(135deg,${meta.color}22,${meta.color}11)`,
-          border:`1.5px solid ${meta.color}50`,color:meta.color,
-          fontSize:".88rem",fontWeight:900,fontFamily:"Cairo,sans-serif",transition:"all .2s"}}
-          onMouseEnter={e=>e.currentTarget.style.opacity=".8"}
-          onMouseLeave={e=>e.currentTarget.style.opacity="1"}>
-          {(trial.isSubscribed||trial.isAdmin)?`🎯 ابدأ الاختبار الشامل ← ${active==="كمي"?"الكمي":"اللفظي"}`:"🔒 الاختبار الشامل — للمشتركين"}
+        <button
+          onClick={()=>{
+            if(!isSub){go("paywall");return;}
+            setSettings(p=>({...p,topic:"__comprehensive__",comprehensiveSection:active,section:active,difficulty:"متوسط"}));
+            go("session");
+          }}
+          style={{
+            width:"100%",padding:"14px",borderRadius:14,cursor:"pointer",
+            background:isSub?`linear-gradient(135deg,${meta.color},${meta.color}cc)`:"rgba(255,255,255,.04)",
+            border:isSub?"none":`1px solid ${meta.color}30`,
+            color:isSub?"#fff":meta.color,
+            fontSize:".9rem",fontWeight:900,fontFamily:"Cairo,sans-serif",
+            boxShadow:isSub?`0 4px 20px ${meta.color}40`:"none",
+            transition:"all .2s",
+          }}
+          onMouseEnter={e=>{if(isSub){e.currentTarget.style.transform="translateY(-2px)";e.currentTarget.style.boxShadow=`0 8px 28px ${meta.color}55`;}}}
+          onMouseLeave={e=>{e.currentTarget.style.transform="";e.currentTarget.style.boxShadow=isSub?`0 4px 20px ${meta.color}40`:"none";}}>
+          {isSub?`🎯 ابدأ الاختبار الشامل ← ${active==="كمي"?"الكمي":"اللفظي"}`:"🔒 الاختبار الشامل — للمشتركين"}
         </button>
       </div>
 
-      {/* Footer CTA */}
       <SiteFooter go={go}/>
     </div>
   );
 }
-
 
 function UpgradePrompt({feature,go}){
   return(
