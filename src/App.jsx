@@ -1458,8 +1458,8 @@ function ReviewMode({mistakes,go,onRedo}){
 */
 /* ─── إعدادات الاختبار الموحّد ─── */
 const SIM_CONFIG={
-  quant:  40,   // عدد أسئلة الكمي
-  verbal: 40,   // عدد أسئلة اللفظي
+  quant:  60,   // عدد أسئلة الكمي
+  verbal: 60,   // عدد أسئلة اللفظي
   get total(){ return this.quant+this.verbal; },
   minutes:120,  // وقت الاختبار بالدقائق
 };
@@ -1622,24 +1622,6 @@ function SimMode({settings,go,updateUser,addMistake,trial={}}){
             <p style={{fontSize:"1.1rem",fontWeight:900,color}}>{val}</p>
           </div>
         ))}
-      </div>
-
-      {/* Note */}
-      <div style={{
-        padding:"16px 20px",borderRadius:14,
-        background:"rgba(167,139,250,.07)",border:"1px solid rgba(167,139,250,.2)",
-        display:"flex",gap:12,alignItems:"flex-start"
-      }}>
-        <span style={{fontSize:"1.1rem",marginTop:1}}>ℹ️</span>
-        <div>
-          <p style={{fontSize:".82rem",color:"#c4b5fd",fontWeight:700,marginBottom:4}}>
-            الأسئلة تُسحب مباشرة من قاعدة البيانات
-          </p>
-          <p style={{fontSize:".75rem",color:"#64748b",lineHeight:1.7}}>
-            {SIM_CONFIG.quant} سؤال كمي + {SIM_CONFIG.verbal} سؤال لفظي — مخلوطة عشوائياً.
-            لا يوجد فلترة للصعوبة.
-          </p>
-        </div>
       </div>
 
       {/* Start */}
