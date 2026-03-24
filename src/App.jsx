@@ -1052,13 +1052,11 @@ async function genQuestion({topic, difficulty, avoidQuestion="", userId=null, us
   const verbalNote = VERBAL_INSTRUCTIONS[topic]?`\n${VERBAL_INSTRUCTIONS[topic]}`:"";
   const avoidNote  = avoidQuestion?`\n⛔ لا تعيد هذا السؤال: "${avoidQuestion.slice(0,40)}"}`:"";
 
-  // ══ 1. ابحث في قاعدة البيانات أولاً ══
+  // ══ 1. ابحث في قاعدة البيانات أولاً (RPC بالتوبيك) ══
   if(userId && userId!=="guest" && userToken){
     const cached=await sbGetQuestion(userId,userToken,{topic,section,difficulty});
     if(cached){
-      // سجّل أن المستخدم رأى هذا السؤال
       sbMarkSeen(userId,userToken,cached.id);
-      // حوّل من شكل DB إلى شكل الـ app
       return {
         question         : cached.question_text||"",
         image_url        : cached.image_url||null,
@@ -1073,6 +1071,38 @@ async function genQuestion({topic, difficulty, avoidQuestion="", userId=null, us
         _dbId            : cached.id,
       };
     }
+  }
+
+  // ══ 1b. Fallback: اسحب عشوائياً من DB بالـ section فقط ══
+  if(!IS_ARTIFACT){
+    try{
+      const url=`${SUPABASE_URL}/rest/v1/questions?section=eq.${encodeURIComponent(section)}&active=eq.true&select=id,question_text,image_url,options,correct,explanation_title,steps,tip,shape,topic&limit=50&order=times_served.asc`;
+      const r=await fetch(url,{headers:{"apikey":SUPABASE_ANON,"Authorization":`Bearer ${userToken||SUPABASE_ANON}`}});
+      if(r.ok){
+        const rows=await r.json();
+        if(rows&&rows.length>0){
+          // اختر عشوائياً وتجنب السؤال الأخير
+          const pool=rows.filter(x=>(x.question_text||x.image_url)&&x.question_text!==avoidQuestion);
+          const row=pool.length>0?pool[Math.floor(Math.random()*pool.length)]:rows[0];
+          if(row){
+            if(userId&&userId!=="guest"&&userToken) sbMarkSeen(userId,userToken,row.id);
+            return {
+              question         : row.question_text||"",
+              image_url        : row.image_url||null,
+              options          : Array.isArray(row.options)?row.options:JSON.parse(row.options||"[]"),
+              correct          : row.correct,
+              explanation_title: row.explanation_title||"الحل",
+              steps            : Array.isArray(row.steps)?row.steps:JSON.parse(row.steps||"[]"),
+              tip              : row.tip||"",
+              shape            : row.shape||null,
+              topic            : row.topic||topic,
+              _fromDB          : true,
+              _dbId            : row.id,
+            };
+          }
+        }
+      }
+    }catch(_){}
   }
 
   // ══ 2. DB فارغة أو مستخدم guest → استدعِ Claude ══
@@ -4267,19 +4297,8 @@ function TopicLesson({topic,onClose,onStartPractice,go,watchedVideos=[],onWatchV
         padding:"16px 20px",borderRadius:16,flexWrap:"wrap",
         background:"rgba(255,255,255,.03)",border:"1px solid rgba(255,255,255,.07)"
       }}>
-        {!hasVideos&&(
-          <a href={ytSearchUrl} target="_blank" rel="noopener noreferrer" style={{
-            display:"flex",alignItems:"center",gap:8,padding:"10px 18px",borderRadius:11,
-            background:"rgba(220,38,38,.09)",border:"1px solid rgba(220,38,38,.24)",
-            color:"#f87171",fontWeight:700,fontSize:".82rem",
-            textDecoration:"none",fontFamily:"Cairo,sans-serif"
-          }}>
-            <span style={{fontSize:"1.1rem"}}>▶</span> فيديو شرح على يوتيوب
-          </a>
-        )}
         <div style={{display:"flex",gap:9,marginRight:"auto"}}>
           <button className="btn btn-g" onClick={onClose}>← رجوع للخريطة</button>
-          <button className="btn btn-p" style={{padding:"11px 26px"}} onClick={onStartPractice}>ابدأ التدريب ←</button>
         </div>
       </div>
       <SiteFooter go={go}/>
