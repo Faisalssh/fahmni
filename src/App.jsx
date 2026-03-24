@@ -1590,7 +1590,7 @@ function SimMode({settings,go,updateUser,addMistake,trial={}}){
     if(!IS_ARTIFACT){
       try{
         const res=await fetch(
-          `${SUPABASE_URL}/rest/v1/questions?section=eq.${encodeURIComponent(item.sec)}&active=eq.true&limit=1&order=random()`,
+          `${SUPABASE_URL}/rest/v1/questions?section=eq.${encodeURIComponent(item.sec)}&active=eq.true&limit=5&order=times_served.asc`,
           {headers:{"apikey":SUPABASE_ANON,"Authorization":`Bearer ${SUPABASE_ANON}`}}
         );
         if(res.ok){
@@ -2332,6 +2332,7 @@ function Session({settings,go,updateUser,trial,setTrial,addMistake,plan="free",s
   const fetchQ=useCallback(async()=>{
     if(!trial.isAdmin&&!trial.isSubscribed&&trial.used>=trial.limit){go("paywall");return;}
 
+    passageQueueRef.current=[];
     setLoading(true);setErr("");setQData(null);setSel(null);setChecked(false);
     setSteps([]);setExpired(false);setCoach(null);setCoachLoading(false);
 
@@ -2434,6 +2435,8 @@ function Session({settings,go,updateUser,trial,setTrial,addMistake,plan="free",s
 
   useEffect(()=>{
     if(!trial.isSubscribed&&trial.used>=trial.limit){go("paywall");return;}
+    setScore({correct:0,total:0});
+    setHistory([]);
     fetchQ();
   },[]);
 
@@ -3383,16 +3386,17 @@ async function hashQuestion(text){
 const sbGetQuestion=async(userId,token,{topic,section,difficulty})=>{
   if(IS_ARTIFACT||!userId||userId==="guest") return null;
   try{
-    /* REST مباشر بدل RPC — يشمل passage_id وpassage_order */
+    /* REST مباشر — يشمل passage_id وpassage_order، مرتب بالأقل مشاهدةً */
     const url=`${SUPABASE_URL}/rest/v1/questions?section=eq.${encodeURIComponent(section)}&active=eq.true`+
       `&select=id,question_text,image_url,options,correct,explanation_title,steps,tip,shape,topic,passage_id,passage_order`+
-      `&limit=1&order=random()`;
+      `&limit=5&order=times_served.asc`;
     const r=await fetch(url,{
       headers:{"Content-Type":"application/json","apikey":SUPABASE_ANON,"Authorization":`Bearer ${token}`}
     });
     if(!r.ok) return null;
     const rows=await r.json();
-    return Array.isArray(rows)&&rows.length>0 ? rows[0] : null;
+    if(!Array.isArray(rows)||rows.length===0) return null;
+    return rows[Math.floor(Math.random()*rows.length)];
   }catch(e){ return null; }
 };
 
@@ -3742,7 +3746,7 @@ function Dashboard({go,user,trial,mistakes,settings,setSettings,getTopicProgress
           {/* Grade badge + CTA */}
           <div style={{display:"flex",gap:10,flexWrap:"wrap",alignItems:"center"}}>
             <button
-              onClick={()=>{setSettings(p=>({...p,sessionSection:null}));go("session");}}
+              onClick={()=>{setSettings(p=>({...p,sessionSection:null,examMode:false}));go("session");}}
               style={{
                 padding:"13px 32px",borderRadius:14,cursor:"pointer",
                 background:"linear-gradient(135deg,#f97316,#ea580c)",
@@ -3858,7 +3862,7 @@ function Dashboard({go,user,trial,mistakes,settings,setSettings,getTopicProgress
               </p>
             </div>
             <div style={{display:"flex",gap:8}}>
-              <button onClick={()=>{setSettings(p=>({...p,sessionSection:null}));go("session");}} style={{
+              <button onClick={()=>{setSettings(p=>({...p,sessionSection:null,examMode:false}));go("session");}} style={{
                 padding:"10px 20px",borderRadius:12,cursor:"pointer",
                 background:"rgba(34,211,238,.12)",border:"1.5px solid rgba(34,211,238,.35)",
                 color:"#22d3ee",fontFamily:"Cairo,sans-serif",fontSize:".82rem",fontWeight:800,
@@ -3897,7 +3901,7 @@ function Dashboard({go,user,trial,mistakes,settings,setSettings,getTopicProgress
           {icon:"🤖",label:"جلسة AI",sub:"سؤال + شرح",page:"session",locked:false,
            bg:"linear-gradient(135deg,rgba(249,115,22,.12),rgba(249,115,22,.04))",
            border:"rgba(249,115,22,.25)",color:"#f97316",
-           onTap:()=>setSettings(p=>({...p,sessionSection:null}))},
+           onTap:()=>setSettings(p=>({...p,sessionSection:null,examMode:false}))},
           {icon:"📋",label:"مراجعة",sub:`${wrongCount} سؤال`,page:"review",locked:!isSub,
            bg:"linear-gradient(135deg,rgba(248,113,113,.1),rgba(248,113,113,.03))",
            border:"rgba(248,113,113,.22)",color:"#f87171"},
@@ -3961,7 +3965,7 @@ function Dashboard({go,user,trial,mistakes,settings,setSettings,getTopicProgress
             const isLk=!isSub&&GEO.includes(topic);
             return(
               <div key={topic}
-                onClick={()=>{if(isLk){go("paywall");return;}if(setSettings)setSettings(p=>({...p,topic,section:secTab,sessionSection:secTab}));go("roadmap");}}
+                onClick={()=>{if(isLk){go("paywall");return;}if(setSettings)setSettings(p=>({...p,topic,section:secTab,sessionSection:secTab,examMode:false}));go("roadmap");}}
                 style={{padding:"12px 14px",borderRadius:13,cursor:"pointer",position:"relative",
                   background:isAct?sc.bg:"rgba(255,255,255,.025)",
                   border:`1px solid ${isAct?sc.border:"rgba(255,255,255,.07)"}`,
@@ -5687,7 +5691,7 @@ export default function Fahmni(){
           onClose={()=>go("roadmap")}
           onStartPractice={()=>{
             const sec=deriveSec(lessonTopic);
-            setSettings(p=>({...p,topic:lessonTopic,section:sec,sessionSection:sec,difficulty:"متوسط"}));
+            setSettings(p=>({...p,topic:lessonTopic,section:sec,sessionSection:sec,difficulty:"متوسط",examMode:false}));
             go("diagnostic");
           }}/>
       : <Roadmap go={go} setSettings={setSettings} openLesson={openLesson} trial={trial} getTopicProgress={getTopicProgress} session={session}/>;
