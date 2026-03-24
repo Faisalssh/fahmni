@@ -2284,6 +2284,7 @@ function Pricing({go,setCheckoutPlan,setCheckoutPeriod}){
 /* ═══════════════════ AI SESSION ═══════════════════ */
 
 function Session({settings,go,updateUser,trial,setTrial,addMistake,plan="free",session=null,user={name:"",streak:0,totalSolved:0,correct:0}}){
+  const examMode = settings.examMode===true; /* اختبار شامل — بدون شرح */
   useEffect(()=>{
     window.scrollTo({top:0,behavior:"instant"});
     if(session?.token&&session?.userId&&!session.isGuest&&!IS_ARTIFACT){
@@ -2610,7 +2611,7 @@ function Session({settings,go,updateUser,trial,setTrial,addMistake,plan="free",s
                 <p style={{fontSize:".72rem",color:"#334155"}}>
                   {sel===null?"اختر إجابة":""}
                 </p>
-                {sel!==null&&(
+                {sel!==null&&!examMode&&(
                   <button
                     style={{padding:"11px 28px",borderRadius:12,cursor:"pointer",
                       background:"linear-gradient(135deg,#f97316,#ea580c)",border:"none",
@@ -2622,13 +2623,41 @@ function Session({settings,go,updateUser,trial,setTrial,addMistake,plan="free",s
                     تحقق ←
                   </button>
                 )}
+                {sel!==null&&examMode&&(
+                  <button
+                    style={{padding:"11px 28px",borderRadius:12,cursor:"pointer",
+                      background:"linear-gradient(135deg,#f97316,#ea580c)",border:"none",
+                      color:"#fff",fontFamily:"Cairo,sans-serif",fontSize:".88rem",fontWeight:800,
+                      boxShadow:"0 4px 14px rgba(249,115,22,.35)",transition:"all .2s"}}
+                    onMouseEnter={e=>{e.currentTarget.style.transform="translateY(-1px)";}}
+                    onMouseLeave={e=>{e.currentTarget.style.transform="";}}
+                    onClick={()=>doCheck(sel,false)}>
+                    التالي →
+                  </button>
+                )}
               </div>
             )}
           </div>
         )}
 
+        {/* examMode — زر التالي فقط بدون شرح */}
+        {checked&&qData&&examMode&&(
+          <div style={{display:"flex",justifyContent:"flex-end",marginTop:4}}>
+            <button
+              style={{padding:"11px 28px",borderRadius:12,cursor:"pointer",
+                background:"linear-gradient(135deg,#f97316,#ea580c)",border:"none",
+                color:"#fff",fontFamily:"Cairo,sans-serif",fontSize:".88rem",fontWeight:800,
+                boxShadow:"0 4px 14px rgba(249,115,22,.35)",transition:"all .2s"}}
+              onMouseEnter={e=>{e.currentTarget.style.transform="translateY(-1px)";}}
+              onMouseLeave={e=>{e.currentTarget.style.transform="";}}
+              onClick={fetchQ}>
+              التالي ←
+            </button>
+          </div>
+        )}
+
         {/* Explanation */}
-        {checked&&qData&&(
+        {checked&&qData&&!examMode&&(
           <div ref={explRef} style={{
             padding:"22px",borderRadius:20,
             background:"rgba(10,18,40,.95)",
@@ -4754,7 +4783,7 @@ function Roadmap({go,setSettings,openLesson,trial={},getTopicProgress,session=nu
         <button
           onClick={()=>{
             if(!isSub){go("paywall");return;}
-            setSettings(p=>({...p,topic:"__comprehensive__",comprehensiveSection:active,section:active,difficulty:"متوسط"}));
+            setSettings(p=>({...p,topic:"__comprehensive__",comprehensiveSection:active,section:active,difficulty:"متوسط",examMode:true}));
             go("session");
           }}
           style={{
@@ -5347,7 +5376,7 @@ export default function Fahmni(){
     }catch(e){return null;}
   }); // {token, userId, name, email}
   const[user,setUser]=useState({name:"",streak:0,totalSolved:0,correct:0});
-  const[settings,setSettings]=useState({section:"كمي",difficulty:"متوسط",topic:"النسبة والتناسب",comprehensiveSection:null,sessionSection:null});
+  const[settings,setSettings]=useState({section:"كمي",difficulty:"متوسط",topic:"النسبة والتناسب",comprehensiveSection:null,sessionSection:null,examMode:false});
   const[checkoutPlan,setCheckoutPlan]=useState("basic");
   const[checkoutPeriod,setCheckoutPeriod]=useState("3m");
   // Admin access is determined ONLY from RPC get_my_access() → trial.isAdmin
