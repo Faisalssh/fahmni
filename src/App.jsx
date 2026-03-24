@@ -2498,6 +2498,21 @@ function Session({settings,go,updateUser,trial,setTrial,addMistake,plan="free",s
               background:`${secColor}14`,border:`1px solid ${secColor}30`,color:secColor}}>
               {realSec}
             </span>
+            {/* live score — always visible */}
+            {score.total>0&&(
+              <div style={{display:"flex",alignItems:"center",gap:6,
+                padding:"3px 12px",borderRadius:99,
+                background:"rgba(255,255,255,.04)",border:"1px solid rgba(255,255,255,.07)"}}>
+                <span style={{fontSize:".75rem",fontWeight:900,color:"#4ade80",
+                  animation:"numPop .3s cubic-bezier(.34,1.56,.64,1) both"}}>
+                  {score.correct}
+                </span>
+                <span style={{fontSize:".65rem",color:"#334155"}}>/</span>
+                <span style={{fontSize:".75rem",fontWeight:700,color:"#94a3b8"}}>
+                  {score.total}
+                </span>
+              </div>
+            )}
           </div>
           <div style={{display:"flex",alignItems:"center",gap:8}}>
             <SoundPanel sounds={sounds}/>
