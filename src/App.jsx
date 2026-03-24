@@ -2491,7 +2491,7 @@ function Session({settings,go,updateUser,trial,setTrial,addMistake,plan="free",s
   },[]);
 
   /* ── answer ── */
-  const pickAnswer=(i)=>{ if(checked)return; setSel(i); doCheck(i,false); };
+  const pickAnswer=(i)=>{ if(checked)return; setSel(i); };
 
   const doCheck=(chosenIdx,isExpired)=>{
     const ok=!isExpired&&chosenIdx===qData?.correct;
@@ -2660,9 +2660,23 @@ function Session({settings,go,updateUser,trial,setTrial,addMistake,plan="free",s
             </div>
 
             {!checked&&(
-              <p style={{marginTop:12,fontSize:".72rem",color:"#334155",textAlign:"center"}}>
-                اختر إجابة — الشرح يظهر فوراً
-              </p>
+              <div style={{marginTop:14,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                <p style={{fontSize:".72rem",color:"#334155"}}>
+                  {sel===null?"اختر إجابة":""}
+                </p>
+                {sel!==null&&(
+                  <button
+                    style={{padding:"11px 28px",borderRadius:12,cursor:"pointer",
+                      background:"linear-gradient(135deg,#f97316,#ea580c)",border:"none",
+                      color:"#fff",fontFamily:"Cairo,sans-serif",fontSize:".88rem",fontWeight:800,
+                      boxShadow:"0 4px 14px rgba(249,115,22,.35)",transition:"all .2s"}}
+                    onMouseEnter={e=>{e.currentTarget.style.transform="translateY(-1px)";}}
+                    onMouseLeave={e=>{e.currentTarget.style.transform="";}}
+                    onClick={()=>doCheck(sel,false)}>
+                    تحقق ←
+                  </button>
+                )}
+              </div>
             )}
           </div>
         )}
