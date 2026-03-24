@@ -1712,7 +1712,6 @@ function SimMode({settings,go,updateUser,addMistake,trial={}}){
               <div style={{display:"flex",gap:7,alignItems:"center"}}>
                 <span className="badge b-v">⚡ قياس</span>
                 {curQ&&<span className={`badge ${curQ.sec==="كمي"?"b-o":"b-c"}`}>{curQ.sec}</span>}
-                {curQ&&<span className="badge b-ai">{curQ.topic}</span>}
               </div>
               <div style={{display:"flex",gap:9,alignItems:"center"}}>
                 <SoundPanel sounds={sounds}/>
@@ -2424,7 +2423,7 @@ function Session({settings,go,updateUser,trial,setTrial,addMistake,plan="free",s
             background:"rgba(10,18,40,.9)",borderRadius:20,border:"1px solid rgba(255,255,255,.07)"}}>
             <div className="spin spin-lg" style={{margin:"0 auto 16px"}}/>
             <p style={{color:"#475569",fontSize:".88rem"}}>
-              يصيغ سؤالاً من <strong style={{color:secColor}}>{topicLabel}</strong>
+              يصيغ السؤال التالي...
             </p>
           </div>
         )}
@@ -2623,26 +2622,6 @@ function Session({settings,go,updateUser,trial,setTrial,addMistake,plan="free",s
                 </div>
               ))}
             </div>
-          </div>
-        )}
-
-        {/* Quick ref */}
-        {CONCEPTS[topicLabel]&&(
-          <div style={{padding:"14px",borderRadius:16,
-            background:"rgba(10,18,40,.95)",border:"1px solid rgba(34,211,238,.15)"}}>
-            <p style={{fontSize:".63rem",color:"#22d3ee",fontWeight:700,letterSpacing:".06em",marginBottom:9}}>
-              📌 {topicLabel}
-            </p>
-            {CONCEPTS[topicLabel].formula!=="—"&&(
-              <div style={{padding:"8px 10px",borderRadius:9,marginBottom:8,
-                background:"rgba(255,255,255,.04)",border:"1px solid rgba(255,255,255,.06)"}}>
-                <p style={{fontSize:".67rem",color:"#f97316",marginBottom:2}}>الصيغة</p>
-                <p style={{fontSize:".74rem",fontWeight:800,color:"#fdba74"}}>{CONCEPTS[topicLabel].formula}</p>
-              </div>
-            )}
-            <p style={{fontSize:".71rem",lineHeight:1.7,color:"#f87171"}}>
-              {CONCEPTS[topicLabel].trap}
-            </p>
           </div>
         )}
 
