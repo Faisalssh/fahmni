@@ -1570,6 +1570,8 @@ function SimMode({settings,go,updateUser,addMistake,trial={}}){
   const[startLoading,setStartLoading]= useState(false);
   const sounds  = useNatureSounds();
   const fmt     = s=>`${String(Math.floor(s/60)).padStart(2,"0")}:${String(s%60).padStart(2,"0")}`;
+  const[simChecked,setSimChecked]=useState(false);
+  const goNextAdvanceRef=useRef(null);
   const totalQ  = SIM_CONFIG.total;
   const timeTotal = SIM_CONFIG.minutes*60;
 
@@ -1649,22 +1651,32 @@ function SimMode({settings,go,updateUser,addMistake,trial={}}){
       chosen:curQ.options?.[chosenSel],correctAns:curQ.options?.[curQ.correct],
       steps:curQ.steps,tip:curQ.tip});
     updateUser(ok);
-    const next=curIdx+1;
-    if(next>=totalQ){doFinish(newAnswers);return;}
-    setIdx(next);setSel(null);setQStart(Date.now());setLoadingQ(false);
-    if(nextQData){
-      setCurQ(nextQData);setNextQData(null);
-      if(next+1<curPlan.length)
-        fetchOne(curPlan[next+1]).then(q=>setNextQData({...q,topic:q.topic||curPlan[next+1].topic,sec:curPlan[next+1].sec})).catch(()=>{});
-    }else{
-      setLoadingQ(true);
-      try{
-        const q=await fetchOne(curPlan[next]);
-        setCurQ({...q,topic:q.topic||curPlan[next].topic,sec:curPlan[next].sec});
+
+    /* أظهر الإجابة الصحيحة قبل الانتقال */
+    setSimChecked(true);
+
+    const doAdvance=async()=>{
+      setSimChecked(false);setSel(null);
+      const next=curIdx+1;
+      if(next>=totalQ){doFinish(newAnswers);return;}
+      setIdx(next);setQStart(Date.now());setLoadingQ(false);
+      if(nextQData){
+        setCurQ(nextQData);setNextQData(null);
         if(next+1<curPlan.length)
-          fetchOne(curPlan[next+1]).then(q2=>setNextQData({...q2,topic:q2.topic||curPlan[next+1].topic,sec:curPlan[next+1].sec})).catch(()=>{});
-      }catch(e){}finally{setLoadingQ(false);}
-    }
+          fetchOne(curPlan[next+1]).then(q=>setNextQData({...q,topic:q.topic||curPlan[next+1].topic,sec:curPlan[next+1].sec})).catch(()=>{});
+      }else{
+        setLoadingQ(true);
+        try{
+          const q=await fetchOne(curPlan[next]);
+          setCurQ({...q,topic:q.topic||curPlan[next].topic,sec:curPlan[next].sec});
+          if(next+1<curPlan.length)
+            fetchOne(curPlan[next+1]).then(q2=>setNextQData({...q2,topic:q2.topic||curPlan[next+1].topic,sec:curPlan[next+1].sec})).catch(()=>{});
+        }catch(e){}finally{setLoadingQ(false);}
+      }
+    };
+
+    /* خزّن doAdvance للزر */
+    goNextAdvanceRef.current=doAdvance;
   };
 
   const doFinish=(ans=answers)=>setPhase("done");
@@ -1770,19 +1782,9 @@ function SimMode({settings,go,updateUser,addMistake,trial={}}){
             <div className="gl si" style={{padding:"26px",minHeight:240}}>
               {curQ?.shape&&<ShapeRender shape={curQ.shape}/>}
               {curQ?.image_url&&(
-                <div style={{width:"100%",marginBottom:16,borderRadius:10,
-                  border:"1px solid rgba(255,255,255,.07)",overflow:"hidden",
-                  background:"rgba(255,255,255,.02)",minHeight:60,
-                  display:"flex",alignItems:"center",justifyContent:"center"}}>
-                  <img src={curQ.image_url} alt="سؤال"
-                    style={{width:"100%",display:"block",objectFit:"contain",maxHeight:260}}
-                    onError={e=>{
-                      e.currentTarget.style.display="none";
-                      e.currentTarget.parentElement.innerHTML=
-                        '<p style="color:#475569;font-size:.8rem;padding:16px">تعذّر تحميل الصورة</p>';
-                    }}
-                  />
-                </div>
+                <img src={curQ.image_url} alt="سؤال" style={{
+                  width:"100%",maxHeight:260,objectFit:"contain",borderRadius:10,
+                  border:"1px solid rgba(255,255,255,.07)",marginBottom:16,display:"block"}}/>
               )}
               <p style={{fontSize:".68rem",color:"#475569",marginBottom:10,fontWeight:600}}>
                 سؤال {idx+1} من {totalQ}
@@ -1791,21 +1793,64 @@ function SimMode({settings,go,updateUser,addMistake,trial={}}){
                 {curQ?.question||curQ?.question_text||""}
               </h2>
               <div style={{display:"flex",flexDirection:"column",gap:9}}>
-                {(curQ?.options||[]).filter(Boolean).map((opt,i)=>(
-                  <button key={i} className={`ans ${sel===i?"sel":""}`}
-                    onClick={()=>setSel(i)} style={{transition:"all .15s"}}>
-                    <span>{opt}</span>
-                    <div className="opt-l">{['أ','ب','ج','د'][i]}</div>
-                  </button>
-                ))}
+                {(curQ?.options||[]).filter(Boolean).map((opt,i)=>{
+                  const showOk  = simChecked && i===curQ.correct;
+                  const showBad = simChecked && sel===i && i!==curQ.correct;
+                  return(
+                    <button key={i}
+                      className={`ans ${showOk?"ok":showBad?"bad":sel===i&&!simChecked?"sel":""} ${simChecked?"lk":""}`}
+                      onClick={()=>{if(!simChecked)setSel(i);}}
+                      style={{position:"relative"}}>
+                      <span>{opt}</span>
+                      <div className="opt-l">{['أ','ب','ج','د'][i]}</div>
+                      {showOk&&<span style={{position:"absolute",left:14,top:"50%",transform:"translateY(-50%)"}}>✓</span>}
+                      {showBad&&<span style={{position:"absolute",left:14,top:"50%",transform:"translateY(-50%)"}}>✗</span>}
+                    </button>
+                  );
+                })}
               </div>
-              <div style={{marginTop:18,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-                <p style={{fontSize:".72rem",color:"#334155"}}>{sel===null?"اختر إجابة":""}</p>
-                <button className="btn btn-p" disabled={sel===null||loadingQ}
-                  style={{padding:"11px 24px"}}
-                  onClick={()=>goNext(sel,plan,idx,answers,qTimes)}>
-                  {idx===totalQ-1?"أنهِ الاختبار ←":"التالي →"}
-                </button>
+
+              {/* نتيجة الإجابة */}
+              {simChecked&&(
+                <div style={{marginTop:14,padding:"12px 14px",borderRadius:12,
+                  background:sel===curQ?.correct?"rgba(74,222,128,.07)":"rgba(248,113,113,.07)",
+                  border:`1px solid ${sel===curQ?.correct?"rgba(74,222,128,.25)":"rgba(248,113,113,.22)"}`}}>
+                  <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:sel===curQ?.correct?0:6}}>
+                    <span style={{fontSize:"1.1rem"}}>{sel===curQ?.correct?"✅":"❌"}</span>
+                    <p style={{fontWeight:800,fontSize:".85rem",
+                      color:sel===curQ?.correct?"#4ade80":"#f87171"}}>
+                      {sel===curQ?.correct?"إجابة صحيحة":"إجابة خاطئة"}
+                    </p>
+                  </div>
+                  {sel!==curQ?.correct&&(
+                    <p style={{fontSize:".78rem",color:"#94a3b8",paddingRight:30}}>
+                      الصحيحة: <strong style={{color:"#bbf7d0"}}>{curQ?.options?.[curQ.correct]}</strong>
+                    </p>
+                  )}
+                </div>
+              )}
+
+              <div style={{marginTop:16,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                <p style={{fontSize:".72rem",color:"#334155"}}>
+                  {!simChecked&&sel===null?"اختر إجابة":""}
+                </p>
+                {!simChecked?(
+                  <button className="btn btn-p" disabled={sel===null||loadingQ}
+                    style={{padding:"11px 24px"}}
+                    onClick={()=>goNext(sel,plan,idx,answers,qTimes)}>
+                    تحقق ←
+                  </button>
+                ):(
+                  <button style={{padding:"11px 28px",borderRadius:12,cursor:"pointer",
+                    background:"linear-gradient(135deg,#f97316,#ea580c)",border:"none",
+                    color:"#fff",fontFamily:"Cairo,sans-serif",fontSize:".88rem",fontWeight:800,
+                    boxShadow:"0 4px 14px rgba(249,115,22,.35)",transition:"all .2s"}}
+                    onMouseEnter={e=>{e.currentTarget.style.transform="translateY(-1px)";}}
+                    onMouseLeave={e=>{e.currentTarget.style.transform="";}}
+                    onClick={()=>goNextAdvanceRef.current?.()}>
+                    {idx===answers.length&&idx===totalQ-1?"أنهِ الاختبار ←":"التالي →"}
+                  </button>
+                )}
               </div>
             </div>
           )}
