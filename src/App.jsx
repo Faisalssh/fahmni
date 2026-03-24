@@ -2698,7 +2698,7 @@ function Session({settings,go,updateUser,trial,setTrial,addMistake,plan="free",s
           <p style={{fontSize:".63rem",color:"#475569",fontWeight:700,letterSpacing:".07em",marginBottom:12}}>
             الجلسة الحالية
           </p>
-          {history.length===0?(
+          {!checked&&history.length===0?(
             <div style={{textAlign:"center",padding:"14px 0"}}>
               <p style={{fontSize:"1.8rem",marginBottom:6}}>🎯</p>
               <p style={{fontSize:".72rem",color:"#334155"}}>أجب على السؤال لتبدأ</p>
@@ -2715,7 +2715,8 @@ function Session({settings,go,updateUser,trial,setTrial,addMistake,plan="free",s
                 ].map(({l,v,c},i)=>(
                   <div key={i} style={{padding:"10px",borderRadius:11,textAlign:"center",
                     background:"rgba(255,255,255,.03)",border:"1px solid rgba(255,255,255,.06)"}}>
-                    <p style={{fontSize:"1.3rem",fontWeight:900,color:c,lineHeight:1}}>{v}</p>
+                    <p style={{fontSize:"1.3rem",fontWeight:900,color:c,lineHeight:1,
+                      animation:"numPop .3s cubic-bezier(.34,1.56,.64,1) both"}}>{v}</p>
                     <p style={{fontSize:".6rem",color:"#334155",marginTop:3}}>{l}</p>
                   </div>
                 ))}
