@@ -4500,7 +4500,6 @@ function Roadmap({go,setSettings,openLesson,trial={},getTopicProgress,session=nu
   };
   const meta  = SEC_META[active];
   const groups= TOPIC_GROUPS[active];
-  const isSub = trial.isSubscribed||trial.isAdmin;
 
   return(
     <div style={{display:"flex",flexDirection:"column",gap:16}}>
