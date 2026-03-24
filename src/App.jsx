@@ -12,6 +12,7 @@ const GS = () => (<style>{`
   @keyframes blink{0%,80%,100%{transform:scale(0);opacity:0}40%{transform:scale(1);opacity:1}}
   @keyframes cPop{0%{transform:scale(1)}45%{transform:scale(1.03)}100%{transform:scale(1)}}
   @keyframes numPop{0%{transform:scale(.7);opacity:0}60%{transform:scale(1.2)}100%{transform:scale(1);opacity:1}}
+  @keyframes slideUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
   @keyframes streakGlow{0%,100%{box-shadow:0 0 0 rgba(249,115,22,0)}50%{box-shadow:0 0 20px rgba(249,115,22,.4)}}
   @keyframes wShake{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
   @keyframes glowP{0%,100%{box-shadow:0 4px 18px rgba(249,115,22,.35)}50%{box-shadow:0 6px 28px rgba(249,115,22,.55)}}
@@ -2441,7 +2442,7 @@ function Session({settings,go,updateUser,trial,setTrial,addMistake,plan="free",s
   },[]);
 
   /* ── answer ── */
-  const pickAnswer=(i)=>{ if(checked)return; setSel(i); };
+  const pickAnswer=(i)=>{ if(checked)return; setSel(i); doCheck(i,false); };
 
   const doCheck=(chosenIdx,isExpired)=>{
     const ok=!isExpired&&chosenIdx===qData?.correct;
@@ -2610,51 +2611,29 @@ function Session({settings,go,updateUser,trial,setTrial,addMistake,plan="free",s
             </div>
 
             {!checked&&(
-              <div style={{marginTop:14,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-                <p style={{fontSize:".72rem",color:"#334155"}}>
-                  {sel===null?"اختر إجابة":""}
-                </p>
-                {sel!==null&&!examMode&&(
-                  <button
-                    style={{padding:"11px 28px",borderRadius:12,cursor:"pointer",
-                      background:"linear-gradient(135deg,#f97316,#ea580c)",border:"none",
-                      color:"#fff",fontFamily:"Cairo,sans-serif",fontSize:".88rem",fontWeight:800,
-                      boxShadow:"0 4px 14px rgba(249,115,22,.35)",transition:"all .2s"}}
-                    onMouseEnter={e=>{e.currentTarget.style.transform="translateY(-1px)";}}
-                    onMouseLeave={e=>{e.currentTarget.style.transform="";}}
-                    onClick={()=>doCheck(sel,false)}>
-                    تحقق ←
-                  </button>
-                )}
-                {sel!==null&&examMode&&(
-                  <button
-                    style={{padding:"11px 28px",borderRadius:12,cursor:"pointer",
-                      background:"linear-gradient(135deg,#f97316,#ea580c)",border:"none",
-                      color:"#fff",fontFamily:"Cairo,sans-serif",fontSize:".88rem",fontWeight:800,
-                      boxShadow:"0 4px 14px rgba(249,115,22,.35)",transition:"all .2s"}}
-                    onMouseEnter={e=>{e.currentTarget.style.transform="translateY(-1px)";}}
-                    onMouseLeave={e=>{e.currentTarget.style.transform="";}}
-                    onClick={()=>doCheck(sel,false)}>
-                    التالي →
-                  </button>
-                )}
-              </div>
+              <p style={{marginTop:14,fontSize:".72rem",color:"#334155",textAlign:"center"}}>
+                {sel===null?"اختر إجابة":""}
+              </p>
             )}
           </div>
         )}
 
         {/* examMode — زر التالي فقط بدون شرح */}
         {checked&&qData&&examMode&&(
-          <div style={{display:"flex",justifyContent:"flex-end",marginTop:4}}>
+          <div style={{display:"flex",justifyContent:"flex-end",marginTop:12}}>
             <button
-              style={{padding:"11px 28px",borderRadius:12,cursor:"pointer",
+              style={{
+                padding:"13px 32px",borderRadius:14,cursor:"pointer",
                 background:"linear-gradient(135deg,#f97316,#ea580c)",border:"none",
-                color:"#fff",fontFamily:"Cairo,sans-serif",fontSize:".88rem",fontWeight:800,
-                boxShadow:"0 4px 14px rgba(249,115,22,.35)",transition:"all .2s"}}
-              onMouseEnter={e=>{e.currentTarget.style.transform="translateY(-1px)";}}
+                color:"#fff",fontFamily:"Cairo,sans-serif",fontSize:".92rem",fontWeight:900,
+                boxShadow:"0 6px 20px rgba(249,115,22,.4)",
+                transition:"all .2s",
+                animation:"slideUp .3s cubic-bezier(.34,1.56,.64,1) both",
+              }}
+              onMouseEnter={e=>{e.currentTarget.style.transform="translateY(-2px)";}}
               onMouseLeave={e=>{e.currentTarget.style.transform="";}}
               onClick={fetchQ}>
-              التالي ←
+              السؤال التالي ←
             </button>
           </div>
         )}
@@ -2751,16 +2730,22 @@ function Session({settings,go,updateUser,trial,setTrial,addMistake,plan="free",s
             )}
 
             {/* Actions */}
-            <div style={{display:"flex",justifyContent:"flex-end",alignItems:"center",gap:8}}>
+            <div style={{display:"flex",justifyContent:"flex-end",alignItems:"center",gap:8,marginTop:4}}>
               {checked&&(
                 <button
-                  style={{padding:"11px 28px",borderRadius:12,cursor:"pointer",
+                  style={{
+                    padding:"13px 32px",borderRadius:14,cursor:"pointer",
                     background:"linear-gradient(135deg,#f97316,#ea580c)",border:"none",
-                    color:"#fff",fontFamily:"Cairo,sans-serif",fontSize:".88rem",fontWeight:800,
-                    boxShadow:"0 4px 14px rgba(249,115,22,.35)",transition:"all .2s"}}
-                  onMouseEnter={e=>{e.currentTarget.style.transform="translateY(-1px)";}}
-                  onMouseLeave={e=>{e.currentTarget.style.transform="";}}
-                  onClick={fetchQ}>التالي ←</button>
+                    color:"#fff",fontFamily:"Cairo,sans-serif",fontSize:".92rem",fontWeight:900,
+                    boxShadow:"0 6px 20px rgba(249,115,22,.4)",
+                    transition:"all .2s",letterSpacing:".02em",
+                    animation:"slideUp .3s cubic-bezier(.34,1.56,.64,1) both",
+                  }}
+                  onMouseEnter={e=>{e.currentTarget.style.transform="translateY(-2px)";e.currentTarget.style.boxShadow="0 10px 28px rgba(249,115,22,.5)";}}
+                  onMouseLeave={e=>{e.currentTarget.style.transform="";e.currentTarget.style.boxShadow="0 6px 20px rgba(249,115,22,.4)";}}
+                  onClick={fetchQ}>
+                  السؤال التالي ←
+                </button>
               )}
             </div>
           </div>
