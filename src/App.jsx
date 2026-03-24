@@ -4772,7 +4772,7 @@ function Roadmap({go,setSettings,openLesson,trial={},getTopicProgress,session=nu
         <button
           onClick={()=>{
             if(!isSub){go("paywall");return;}
-            setSettings(p=>({...p,topic:"__comprehensive__",comprehensiveSection:active,section:active,difficulty:"متوسط",examMode:true}));
+            setSettings(p=>({...p,topic:"__comprehensive__",comprehensiveSection:active,section:active,difficulty:"متوسط",examMode:false}));
             go("session");
           }}
           style={{
