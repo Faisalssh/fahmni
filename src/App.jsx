@@ -2384,10 +2384,12 @@ function Session({settings,go,updateUser,trial,setTrial,addMistake,plan="free",s
           );
           if(r.ok){
             const rows=await r.json();
-            if(rows&&rows.length>1){
+            if(rows&&rows.length>=1){
               /* استبعد السؤال الحالي وحط الباقي في الـ queue */
+              const currentId=q._dbId;
               const siblings=rows
-                .filter(x=>x.id!==q._dbId)
+                .filter(x=>String(x.id)!==String(currentId))
+                .sort((a,b)=>(a.passage_order||0)-(b.passage_order||0))
                 .map(x=>({
                   question         : x.question_text||"",
                   image_url        : x.image_url||null,
@@ -2403,7 +2405,9 @@ function Session({settings,go,updateUser,trial,setTrial,addMistake,plan="free",s
                   _fromDB          : true,
                   _dbId            : x.id,
                 }));
-              passageQueueRef.current=siblings;
+              if(siblings.length>0){
+                passageQueueRef.current=siblings;
+              }
             }
           }
         }catch(_){}
@@ -3334,12 +3338,13 @@ async function hashQuestion(text){
 const sbGetQuestion=async(userId,token,{topic,section,difficulty})=>{
   if(IS_ARTIFACT||!userId||userId==="guest") return null;
   try{
-    const r=await fetch(
-      `${SUPABASE_URL}/rest/v1/rpc/get_question_for_user`,
-      {method:"POST",
-       headers:{"Content-Type":"application/json","apikey":SUPABASE_ANON,"Authorization":`Bearer ${token}`},
-       body:JSON.stringify({p_user_id:userId,p_topic:topic,p_section:section,p_difficulty:difficulty})}
-    );
+    /* REST مباشر بدل RPC — يشمل passage_id وpassage_order */
+    const url=`${SUPABASE_URL}/rest/v1/questions?section=eq.${encodeURIComponent(section)}&active=eq.true`+
+      `&select=id,question_text,image_url,options,correct,explanation_title,steps,tip,shape,topic,passage_id,passage_order`+
+      `&limit=1&order=random()`;
+    const r=await fetch(url,{
+      headers:{"Content-Type":"application/json","apikey":SUPABASE_ANON,"Authorization":`Bearer ${token}`}
+    });
     if(!r.ok) return null;
     const rows=await r.json();
     return Array.isArray(rows)&&rows.length>0 ? rows[0] : null;
