@@ -2399,9 +2399,8 @@ function Session({settings,go,updateUser,trial,setTrial,addMistake,plan="free",s
           <div style={{display:"flex",alignItems:"center",gap:8,flexWrap:"wrap"}}>
             <div style={{width:8,height:8,borderRadius:"50%",background:secColor,
               boxShadow:`0 0 8px ${secColor}`}}/>
-            <span style={{fontSize:".82rem",fontWeight:800,color:"#fff"}}>{topicLabel}</span>
-            <span style={{padding:"3px 10px",borderRadius:99,fontSize:".65rem",fontWeight:700,
-              background:`${secColor}14`,border:`1px solid ${secColor}28`,color:secColor}}>
+            <span style={{padding:"3px 14px",borderRadius:99,fontSize:".78rem",fontWeight:800,
+              background:`${secColor}14`,border:`1px solid ${secColor}30`,color:secColor}}>
               {realSec}
             </span>
           </div>
