@@ -2329,6 +2329,7 @@ function Session({settings,go,updateUser,trial,setTrial,addMistake,plan="free",s
   const explRef = useRef(null);
   const sounds  = useNatureSounds();
 
+  const[score,setScore]=useState({correct:0,total:0});
   const correct  = history.filter(h=>h.ok).length;
   const acc      = history.length ? Math.round((correct/history.length)*100) : 0;
   const isCorrect= checked && sel===qData?.correct;
@@ -2443,6 +2444,8 @@ function Session({settings,go,updateUser,trial,setTrial,addMistake,plan="free",s
       correctAns:qData?.options[qData?.correct],steps:qData?.steps,tip:qData?.tip};
     const nh=[...history,entry];
     setHistory(nh);
+    const newCorrect=nh.filter(h=>h.ok).length;
+    setScore({correct:newCorrect,total:nh.length});
     setTrial(p=>{
       const nu=p.isSubscribed?p:{...p,used:p.used+1};
       if(!IS_ARTIFACT&&session?.userId&&!p.isSubscribed)
