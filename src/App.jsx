@@ -1784,20 +1784,23 @@ function SimMode({settings,go,updateUser,addMistake,trial={}}){
               <div style={{display:"flex",flexDirection:"column",gap:9}}>
                 {(curQ?.options||[]).filter(Boolean).map((opt,i)=>(
                   <button key={i} className={`ans ${sel===i?"sel":""}`}
-                    onClick={()=>setSel(i)} style={{transition:"all .15s"}}>
+                    onClick={()=>{if(sel!==null||loadingQ)return;setSel(i);goNext(i,plan,idx,answers,qTimes);}}
+                    style={{transition:"all .15s"}}>
                     <span>{opt}</span>
                     <div className="opt-l">{['أ','ب','ج','د'][i]}</div>
                   </button>
                 ))}
               </div>
 
-              <div style={{marginTop:18,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-                <p style={{fontSize:".72rem",color:"#334155"}}>{sel===null?"اختر إجابة":""}</p>
-                <button className="btn btn-p" disabled={sel===null||loadingQ}
-                  style={{padding:"11px 24px"}}
-                  onClick={()=>goNext(sel,plan,idx,answers,qTimes)}>
-                  {idx===totalQ-1?"أنهِ الاختبار ←":"التالي →"}
-                </button>
+              <div style={{marginTop:14,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                <p style={{fontSize:".72rem",color:"#334155"}}>{sel===null?"اختر إجابة مباشرة":""}</p>
+                {idx===totalQ-1&&sel!==null&&(
+                  <button className="btn btn-p" disabled={loadingQ}
+                    style={{padding:"11px 24px"}}
+                    onClick={()=>goNext(sel,plan,idx,answers,qTimes)}>
+                    أنهِ الاختبار ←
+                  </button>
+                )}
               </div>
             </div>
           )}
