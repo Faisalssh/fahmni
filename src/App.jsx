@@ -367,6 +367,35 @@ function SoundPanel({sounds}){
 }
 
 /* ═══════════════════ QUESTION TIMER ═══════════════════ */
+function NextCountdown({onNext,seconds=5}){
+  const[left,setLeft]=useState(seconds);
+  useEffect(()=>{
+    if(left<=0){onNext();return;}
+    const id=setTimeout(()=>setLeft(p=>p-1),1000);
+    return()=>clearTimeout(id);
+  },[left]);
+  return(
+    <div style={{display:"flex",alignItems:"center",gap:10}}>
+      <div style={{
+        width:28,height:28,borderRadius:"50%",flexShrink:0,
+        background:"rgba(249,115,22,.15)",border:"1.5px solid rgba(249,115,22,.4)",
+        display:"flex",alignItems:"center",justifyContent:"center",
+        fontSize:".78rem",fontWeight:900,color:"#f97316"
+      }}>{left}</div>
+      <button
+        onClick={onNext}
+        style={{padding:"11px 28px",borderRadius:12,cursor:"pointer",
+          background:"linear-gradient(135deg,#f97316,#ea580c)",border:"none",
+          color:"#fff",fontFamily:"Cairo,sans-serif",fontSize:".88rem",fontWeight:800,
+          boxShadow:"0 4px 14px rgba(249,115,22,.35)",transition:"all .2s"}}
+        onMouseEnter={e=>{e.currentTarget.style.transform="translateY(-1px)";}}
+        onMouseLeave={e=>{e.currentTarget.style.transform="";}}>
+        التالي ←
+      </button>
+    </div>
+  );
+}
+
 function QuestionTimer({seconds=90,onExpire,paused=false}){
   const[left,setLeft]=useState(seconds);
   const pct=Math.round((left/seconds)*100),warn=left<=15,r=22,c=2*Math.PI*r;
@@ -2290,7 +2319,6 @@ function Session({settings,go,updateUser,trial,setTrial,addMistake,plan="free",s
   const[showCard,setShowCard]= useState(false);
   const[qTimes,setQTimes]  = useState([]);
   const[qStart,setQStart]  = useState(Date.now());
-  const[autoNext,setAutoNext]= useState(false);
   const[coach,setCoach]    = useState(null);
   const[coachLoading,setCoachLoading]= useState(false);
   const[curTopic,setCurTopic]= useState(()=>ALL_TOPICS[Math.floor(Math.random()*ALL_TOPICS.length)]);
@@ -2312,7 +2340,7 @@ function Session({settings,go,updateUser,trial,setTrial,addMistake,plan="free",s
     if(!trial.isAdmin&&!trial.isSubscribed&&trial.used>=trial.limit){go("paywall");return;}
 
     setLoading(true);setErr("");setQData(null);setSel(null);setChecked(false);
-    setSteps([]);setExpired(false);setAutoNext(false);setCoach(null);setCoachLoading(false);
+    setSteps([]);setExpired(false);setCoach(null);setCoachLoading(false);
 
     try{
       /* ── 1. هل في قطعة منتظرة؟ خذ التالي منها ── */
@@ -2424,14 +2452,13 @@ function Session({settings,go,updateUser,trial,setTrial,addMistake,plan="free",s
     updateUser(ok);
     if(!ok)addMistake(entry);
     setSteps(qData?.steps||[]);
-    setAutoNext(false);
     setCoach(null);setCoachLoading(true);
     genQuickCoach({topic:curTopic||settings.topic,ok,question:qData?.question||"",
       chosen:isExpired?"(انتهى الوقت)":(qData?.options[chosenIdx]||""),
       correctAns:qData?.options[qData?.correct]||"",history:nh
     }).then(c=>setCoach(c))
       .catch(()=>setCoach({emoji:ok?"✓":"💡",msg:ok?"أحسنت!":"راجع طريقة الحل.",tip:""}))
-      .finally(()=>{setCoachLoading(false);setAutoNext(true);});
+      .finally(()=>{setCoachLoading(false);});
     setTimeout(()=>explRef.current?.scrollIntoView({behavior:"smooth",block:"start"}),100);
     if(nh.length>0&&nh.length%TEACHER_TRIGGER===0)setTimeout(()=>setShowTeacher(true),1800);
   };
@@ -2641,9 +2668,14 @@ function Session({settings,go,updateUser,trial,setTrial,addMistake,plan="free",s
 
             {/* Actions */}
             <div style={{display:"flex",justifyContent:"flex-end",alignItems:"center",gap:8}}>
-              {autoNext&&!showTeacher&&<NextCountdown onNext={fetchQ} seconds={5}/>}
-              {!autoNext&&checked&&(
-                <button className="btn btn-p" style={{padding:"11px 28px",fontWeight:800}}
+              {checked&&(
+                <button
+                  style={{padding:"11px 28px",borderRadius:12,cursor:"pointer",
+                    background:"linear-gradient(135deg,#f97316,#ea580c)",border:"none",
+                    color:"#fff",fontFamily:"Cairo,sans-serif",fontSize:".88rem",fontWeight:800,
+                    boxShadow:"0 4px 14px rgba(249,115,22,.35)",transition:"all .2s"}}
+                  onMouseEnter={e=>{e.currentTarget.style.transform="translateY(-1px)";}}
+                  onMouseLeave={e=>{e.currentTarget.style.transform="";}}
                   onClick={fetchQ}>التالي ←</button>
               )}
             </div>
@@ -2666,21 +2698,30 @@ function Session({settings,go,updateUser,trial,setTrial,addMistake,plan="free",s
           <p style={{fontSize:".63rem",color:"#475569",fontWeight:700,letterSpacing:".07em",marginBottom:12}}>
             الجلسة الحالية
           </p>
-          <div style={{display:"flex",justifyContent:"center",marginBottom:14}}>
-            <Ring pct={acc} size={80} color={acc>=70?"#4ade80":acc>=50?"#f97316":"#f87171"} label="الدقة"/>
-          </div>
-          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
-            {[
-              {l:"صحيح",v:correct,c:"#4ade80"},
-              {l:"إجمالي",v:history.length,c:"#94a3b8"},
-            ].map(({l,v,c},i)=>(
-              <div key={i} style={{padding:"10px",borderRadius:11,textAlign:"center",
-                background:"rgba(255,255,255,.03)",border:"1px solid rgba(255,255,255,.06)"}}>
-                <p style={{fontSize:"1.3rem",fontWeight:900,color:c,lineHeight:1}}>{v}</p>
-                <p style={{fontSize:".6rem",color:"#334155",marginTop:3}}>{l}</p>
+          {history.length===0?(
+            <div style={{textAlign:"center",padding:"14px 0"}}>
+              <p style={{fontSize:"1.8rem",marginBottom:6}}>🎯</p>
+              <p style={{fontSize:".72rem",color:"#334155"}}>أجب على السؤال لتبدأ</p>
+            </div>
+          ):(
+            <>
+              <div style={{display:"flex",justifyContent:"center",marginBottom:14}}>
+                <Ring pct={acc} size={80} color={acc>=70?"#4ade80":acc>=50?"#f97316":"#f87171"} label="الدقة"/>
               </div>
-            ))}
-          </div>
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
+                {[
+                  {l:"صحيح",v:correct,c:"#4ade80"},
+                  {l:"إجمالي",v:history.length,c:"#94a3b8"},
+                ].map(({l,v,c},i)=>(
+                  <div key={i} style={{padding:"10px",borderRadius:11,textAlign:"center",
+                    background:"rgba(255,255,255,.03)",border:"1px solid rgba(255,255,255,.06)"}}>
+                    <p style={{fontSize:"1.3rem",fontWeight:900,color:c,lineHeight:1}}>{v}</p>
+                    <p style={{fontSize:".6rem",color:"#334155",marginTop:3}}>{l}</p>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
         </div>
 
         {/* History dots */}
