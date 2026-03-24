@@ -4462,8 +4462,31 @@ function TopicLesson({topic,onClose,onStartPractice,go,watchedVideos=[],onWatchV
   );
 }
 
-function Roadmap({go,setSettings,openLesson,trial={},getTopicProgress}){
+function Roadmap({go,setSettings,openLesson,trial={},getTopicProgress,session=null}){
   const[active,setActive]=useState("كمي");
+  const[resetting,setResetting]=useState(false);
+  const[resetDone,setResetDone]=useState(false);
+
+  const isSub=trial.isSubscribed||trial.isAdmin;
+
+  /* إعادة الأسئلة المُشاهدة + النتائج للقسم الحالي */
+  const handleReset=async()=>{
+    if(!session?.userId||!session?.token||session?.isGuest)return;
+    if(!window.confirm(`إعادة جميع أسئلة "${active==="كمي"?"الكمي":"اللفظي"}" من الصفر؟`))return;
+    setResetting(true);
+    try{
+      /* 1) حذف سجلات المُشاهدة لهذا القسم */
+      await fetch(
+        `${SUPABASE_URL}/rest/v1/rpc/reset_seen_by_section`,
+        {method:"POST",
+         headers:{"Content-Type":"application/json","apikey":SUPABASE_ANON,"Authorization":`Bearer ${session.token}`},
+         body:JSON.stringify({p_user_id:session.userId,p_section:active})}
+      ).catch(()=>{});
+      /* 2) صفّر times_served للأسئلة (اختياري — لا يعيق) */
+      setResetDone(true);
+      setTimeout(()=>setResetDone(false),3000);
+    }catch(_){}finally{setResetting(false);}
+  };
 
   const SEC_META={
     كمي:{color:"#f97316",bg:"rgba(249,115,22,.07)",border:"rgba(249,115,22,.22)",
@@ -4541,6 +4564,33 @@ function Roadmap({go,setSettings,openLesson,trial={},getTopicProgress}){
               );
             })}
           </div>
+
+          {/* زر إعادة التعيين */}
+          {isSub&&session?.userId&&!session?.isGuest&&(
+            <div style={{marginTop:14,display:"flex",alignItems:"center",gap:10}}>
+              <button
+                onClick={handleReset}
+                disabled={resetting}
+                style={{
+                  padding:"8px 18px",borderRadius:99,cursor:"pointer",
+                  background:"rgba(248,113,113,.07)",
+                  border:"1px solid rgba(248,113,113,.22)",
+                  color:resetDone?"#4ade80":"#f87171",
+                  fontFamily:"Cairo,sans-serif",fontSize:".74rem",fontWeight:700,
+                  transition:"all .2s",opacity:resetting?.6:1,
+                }}
+                onMouseEnter={e=>{if(!resetting)e.currentTarget.style.background="rgba(248,113,113,.15)";}}
+                onMouseLeave={e=>{e.currentTarget.style.background="rgba(248,113,113,.07)";}}>
+                {resetting?"⏳ جاري الإعادة...":resetDone?"✅ تمت الإعادة":
+                  `🔄 إعادة أسئلة ${active==="كمي"?"الكمي":"اللفظي"} من الصفر`}
+              </button>
+              {resetDone&&(
+                <span style={{fontSize:".72rem",color:"#4ade80"}}>
+                  ستظهر الأسئلة من جديد في الجلسة القادمة
+                </span>
+              )}
+            </div>
+          )}
         </div>
       </div>
 
@@ -5592,7 +5642,7 @@ export default function Fahmni(){
       go("dashboard");
     }}/>;
     case"dashboard":return <Dashboard go={go} user={user} trial={trial} mistakes={mistakes} settings={settings} setSettings={setSettings} getTopicProgress={getTopicProgress} watchedVideos={watchedVideos}/>;
-    case"roadmap":return <Roadmap go={go} setSettings={setSettings} openLesson={openLesson} trial={trial} getTopicProgress={getTopicProgress}/>;
+    case"roadmap":return <Roadmap go={go} setSettings={setSettings} openLesson={openLesson} trial={trial} getTopicProgress={getTopicProgress} session={session}/>;
     case"lesson":
       if(!trial.isAdmin&&(!trial.isSubscribed||trial.status==='expired')) return <UpgradePrompt feature="شرح الأبواب" go={go}/>;
       return lessonTopic
@@ -5607,7 +5657,7 @@ export default function Fahmni(){
             setSettings(p=>({...p,topic:lessonTopic,section:sec,sessionSection:sec,difficulty:"متوسط"}));
             go("diagnostic");
           }}/>
-      : <Roadmap go={go} setSettings={setSettings} openLesson={openLesson} trial={trial} getTopicProgress={getTopicProgress}/>;
+      : <Roadmap go={go} setSettings={setSettings} openLesson={openLesson} trial={trial} getTopicProgress={getTopicProgress} session={session}/>;
     case"diagnostic":return <DiagnosticQ topic={settings.topic} section={settings.section} onResult={level=>{setSettings(p=>({...p,difficulty:level==="متقدم"?"صعب":"سهل"}));go("session");}} onSkip={()=>go("session")}/>;
     case"bank":
       if(!trial.isAdmin&&!trial.isSubscribed) return <UpgradePrompt feature="بنك الأسئلة" go={go}/>;
