@@ -1067,6 +1067,8 @@ async function genQuestion({topic, difficulty, avoidQuestion="", userId=null, us
         tip              : cached.tip||"",
         shape            : cached.shape||null,
         topic,
+        passage_id       : cached.passage_id||null,
+        passage_order    : cached.passage_order||null,
         _fromDB          : true,
         _dbId            : cached.id,
       };
@@ -1739,9 +1741,19 @@ function SimMode({settings,go,updateUser,addMistake,trial={}}){
             <div className="gl si" style={{padding:"26px",minHeight:240}}>
               {curQ?.shape&&<ShapeRender shape={curQ.shape}/>}
               {curQ?.image_url&&(
-                <img src={curQ.image_url} alt="سؤال" style={{
-                  width:"100%",maxHeight:260,objectFit:"contain",borderRadius:10,
-                  border:"1px solid rgba(255,255,255,.07)",marginBottom:16}}/>
+                <div style={{width:"100%",marginBottom:16,borderRadius:10,
+                  border:"1px solid rgba(255,255,255,.07)",overflow:"hidden",
+                  background:"rgba(255,255,255,.02)",minHeight:60,
+                  display:"flex",alignItems:"center",justifyContent:"center"}}>
+                  <img src={curQ.image_url} alt="سؤال"
+                    style={{width:"100%",display:"block",objectFit:"contain",maxHeight:260}}
+                    onError={e=>{
+                      e.currentTarget.style.display="none";
+                      e.currentTarget.parentElement.innerHTML=
+                        '<p style="color:#475569;font-size:.8rem;padding:16px">تعذّر تحميل الصورة</p>';
+                    }}
+                  />
+                </div>
               )}
               <p style={{fontSize:".68rem",color:"#475569",marginBottom:10,fontWeight:600}}>
                 سؤال {idx+1} من {totalQ}
@@ -2505,9 +2517,21 @@ function Session({settings,go,updateUser,trial,setTrial,addMistake,plan="free",s
             )}
             {qData.shape&&<ShapeRender shape={qData.shape}/>}
             {qData.image_url&&(
-              <img src={qData.image_url} alt="سؤال" style={{
-                width:"100%",maxHeight:260,objectFit:"contain",borderRadius:12,
-                border:"1px solid rgba(255,255,255,.07)",marginBottom:18}}/>
+              <div style={{width:"100%",marginBottom:18,borderRadius:12,
+                border:"1px solid rgba(255,255,255,.07)",overflow:"hidden",
+                background:"rgba(255,255,255,.02)",minHeight:80,
+                display:"flex",alignItems:"center",justifyContent:"center"}}>
+                <img
+                  src={qData.image_url}
+                  alt="سؤال"
+                  style={{width:"100%",display:"block",objectFit:"contain",maxHeight:280}}
+                  onError={e=>{
+                    e.currentTarget.style.display="none";
+                    e.currentTarget.parentElement.innerHTML=
+                      '<p style="color:#475569;font-size:.8rem;padding:20px">تعذّر تحميل الصورة</p>';
+                  }}
+                />
+              </div>
             )}
             <h2 style={{fontSize:"clamp(.95rem,3vw,1.1rem)",fontWeight:800,color:"#fff",
               lineHeight:1.9,marginBottom:20}}>{qData.question||qData.question_text||""}</h2>
