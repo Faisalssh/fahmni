@@ -1076,7 +1076,7 @@ async function genQuestion({topic, difficulty, avoidQuestion="", userId=null, us
   // ══ 1b. Fallback: اسحب عشوائياً من DB بالـ section فقط ══
   if(!IS_ARTIFACT){
     try{
-      const url=`${SUPABASE_URL}/rest/v1/questions?section=eq.${encodeURIComponent(section)}&active=eq.true&select=id,question_text,image_url,options,correct,explanation_title,steps,tip,shape,topic&limit=50&order=times_served.asc`;
+      const url=`${SUPABASE_URL}/rest/v1/questions?section=eq.${encodeURIComponent(section)}&active=eq.true&select=id,question_text,image_url,options,correct,explanation_title,steps,tip,shape,topic,passage_id,passage_order&limit=50&order=times_served.asc`;
       const r=await fetch(url,{headers:{"apikey":SUPABASE_ANON,"Authorization":`Bearer ${userToken||SUPABASE_ANON}`}});
       if(r.ok){
         const rows=await r.json();
@@ -1096,6 +1096,8 @@ async function genQuestion({topic, difficulty, avoidQuestion="", userId=null, us
               tip              : row.tip||"",
               shape            : row.shape||null,
               topic            : row.topic||topic,
+              passage_id       : row.passage_id||null,
+              passage_order    : row.passage_order||null,
               _fromDB          : true,
               _dbId            : row.id,
             };
@@ -2280,6 +2282,8 @@ function Session({settings,go,updateUser,trial,setTrial,addMistake,plan="free",s
   const[coach,setCoach]    = useState(null);
   const[coachLoading,setCoachLoading]= useState(false);
   const[curTopic,setCurTopic]= useState(()=>ALL_TOPICS[Math.floor(Math.random()*ALL_TOPICS.length)]);
+  /* passage queue — لأسئلة القطعة المترابطة */
+  const passageQueueRef = useRef([]);
 
   const lastQRef= useRef("");
   const explRef = useRef(null);
@@ -2294,32 +2298,82 @@ function Session({settings,go,updateUser,trial,setTrial,addMistake,plan="free",s
   /* ── fetch question ── */
   const fetchQ=useCallback(async()=>{
     if(!trial.isAdmin&&!trial.isSubscribed&&trial.used>=trial.limit){go("paywall");return;}
-    const isComprehensive= settings.topic==="__comprehensive__";
-    const sessionSec= settings.sessionSection;
-    const topicPool= isComprehensive
-      ? (TOPICS[settings.comprehensiveSection||settings.section]||ALL_TOPICS)
-      : sessionSec ? TOPICS[sessionSec]||ALL_TOPICS : ALL_TOPICS;
-
-    const nextTopic=(()=>{
-      const pool=topicPool.filter(t=>t!==curTopic);
-      const t=pool[Math.floor(Math.random()*pool.length)];
-      setCurTopic(t); return t;
-    })();
 
     setLoading(true);setErr("");setQData(null);setSel(null);setChecked(false);
     setSteps([]);setExpired(false);setAutoNext(false);setCoach(null);setCoachLoading(false);
+
     try{
+      /* ── 1. هل في قطعة منتظرة؟ خذ التالي منها ── */
+      if(passageQueueRef.current.length>0){
+        const next=passageQueueRef.current.shift();
+        if(next.image_url){
+          await new Promise(resolve=>{
+            const img=new window.Image();
+            img.onload=resolve;img.onerror=resolve;img.src=next.image_url;
+            setTimeout(resolve,3000);
+          });
+        }
+        setQData(next);setTimerKey(k=>k+1);setQStart(Date.now());
+        setLoading(false);return;
+      }
+
+      /* ── 2. اجلب سؤال عادي ── */
+      const isComprehensive= settings.topic==="__comprehensive__";
+      const sessionSec= settings.sessionSection;
+      const topicPool= isComprehensive
+        ? (TOPICS[settings.comprehensiveSection||settings.section]||ALL_TOPICS)
+        : sessionSec ? TOPICS[sessionSec]||ALL_TOPICS : ALL_TOPICS;
+
+      const nextTopic=(()=>{
+        const pool=topicPool.filter(t=>t!==curTopic);
+        const t=pool[Math.floor(Math.random()*pool.length)];
+        setCurTopic(t); return t;
+      })();
+
       const q=await genQuestion({topic:nextTopic,difficulty:settings.difficulty,
         avoidQuestion:lastQRef.current,userId:session?.userId||null,userToken:session?.token||null});
       lastQRef.current=q.question||"";
-      /* preload image before rendering — eliminates the 2-second flash */
+
+      /* ── 3. هل هذا السؤال جزء من قطعة؟ جهّز باقي القطعة ── */
+      if(q.passage_id&&!IS_ARTIFACT){
+        try{
+          const r=await fetch(
+            `${SUPABASE_URL}/rest/v1/questions?passage_id=eq.${encodeURIComponent(q.passage_id)}&active=eq.true&order=passage_order.asc&select=id,question_text,image_url,options,correct,explanation_title,steps,tip,shape,topic,passage_id,passage_order`,
+            {headers:{"apikey":SUPABASE_ANON,"Authorization":`Bearer ${session?.token||SUPABASE_ANON}`}}
+          );
+          if(r.ok){
+            const rows=await r.json();
+            if(rows&&rows.length>1){
+              /* استبعد السؤال الحالي وحط الباقي في الـ queue */
+              const siblings=rows
+                .filter(x=>x.id!==q._dbId)
+                .map(x=>({
+                  question         : x.question_text||"",
+                  image_url        : x.image_url||null,
+                  options          : Array.isArray(x.options)?x.options:JSON.parse(x.options||"[]"),
+                  correct          : x.correct,
+                  explanation_title: x.explanation_title||"الحل",
+                  steps            : Array.isArray(x.steps)?x.steps:JSON.parse(x.steps||"[]"),
+                  tip              : x.tip||"",
+                  shape            : x.shape||null,
+                  topic            : x.topic||nextTopic,
+                  passage_id       : x.passage_id,
+                  passage_order    : x.passage_order,
+                  _fromDB          : true,
+                  _dbId            : x.id,
+                }));
+              passageQueueRef.current=siblings;
+            }
+          }
+        }catch(_){}
+      }
+
+      /* preload image */
       if(q.image_url){
         await new Promise(resolve=>{
           const img=new window.Image();
-          img.onload=resolve;
-          img.onerror=resolve; // show even if fails
-          img.src=q.image_url;
-          setTimeout(resolve,3000); // max 3s wait
+          img.onload=resolve;img.onerror=resolve;img.src=q.image_url;
+          setTimeout(resolve,3000);
         });
       }
       setQData({...q,topic:nextTopic});setTimerKey(k=>k+1);setQStart(Date.now());
