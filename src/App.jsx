@@ -1633,7 +1633,7 @@ function SimMode({settings,go,updateUser,addMistake,trial={}}){
       if(p.length>1) fetchOne(p[1]).then(q=>setNextQData({...q,topic:q.topic||p[1].topic,sec:p[1].sec})).catch(()=>{});
     }catch(e){alert("تعذّر بدء الاختبار. تحقق من الاتصال.");setStartLoading(false);return;}
     setIdx(0);setSel(null);setAnswers([]);setQTimes([]);
-    setTimeLeft(timeTotal);setQStart(Date.now());
+    setSimChecked(false);setTimeLeft(timeTotal);setQStart(Date.now());
     setPhase("running");setStartLoading(false);
   };
 
@@ -1679,7 +1679,7 @@ function SimMode({settings,go,updateUser,addMistake,trial={}}){
     goNextAdvanceRef.current=doAdvance;
   };
 
-  const doFinish=(ans=answers)=>setPhase("done");
+  const doFinish=(ans=answers)=>{setAnswers(ans);setPhase("done");};
 
   /* ══ SETUP ══ */
   if(phase==="setup")return(
@@ -1848,7 +1848,7 @@ function SimMode({settings,go,updateUser,addMistake,trial={}}){
                     onMouseEnter={e=>{e.currentTarget.style.transform="translateY(-1px)";}}
                     onMouseLeave={e=>{e.currentTarget.style.transform="";}}
                     onClick={()=>goNextAdvanceRef.current?.()}>
-                    {idx===answers.length&&idx===totalQ-1?"أنهِ الاختبار ←":"التالي →"}
+                    {idx===totalQ-1?"أنهِ الاختبار ←":"التالي →"}
                   </button>
                 )}
               </div>
