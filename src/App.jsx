@@ -2375,7 +2375,7 @@ function Session({settings,go,updateUser,trial,setTrial,addMistake,plan="free",s
         avoidQuestion:lastQRef.current,userId:session?.userId||null,userToken:session?.token||null});
       lastQRef.current=q.question||"";
 
-      /* ── 3. هل هذا السؤال جزء من قطعة؟ جهّز باقي القطعة ── */
+      /* ── 3. هل هذا السؤال جزء من قطعة؟ ابدأ دائماً من السؤال الأول ── */
       if(q.passage_id&&!IS_ARTIFACT){
         try{
           const r=await fetch(
@@ -2385,29 +2385,40 @@ function Session({settings,go,updateUser,trial,setTrial,addMistake,plan="free",s
           if(r.ok){
             const rows=await r.json();
             if(rows&&rows.length>=1){
-              /* استبعد السؤال الحالي وحط الباقي في الـ queue */
-              const currentId=q._dbId;
-              const siblings=rows
-                .filter(x=>String(x.id)!==String(currentId))
-                .sort((a,b)=>(a.passage_order||0)-(b.passage_order||0))
-                .map(x=>({
-                  question         : x.question_text||"",
-                  image_url        : x.image_url||null,
-                  options          : Array.isArray(x.options)?x.options:JSON.parse(x.options||"[]"),
-                  correct          : x.correct,
-                  explanation_title: x.explanation_title||"الحل",
-                  steps            : Array.isArray(x.steps)?x.steps:JSON.parse(x.steps||"[]"),
-                  tip              : x.tip||"",
-                  shape            : x.shape||null,
-                  topic            : x.topic||nextTopic,
-                  passage_id       : x.passage_id,
-                  passage_order    : x.passage_order,
-                  _fromDB          : true,
-                  _dbId            : x.id,
-                }));
-              if(siblings.length>0){
-                passageQueueRef.current=siblings;
+              const mapRow=(x)=>({
+                question         : x.question_text||"",
+                image_url        : x.image_url||null,
+                options          : Array.isArray(x.options)?x.options:JSON.parse(x.options||"[]"),
+                correct          : x.correct,
+                explanation_title: x.explanation_title||"الحل",
+                steps            : Array.isArray(x.steps)?x.steps:JSON.parse(x.steps||"[]"),
+                tip              : x.tip||"",
+                shape            : x.shape||null,
+                topic            : x.topic||nextTopic,
+                passage_id       : x.passage_id,
+                passage_order    : x.passage_order,
+                _fromDB          : true,
+                _dbId            : x.id,
+              });
+              /* ابدأ من السؤال الأول دائماً */
+              const sorted=rows.sort((a,b)=>(a.passage_order||0)-(b.passage_order||0));
+              const first=sorted[0];
+              const rest=sorted.slice(1);
+              /* حمّل الصورة الأولى */
+              if(first.image_url){
+                await new Promise(resolve=>{
+                  const img=new window.Image();
+                  img.onload=resolve;img.onerror=resolve;img.src=first.image_url;
+                  setTimeout(resolve,3000);
+                });
               }
+              /* ضع الباقي في الـ queue */
+              passageQueueRef.current=rest.map(mapRow);
+              /* اعرض السؤال الأول */
+              setQData({...mapRow(first),topic:first.topic||nextTopic});
+              setTimerKey(k=>k+1);setQStart(Date.now());
+              setLoading(false);
+              return;
             }
           }
         }catch(_){}
