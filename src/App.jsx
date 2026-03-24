@@ -2607,7 +2607,7 @@ function Session({settings,go,updateUser,trial,setTrial,addMistake,plan="free",s
                 display:"flex",alignItems:"center",justifyContent:"center",
                 fontSize:"1.2rem"
               }}>{isCorrect?"✅":"❌"}</div>
-              <div>
+              <div style={{flex:1}}>
                 <p style={{fontWeight:900,color:isCorrect?"#4ade80":"#f87171",fontSize:".9rem"}}>
                   {isCorrect?"إجابة صحيحة":"إجابة خاطئة"}
                 </p>
@@ -2616,6 +2616,20 @@ function Session({settings,go,updateUser,trial,setTrial,addMistake,plan="free",s
                     الصحيح: <strong style={{color:"#bbf7d0"}}>{(qData.options||[])[qData.correct]}</strong>
                   </p>
                 )}
+              </div>
+              {/* mini score — visible on all screens */}
+              <div style={{display:"flex",gap:8,flexShrink:0}}>
+                <div style={{textAlign:"center",padding:"6px 12px",borderRadius:10,
+                  background:"rgba(74,222,128,.08)",border:"1px solid rgba(74,222,128,.2)"}}>
+                  <p style={{fontSize:"1.1rem",fontWeight:900,color:"#4ade80",lineHeight:1,
+                    animation:"numPop .3s cubic-bezier(.34,1.56,.64,1) both"}}>{correct}</p>
+                  <p style={{fontSize:".58rem",color:"#334155",marginTop:2}}>صحيح</p>
+                </div>
+                <div style={{textAlign:"center",padding:"6px 12px",borderRadius:10,
+                  background:"rgba(255,255,255,.04)",border:"1px solid rgba(255,255,255,.06)"}}>
+                  <p style={{fontSize:"1.1rem",fontWeight:900,color:"#94a3b8",lineHeight:1}}>{history.length}</p>
+                  <p style={{fontSize:".58rem",color:"#334155",marginTop:2}}>إجمالي</p>
+                </div>
               </div>
             </div>
 
