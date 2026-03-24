@@ -1060,7 +1060,8 @@ async function genQuestion({topic, difficulty, avoidQuestion="", userId=null, us
       sbMarkSeen(userId,userToken,cached.id);
       // حوّل من شكل DB إلى شكل الـ app
       return {
-        question         : cached.question_text,
+        question         : cached.question_text||"",
+        image_url        : cached.image_url||null,
         options          : Array.isArray(cached.options)?cached.options:JSON.parse(cached.options||"[]"),
         correct          : cached.correct,
         explanation_title: cached.explanation_title||"الحل",
@@ -1068,7 +1069,7 @@ async function genQuestion({topic, difficulty, avoidQuestion="", userId=null, us
         tip              : cached.tip||"",
         shape            : cached.shape||null,
         topic,
-        _fromDB          : true,   // للتتبع فقط
+        _fromDB          : true,
         _dbId            : cached.id,
       };
     }
