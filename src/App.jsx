@@ -2313,6 +2313,16 @@ function Session({settings,go,updateUser,trial,setTrial,addMistake,plan="free",s
       const q=await genQuestion({topic:nextTopic,difficulty:settings.difficulty,
         avoidQuestion:lastQRef.current,userId:session?.userId||null,userToken:session?.token||null});
       lastQRef.current=q.question||"";
+      /* preload image before rendering — eliminates the 2-second flash */
+      if(q.image_url){
+        await new Promise(resolve=>{
+          const img=new window.Image();
+          img.onload=resolve;
+          img.onerror=resolve; // show even if fails
+          img.src=q.image_url;
+          setTimeout(resolve,3000); // max 3s wait
+        });
+      }
       setQData({...q,topic:nextTopic});setTimerKey(k=>k+1);setQStart(Date.now());
     }catch(e){
       if(e.limitReached){setErr(e.message);go("paywall");}
