@@ -54,8 +54,10 @@ export default async function handler(req, res) {
 
     // ── الاسم ──
     const parts     = userName.trim().split(" ");
-    const firstName = parts[0] || "Fahmni";
-    const lastName  = parts.slice(1).join(" ") || "User";
+    const firstName = parts[0] ? parts[0].slice(0,20) : "Fahmni";
+    const lastName  = parts.length > 1
+      ? parts.slice(1).join(" ").slice(0,20)
+      : (firstName.length > 4 ? firstName.slice(-4) : "User");
 
     // ── Order ──
     const orderId   = `FM${Date.now()}${userId ? String(userId).slice(0,4) : "0000"}`;
