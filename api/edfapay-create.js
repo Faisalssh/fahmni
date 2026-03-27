@@ -96,10 +96,23 @@ export default async function handler(req, res) {
 
     console.log("=== EDFAPay Payload ===", JSON.stringify(payload, null, 2));
 
-    const r = await fetch("https://api.edfapay.com/payment/initiate", {
+    // جرّب endpoints متعددة
+    const endpoints = [
+      "https://api.edfapay.com/payment/initiate",
+      "https://gateway.edfapay.com/payment/initiate",
+      "https://checkout.edfapay.com/api/v1/payment",
+    ];
+
+    // أرسل كـ form-urlencoded أيضاً كـ fallback
+    const formBody = Object.entries(payload)
+      .map(([k,v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`)
+      .join("&");
+
+    console.log("Trying endpoint:", endpoints[0]);
+    const r = await fetch(endpoints[0], {
       method : "POST",
-      headers: { "Content-Type": "application/json" },
-      body   : JSON.stringify(payload),
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body   : formBody,
     });
 
     const rawText = await r.text();
