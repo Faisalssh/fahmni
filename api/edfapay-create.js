@@ -58,7 +58,7 @@ export default async function handler(req, res) {
     payer_email      : userEmail || "user@fahmniplus.com",
     payer_first_name : (userName || "فهمني").split(" ")[0] || "فهمني",
     payer_last_name  : (userName || "فهمني بلس").split(" ")[1] || "بلس",
-    payer_phone      : "0500000000",
+    payer_phone      : "+966500000000",
     payer_ip         : payerIp,
     payer_address    : "Saudi Arabia",
     payer_country    : "SA",
