@@ -4906,8 +4906,13 @@ function Checkout({go,trial,selectedPlan,selectedPeriod}){
     setLoading(true);setErr("");
     try{
       const userId   = trial?.userId||null;
-      const userEmail= trial?.email||"user@fahmniplus.com";
-      const userName = trial?.name||"مستخدم فهمني+";
+      const rawEmail = trial?.email||"";
+      const userEmail= rawEmail.includes("@")
+        ? rawEmail
+        : userId
+          ? `user${userId.slice(0,6)}@fahmniplus.com`
+          : "user@fahmniplus.com";
+      const userName = trial?.name||"Fahmni User";
 
       /* جلب IP المستخدم */
       let payerIp="1.1.1.1";
@@ -5572,6 +5577,9 @@ export default function Fahmni(){
               status:access.isAdmin?'active':access.status||'inactive',
               freeTrialUsed:access.status==='expired'&&access.plan==='free',
               expiresAt:access.expiresAt?new Date(access.expiresAt):null,
+              userId:sess.userId||null,
+              email:sess.email||null,
+              name:sess.name||null,
             });
           }
         }catch(e){
@@ -5585,7 +5593,7 @@ export default function Fahmni(){
             if(['month','exam'].includes(plan)&&expiresAt&&expiresAt>now) status='active';
             else if(['month','exam'].includes(plan)&&expiresAt&&expiresAt<=now) status='expired';
             else if(plan==='free'&&!freeTrialUsed&&(prog.trialUsed||0)<(prog.trialLimit||25)) status='free_trial';
-            setTrial({isSubscribed:status==='active',used:prog.trialUsed||0,limit:prog.trialLimit||25,plan,status,freeTrialUsed,expiresAt});
+            setTrial({isSubscribed:status==='active',used:prog.trialUsed||0,limit:prog.trialLimit||25,plan,status,freeTrialUsed,expiresAt,userId:sess.userId||null,email:sess.email||null,name:sess.name||null});
           }
         }
       }

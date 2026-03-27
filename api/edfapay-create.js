@@ -17,7 +17,11 @@ function validateInput({ plan, period, amount, userEmail }) {
   if (!["basic","premium"].includes(plan))   errors.push("plan invalid");
   if (!["1m","3m"].includes(period))          errors.push("period invalid");
   if (!amount || isNaN(amount) || parseFloat(amount) <= 0.10) errors.push("amount must be > 0.10");
-  if (!userEmail || !userEmail.includes("@")) errors.push("email invalid");
+  // تأكد من صحة الإيميل
+  const cleanEmail = (userEmail || "").trim().toLowerCase();
+  if (!cleanEmail || !cleanEmail.includes("@") || !cleanEmail.includes(".")) {
+    errors.push("email غير صالح — يجب أن يحتوي على @ ونقطة");
+  }
   return errors;
 }
 
@@ -86,8 +90,8 @@ export default async function handler(req, res) {
     payer_first_name : firstName,
     customer_name    : `${firstName} ${lastName}`,
     payer_last_name  : lastName,
-    payer_email      : userEmail,
-    customer_email   : userEmail,
+    payer_email      : cleanEmail,
+    customer_email   : cleanEmail,
     payer_phone      : formattedPhone,
     customer_phone   : formattedPhone,
     payer_ip         : payerIp,
