@@ -4875,18 +4875,57 @@ function ExpiredWall({trial,go}){
 
 function Checkout({go,trial,selectedPlan,selectedPeriod}){
   useEffect(()=>{window.scrollTo({top:0,behavior:"instant"});},[]);
+  const[loading,setLoading]=useState(false);
+  const[err,setErr]=useState("");
 
   const PLANS={
-    basic:{name:"تأسيسي",color:"#f97316",prices:{"1m":59,"3m":149}},
-    premium:{name:"احترافي",color:"#a78bfa",prices:{"1m":99,"3m":249}},
+    basic:  {name:"تأسيسي",  color:"#f97316",prices:{"1m":59, "3m":149}},
+    premium:{name:"احترافي", color:"#a78bfa",prices:{"1m":99, "3m":249}},
   };
   const PERIODS={"1m":"شهر واحد","3m":"3 أشهر"};
   const MONTHLY={"1m":null,"3m":{"basic":50,"premium":83}};
 
-  const plan = PLANS[selectedPlan||'basic'];
-  const period = selectedPeriod||'3m';
-  const price = plan.prices[period];
-  const monthly = MONTHLY[period]?.[selectedPlan||'basic'];
+  const plan    = PLANS[selectedPlan||"basic"];
+  const period  = selectedPeriod||"3m";
+  const price   = plan.prices[period];
+  const monthly = MONTHLY[period]?.[selectedPlan||"basic"];
+
+  /* تحقق إذا رجع من بوابة الدفع */
+  useEffect(()=>{
+    const params=new URLSearchParams(window.location.search);
+    const pStatus=params.get("payment");
+    if(pStatus==="success"){
+      window.history.replaceState({},"","/");
+      /* أعد تحميل بيانات المستخدم */
+      window.location.reload();
+    }
+  },[]);
+
+  const handlePay=async()=>{
+    if(loading)return;
+    setLoading(true);setErr("");
+    try{
+      const userId   = trial?.userId||null;
+      const userEmail= trial?.email||"user@fahmniplus.com";
+      const userName = trial?.name||"مستخدم فهمني+";
+
+      const r=await fetch("/api/edfapay-create",{
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({plan:selectedPlan||"basic",period,userId,userEmail,userName}),
+      });
+      const data=await r.json();
+      if(!r.ok||!data.payment_url){
+        setErr(data.error||"تعذّر إنشاء جلسة الدفع");
+        setLoading(false);return;
+      }
+      /* أعد توجيه المستخدم لبوابة الدفع */
+      window.location.href=data.payment_url;
+    }catch(e){
+      setErr("تعذّر الاتصال ببوابة الدفع — تحقق من الاتصال");
+      setLoading(false);
+    }
+  };
 
   return(
     <div style={{display:"grid",gap:14,maxWidth:560,margin:"0 auto",width:"100%"}}>
@@ -4906,9 +4945,9 @@ function Checkout({go,trial,selectedPlan,selectedPeriod}){
           تفاصيل الباقة
         </p>
         {[
-          ["الباقة",    <span style={{color:plan.color,fontWeight:800}}>{plan.name}</span>],
-          ["مدة الاشتراك", PERIODS[period]],
-          ["الإجمالي",  <span style={{color:"#fff",fontWeight:900,fontSize:"1.1rem"}}>{price} ريال</span>],
+          ["الباقة",        <span style={{color:plan.color,fontWeight:800}}>{plan.name}</span>],
+          ["مدة الاشتراك",  PERIODS[period]],
+          ["الإجمالي",      <span style={{color:"#fff",fontWeight:900,fontSize:"1.1rem"}}>{price} ريال</span>],
         ].map(([label,val],i)=>(
           <div key={i} style={{display:"flex",justifyContent:"space-between",alignItems:"center",
             padding:"11px 0",borderBottom:i<2?"1px solid rgba(255,255,255,.05)":"none"}}>
@@ -4923,25 +4962,39 @@ function Checkout({go,trial,selectedPlan,selectedPeriod}){
         )}
       </div>
 
-      {/* Secure payment notice */}
+      {/* Secure badge */}
       <div className="gl-c" style={{padding:"16px 20px",display:"flex",alignItems:"center",gap:12}}>
         <span style={{fontSize:"1.3rem"}}>🔒</span>
         <div>
-          <p style={{fontSize:".82rem",color:"#e2e8f0",fontWeight:700}}>سيتم تحويلك إلى بوابة دفع آمنة</p>
+          <p style={{fontSize:".82rem",color:"#e2e8f0",fontWeight:700}}>دفع آمن ومشفّر</p>
           <p style={{fontSize:".7rem",color:"#64748b",marginTop:3}}>
-            الدفع عبر Moyasar · يدعم مدى · Visa · Apple Pay
+            الدفع عبر EDFAPay · يدعم مدى · Visa · Mastercard
           </p>
         </div>
       </div>
 
+      {/* Error */}
+      {err&&(
+        <div style={{padding:"12px 16px",borderRadius:12,
+          background:"rgba(248,113,113,.08)",border:"1px solid rgba(248,113,113,.25)"}}>
+          <p style={{color:"#fca5a5",fontSize:".82rem"}}>⚠ {err}</p>
+        </div>
+      )}
+
       {/* CTA */}
       <div style={{display:"grid",gap:10}}>
-        <button className="btn btn-p" disabled style={{
-          justifyContent:"center",padding:"15px",
-          borderRadius:14,fontSize:".95rem",fontWeight:800,
-          opacity:.5,cursor:"not-allowed",
-        }}>
-          🔒 إتمام الدفع — سيتوفر قريباً
+        <button
+          className="btn btn-p"
+          style={{justifyContent:"center",padding:"16px",borderRadius:14,
+            fontSize:"1rem",fontWeight:800,
+            opacity:loading?0.7:1,cursor:loading?"wait":"pointer"}}
+          disabled={loading}
+          onClick={handlePay}>
+          {loading?(
+            <><div className="spin" style={{marginLeft:8}}/> جاري التحويل لبوابة الدفع...</>
+          ):(
+            `💳 ادفع ${price} ريال الآن`
+          )}
         </button>
         <p style={{textAlign:"center",fontSize:".65rem",color:"#334155"}}>
           لا استرداد بعد إتمام الدفع · الأسعار شاملة ضريبة القيمة المضافة
@@ -4952,12 +5005,9 @@ function Checkout({go,trial,selectedPlan,selectedPeriod}){
         </button>
       </div>
 
-      {/* Contact */}
       <p style={{textAlign:"center",fontSize:".68rem",color:"#334155"}}>
         للاستفسار: <a href="mailto:fahmnipluss@gmail.com" style={{color:"#f97316",textDecoration:"none"}}>fahmnipluss@gmail.com</a>
-        
       </p>
-
     </div>
   );
 }
@@ -5099,7 +5149,7 @@ function Paywall({trial,subscribe,back,go}){
       <div className="gl-c" style={{padding:"13px 18px",display:"flex",alignItems:"center",gap:10,flexWrap:"wrap"}}>
         <span style={{fontSize:"1rem"}}>🔒</span>
         <p style={{fontSize:".75rem",color:"#64748b",flex:1}}>
-          الدفع الآمن عبر <strong style={{color:"#67e8f9"}}>Moyasar</strong> — مدى · Visa · Apple Pay
+          الدفع الآمن عبر <strong style={{color:"#67e8f9"}}>EDFAPay</strong> — مدى · Visa · Mastercard
         </p>
       </div>
 
@@ -5151,7 +5201,7 @@ function Privacy({go}){
       "الاسم والبريد الإلكتروني عند إنشاء الحساب.",
       "بيانات الأداء: عدد الأسئلة المحلولة، الإجابات الصحيحة والخاطئة، الأبواب المدروسة، ونقاط الضعف.",
       "معلومات الاشتراك: نوع الباقة (مجاني / تأسيسي / احترافي)، مدة الاشتراك، وحالته.",
-      "بيانات الدفع تُعالَج حصراً عبر بوابة Moyasar المرخصة — لا نحتفظ بأي بيانات بطاقات.",
+      "بيانات الدفع تُعالَج حصراً عبر بوابة EDFAPay المرخصة — لا نحتفظ بأي بيانات بطاقات.",
       "بيانات الاستخدام العامة مثل وقت الجلسات والأبواب المدروسة لتحسين تجربتك."
     ]},
     {title:"كيف نستخدم معلوماتك؟",items:[
@@ -5165,12 +5215,12 @@ function Privacy({go}){
       "لا نبيع بياناتك الشخصية لأي طرف ثالث تحت أي ظرف.",
       "نستخدم Supabase لتخزين البيانات — ويلتزم بمعايير خصوصية دولية عالية.",
       "نستخدم Anthropic API لتوليد الأسئلة التعليمية فقط — ولا تُستخدم بياناتك لتدريب النماذج.",
-      "تتم معالجة المدفوعات عبر Moyasar المرخصة من البنك المركزي السعودي (ساما).",
+      "تتم معالجة المدفوعات عبر EDFAPay المرخصة من البنك المركزي السعودي (ساما).",
       "قد نشارك بيانات مجهولة الهوية وإحصائية لأغراض تحسين المنصة فقط."
     ]},
     {title:"أمان البيانات",items:[
       "تُشفَّر جميع البيانات المنقولة باستخدام بروتوكول HTTPS/TLS.",
-      "بيانات الدفع محمية بمعايير PCI-DSS عبر Moyasar.",
+      "بيانات الدفع محمية بمعايير PCI-DSS عبر EDFAPay.",
       "نراجع ممارسات الأمان بشكل دوري لضمان حماية بياناتك."
     ]},
     {title:"حقوقك",items:[
@@ -5194,7 +5244,7 @@ function Terms({go}){
       "الباقة التأسيسية: 59 ريال/شهر — أو 149 ريال/3 أشهر — أو 249 ريال/6 أشهر.",
       "الباقة الاحترافية: 99 ريال/شهر — أو 249 ريال/3 أشهر — أو 399 ريال/6 أشهر.",
       "جميع الأسعار شاملة ضريبة القيمة المضافة (15%) ما لم يُذكر غير ذلك.",
-      "تُعالَج المدفوعات عبر Moyasar المرخصة من البنك المركزي السعودي (ساما)."
+      "تُعالَج المدفوعات عبر EDFAPay المرخصة من البنك المركزي السعودي (ساما)."
     ]},
     {title:"سياسة الاسترداد — مهم",items:[
       "🚫 لا يتم استرداد رسوم الاشتراك بعد إتمام الدفع تحت أي ظرف.",
