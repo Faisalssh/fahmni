@@ -4873,7 +4873,7 @@ function ExpiredWall({trial,go}){
 }
 
 
-function Checkout({go,trial,selectedPlan,selectedPeriod}){
+function Checkout({go,trial,session=null,selectedPlan,selectedPeriod}){
   useEffect(()=>{window.scrollTo({top:0,behavior:"instant"});},[]);
   const[loading,setLoading]=useState(false);
   const[err,setErr]=useState("");
@@ -4905,14 +4905,12 @@ function Checkout({go,trial,selectedPlan,selectedPeriod}){
     if(loading)return;
     setLoading(true);setErr("");
     try{
-      const userId   = trial?.userId||null;
-      const rawEmail = trial?.email||"";
-      const userEmail= rawEmail.includes("@")
+      const userId   = session?.userId||trial?.userId||null;
+      const rawEmail = session?.email||trial?.email||"";
+      const userEmail= (rawEmail.includes("@")&&rawEmail.includes("."))
         ? rawEmail
-        : userId
-          ? `user${userId.slice(0,6)}@fahmniplus.com`
-          : "user@fahmniplus.com";
-      const userName = trial?.name||"Fahmni User";
+        : userId ? `user${String(userId).slice(0,8)}@fahmniplus.com` : `guest${Date.now()}@fahmniplus.com`;
+      const userName = session?.name||trial?.name||"Fahmni User";
 
       /* جلب IP المستخدم */
       let payerIp="1.1.1.1";
@@ -5770,7 +5768,7 @@ export default function Fahmni(){
         }
       }}/>;
     case"pricing":return <Pricing go={go} setCheckoutPlan={setCheckoutPlan} setCheckoutPeriod={setCheckoutPeriod}/>;
-    case"checkout":return <Checkout go={go} trial={trial} selectedPlan={checkoutPlan} selectedPeriod={checkoutPeriod}/>;
+    case"checkout":return <Checkout go={go} trial={trial} session={session} selectedPlan={checkoutPlan} selectedPeriod={checkoutPeriod}/>;
     case"paywall":return <Paywall trial={trial} go={go} subscribe={(plan,period)=>{setCheckoutPlan(plan||"basic");setCheckoutPeriod(period||"3m");go("checkout");}} back={()=>go("pricing")}/>;
     case"privacy":return <Privacy go={go}/>;
     case"terms":return <Terms go={go}/>;
