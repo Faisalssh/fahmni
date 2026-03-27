@@ -54,7 +54,7 @@ export default async function handler(req, res) {
     order_id      : orderId,
     order_amount  : amount,
     order_currency: "SAR",
-    order_desc    : `فهمني+ — باقة ${plan === "basic" ? "تأسيسي" : "احترافي"} (${period === "1m" ? "شهر" : "3 أشهر"})`,
+    order_desc    : `Fahmni+ ${plan === "basic" ? "Basic" : "Premium"} Plan - ${period === "1m" ? "1 Month" : "3 Months"}`,
     payer_email      : userEmail || "user@fahmniplus.com",
     payer_first_name : (userName || "فهمني").split(" ")[0] || "فهمني",
     payer_last_name  : (userName || "فهمني بلس").split(" ")[1] || "بلس",
