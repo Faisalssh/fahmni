@@ -37,6 +37,13 @@ export default async function handler(req, res) {
   const hashStr  = `${MERCHANT_KEY}${PASSWORD}${orderId}${amount.toFixed(2)}`;
   const hash     = crypto.createHash("md5").update(hashStr).digest("hex").toUpperCase();
 
+  // استخرج IP المستخدم من headers
+  const payerIp =
+    (req.headers["x-forwarded-for"] || "").split(",")[0].trim() ||
+    req.headers["x-real-ip"] ||
+    req.socket?.remoteAddress ||
+    "1.1.1.1";
+
   const payload = {
     merchant_key  : MERCHANT_KEY,
     order_id      : orderId,
@@ -46,6 +53,7 @@ export default async function handler(req, res) {
     payer_email   : userEmail || "user@fahmniplus.com",
     payer_name    : userName  || "مستخدم فهمني+",
     payer_phone   : "0500000000",
+    payer_ip      : payerIp,
     success_url   : `${BASE_URL}/api/edfapay-callback?status=success&order_id=${orderId}&plan=${plan}&period=${period}&user_id=${userId}`,
     fail_url      : `${BASE_URL}/api/edfapay-callback?status=fail&order_id=${orderId}`,
     hash,
@@ -58,11 +66,24 @@ export default async function handler(req, res) {
       body   : JSON.stringify(payload),
     });
 
-    const data = await r.json();
+    const rawText = await r.text();
+    let data;
+    try { data = JSON.parse(rawText); } catch(e) { data = { raw: rawText }; }
 
-    if (!r.ok || data.result !== "SUCCESS") {
-      console.error("EDFAPay error:", data);
-      return res.status(502).json({ error: data.message || "خطأ من بوابة الدفع" });
+    console.log("EDFAPay response status:", r.status);
+    console.log("EDFAPay response body:", JSON.stringify(data));
+
+    if (!r.ok || (data.result && data.result !== "SUCCESS")) {
+      return res.status(502).json({
+        error: data.message || data.error || data.result || "خطأ من بوابة الدفع",
+        debug: data
+      });
+    }
+
+    // بعض بوابات EDFAPay ترجع redirect_url أو payment_url
+    const payUrl = data.redirect_url || data.payment_url || data.url || data.paymentUrl;
+    if (!payUrl) {
+      return res.status(502).json({ error: "لم يُرجع الـ API رابط الدفع", debug: data });
     }
 
     // احفظ الطلب في Supabase قبل الريداريكت
@@ -89,7 +110,7 @@ export default async function handler(req, res) {
       }).catch(() => {});
     }
 
-    return res.status(200).json({ payment_url: data.redirect_url });
+    return res.status(200).json({ payment_url: payUrl });
 
   } catch (e) {
     console.error("EDFAPay network error:", e);
