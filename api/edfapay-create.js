@@ -2,72 +2,102 @@ import crypto from "crypto";
 
 export const config = { api: { bodyParser: true } };
 
+function formatPhone(phone) {
+  if (!phone) return "966500000000";
+  let p = String(phone).replace(/[\s\-\+\(\)]/g, "");
+  if (p.startsWith("00966")) return p.slice(2);
+  if (p.startsWith("966"))   return p;
+  if (p.startsWith("0"))     return "966" + p.slice(1);
+  if (p.startsWith("5") && p.length === 9) return "966" + p;
+  return p.length >= 9 ? p : "966500000000";
+}
+
+function validateInput({ plan, period, amount, userEmail }) {
+  const errors = [];
+  if (!["basic","premium"].includes(plan))   errors.push("plan invalid");
+  if (!["1m","3m"].includes(period))          errors.push("period invalid");
+  if (!amount || amount <= 0)                 errors.push("amount invalid");
+  if (!userEmail || !userEmail.includes("@")) errors.push("email invalid");
+  return errors;
+}
+
 export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
   if (req.method === "OPTIONS") return res.status(200).end();
-  if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
+  if (req.method !== "POST")   return res.status(405).json({ error: "Method not allowed" });
 
   const MERCHANT_KEY = process.env.EDFAPAY_MERCHANT_KEY;
   const PASSWORD     = process.env.EDFAPAY_PASSWORD;
   const BASE_URL     = process.env.NEXT_PUBLIC_SITE_URL || "https://fahmniplus.com";
 
   if (!MERCHANT_KEY || !PASSWORD) {
-    return res.status(500).json({ error: "مفاتيح EDFAPay غير مضبوطة" });
+    return res.status(500).json({ error: "EDFAPay keys not configured" });
   }
 
   let body = req.body;
   if (typeof body === "string") { try { body = JSON.parse(body); } catch {} }
+  body = body || {};
 
-  const { plan, period, userId, userEmail, userName } = body || {};
+  const {
+    plan      = "basic",
+    period    = "3m",
+    userId    = null,
+    userEmail = "user@fahmniplus.com",
+    userName  = "Fahmni User",
+    payer_ip  : frontendIp = null,
+  } = body;
 
   const PRICES = {
     basic:   { "1m": 59,  "3m": 149 },
     premium: { "1m": 99,  "3m": 249 },
   };
-
   const amount = PRICES[plan]?.[period];
-  if (!amount) return res.status(400).json({ error: "باقة أو فترة غير صالحة" });
 
-  // توليد order_id فريد
-  const orderId = `FM-${userId?.slice(0,8) || "guest"}-${Date.now()}`;
+  const validationErrors = validateInput({ plan, period, amount, userEmail });
+  if (validationErrors.length > 0) {
+    return res.status(400).json({ error: validationErrors.join(" | ") });
+  }
 
-  // بناء hash — EDFAPay يستخدم MD5(MERCHANT_KEY + PASSWORD + ORDER_ID + AMOUNT)
-  const hashStr  = `${MERCHANT_KEY}${PASSWORD}${orderId}${amount}`;
-  const hash     = crypto.createHash("md5").update(hashStr).digest("hex").toUpperCase();
-
-  // استخرج IP المستخدم من headers أو body
   const payerIp =
-    body.payer_ip ||
+    frontendIp ||
     (req.headers["x-forwarded-for"] || "").split(",")[0].trim() ||
     req.headers["x-real-ip"] ||
     req.headers["cf-connecting-ip"] ||
-    req.socket?.remoteAddress ||
-    "1.1.1.1";
+    "178.80.69.103";
 
-  console.log("payer_ip resolved:", payerIp);
-  console.log("x-forwarded-for:", req.headers["x-forwarded-for"]);
+  const nameParts      = (userName || "Fahmni User").trim().split(" ");
+  const firstName      = nameParts[0] || "Fahmni";
+  const lastName       = nameParts.slice(1).join(" ") || "User";
+  const formattedPhone = formatPhone(null);
+
+  const orderId   = `FM${Date.now()}${userId ? userId.slice(0,4) : "0000"}`;
+  const amountStr = amount.toFixed(2);
+  const hashInput = `${MERCHANT_KEY}${PASSWORD}${orderId}${amountStr}`;
+  const hash      = crypto.createHash("md5").update(hashInput).digest("hex").toUpperCase();
 
   const payload = {
-    merchant_key  : MERCHANT_KEY,
-    order_id      : orderId,
-    order_amount  : amount,
-    order_currency: "SAR",
-    order_desc    : `Fahmni+ ${plan === "basic" ? "Basic" : "Premium"} Plan - ${period === "1m" ? "1 Month" : "3 Months"}`,
-    payer_email      : userEmail || "user@fahmniplus.com",
-    payer_first_name : (userName || "فهمني").split(" ")[0] || "فهمني",
-    payer_last_name  : (userName || "فهمني بلس").split(" ")[1] || "بلس",
-    payer_phone      : "+966500000000",
+    merchant_key     : MERCHANT_KEY,
+    order_id         : orderId,
+    order_amount     : amountStr,
+    order_currency   : "SAR",
+    order_desc       : `Fahmni+ ${plan === "basic" ? "Basic" : "Premium"} - ${period === "1m" ? "1 Month" : "3 Months"}`,
+    payer_first_name : firstName,
+    payer_last_name  : lastName,
+    payer_email      : userEmail,
+    payer_phone      : formattedPhone,
     payer_ip         : payerIp,
-    payer_address    : "Saudi Arabia",
     payer_country    : "SA",
     payer_city       : "Riyadh",
-    payer_zip        : "12345",
-    success_url   : `${BASE_URL}/api/edfapay-callback?status=success&order_id=${orderId}&plan=${plan}&period=${period}&user_id=${userId}`,
-    fail_url      : `${BASE_URL}/api/edfapay-callback?status=fail&order_id=${orderId}`,
+    payer_address    : "Riyadh, Saudi Arabia",
+    payer_zip        : "12211",
+    success_url      : `${BASE_URL}/api/edfapay-callback?status=success&order_id=${orderId}&plan=${plan}&period=${period}&user_id=${userId || ""}`,
+    fail_url         : `${BASE_URL}/api/edfapay-callback?status=fail&order_id=${orderId}`,
     hash,
   };
+
+  console.log("=== EDFAPay Payload ===", JSON.stringify(payload, null, 2));
 
   try {
     const r = await fetch("https://api.edfapay.com/payment/initiate", {
@@ -78,52 +108,37 @@ export default async function handler(req, res) {
 
     const rawText = await r.text();
     let data;
-    try { data = JSON.parse(rawText); } catch(e) { data = { raw: rawText }; }
+    try { data = JSON.parse(rawText); } catch { data = { raw: rawText }; }
 
-    console.log("EDFAPay response status:", r.status);
-    console.log("EDFAPay response body:", JSON.stringify(data));
+    console.log("=== EDFAPay Response ===", r.status, JSON.stringify(data));
 
-    if (!r.ok || (data.result && data.result !== "SUCCESS")) {
-      return res.status(502).json({
-        error: data.message || data.error || data.result || "خطأ من بوابة الدفع",
-        debug: data
-      });
+    if (r.ok && data.result === "SUCCESS") {
+      const payUrl = data.redirect_url || data.payment_url || data.url || data.paymentUrl || data.checkout_url;
+      if (!payUrl) return res.status(502).json({ error: "No payment URL returned", debug: data });
+
+      const SUPABASE_URL     = process.env.VITE_SUPABASE_URL;
+      const SUPABASE_SERVICE = process.env.SUPABASE_SERVICE_ROLE_KEY;
+      if (SUPABASE_URL && SUPABASE_SERVICE && userId) {
+        await fetch(`${SUPABASE_URL}/rest/v1/payment_orders`, {
+          method : "POST",
+          headers: {
+            "Content-Type":"application/json",
+            "apikey":SUPABASE_SERVICE,
+            "Authorization":`Bearer ${SUPABASE_SERVICE}`,
+            "Prefer":"return=minimal",
+          },
+          body: JSON.stringify({ order_id:orderId, user_id:userId, plan, period, amount, status:"pending", created_at:new Date().toISOString() }),
+        }).catch(e => console.error("Supabase error:", e.message));
+      }
+      return res.status(200).json({ payment_url: payUrl });
     }
 
-    // بعض بوابات EDFAPay ترجع redirect_url أو payment_url
-    const payUrl = data.redirect_url || data.payment_url || data.url || data.paymentUrl;
-    if (!payUrl) {
-      return res.status(502).json({ error: "لم يُرجع الـ API رابط الدفع", debug: data });
-    }
-
-    // احفظ الطلب في Supabase قبل الريداريكت
-    const SUPABASE_URL       = process.env.VITE_SUPABASE_URL;
-    const SUPABASE_SERVICE   = process.env.SUPABASE_SERVICE_ROLE_KEY;
-    if (SUPABASE_URL && SUPABASE_SERVICE && userId) {
-      await fetch(`${SUPABASE_URL}/rest/v1/payment_orders`, {
-        method : "POST",
-        headers: {
-          "Content-Type" : "application/json",
-          "apikey"       : SUPABASE_SERVICE,
-          "Authorization": `Bearer ${SUPABASE_SERVICE}`,
-          "Prefer"       : "return=minimal",
-        },
-        body: JSON.stringify({
-          order_id : orderId,
-          user_id  : userId,
-          plan,
-          period,
-          amount,
-          status   : "pending",
-          created_at: new Date().toISOString(),
-        }),
-      }).catch(() => {});
-    }
-
-    return res.status(200).json({ payment_url: payUrl });
+    const errMsg = (data.errors || []).map(e => e.error_message).join(" | ") || data.error_message || "Payment gateway error";
+    console.error("EDFAPay error:", errMsg);
+    return res.status(502).json({ error: errMsg, debug: data });
 
   } catch (e) {
-    console.error("EDFAPay network error:", e);
-    return res.status(500).json({ error: "تعذّر الاتصال ببوابة الدفع" });
+    console.error("Network error:", e.message);
+    return res.status(500).json({ error: "Cannot connect to payment gateway" });
   }
 }
