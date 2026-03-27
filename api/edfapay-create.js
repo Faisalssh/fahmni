@@ -37,12 +37,17 @@ export default async function handler(req, res) {
   const hashStr  = `${MERCHANT_KEY}${PASSWORD}${orderId}${amount.toFixed(2)}`;
   const hash     = crypto.createHash("md5").update(hashStr).digest("hex").toUpperCase();
 
-  // استخرج IP المستخدم من headers
+  // استخرج IP المستخدم من headers أو body
   const payerIp =
+    body.payer_ip ||
     (req.headers["x-forwarded-for"] || "").split(",")[0].trim() ||
     req.headers["x-real-ip"] ||
+    req.headers["cf-connecting-ip"] ||
     req.socket?.remoteAddress ||
     "1.1.1.1";
+
+  console.log("payer_ip resolved:", payerIp);
+  console.log("x-forwarded-for:", req.headers["x-forwarded-for"]);
 
   const payload = {
     merchant_key  : MERCHANT_KEY,

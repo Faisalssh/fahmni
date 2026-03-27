@@ -4909,17 +4909,24 @@ function Checkout({go,trial,selectedPlan,selectedPeriod}){
       const userEmail= trial?.email||"user@fahmniplus.com";
       const userName = trial?.name||"مستخدم فهمني+";
 
+      /* جلب IP المستخدم */
+      let payerIp="1.1.1.1";
+      try{
+        const ipRes=await fetch("https://api.ipify.org?format=json");
+        const ipData=await ipRes.json();
+        payerIp=ipData.ip||"1.1.1.1";
+      }catch(_){}
+
       const r=await fetch("/api/edfapay-create",{
         method:"POST",
         headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({plan:selectedPlan||"basic",period,userId,userEmail,userName}),
+        body:JSON.stringify({plan:selectedPlan||"basic",period,userId,userEmail,userName,payer_ip:payerIp}),
       });
       const data=await r.json();
       if(!r.ok||!data.payment_url){
         setErr(data.error||"تعذّر إنشاء جلسة الدفع");
         setLoading(false);return;
       }
-      /* أعد توجيه المستخدم لبوابة الدفع */
       window.location.href=data.payment_url;
     }catch(e){
       setErr("تعذّر الاتصال ببوابة الدفع — تحقق من الاتصال");
