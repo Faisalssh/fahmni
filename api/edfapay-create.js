@@ -34,7 +34,7 @@ export default async function handler(req, res) {
   const orderId = `FM-${userId?.slice(0,8) || "guest"}-${Date.now()}`;
 
   // بناء hash — EDFAPay يستخدم MD5(MERCHANT_KEY + PASSWORD + ORDER_ID + AMOUNT)
-  const hashStr  = `${MERCHANT_KEY}${PASSWORD}${orderId}${amount.toFixed(2)}`;
+  const hashStr  = `${MERCHANT_KEY}${PASSWORD}${orderId}${amount}`;
   const hash     = crypto.createHash("md5").update(hashStr).digest("hex").toUpperCase();
 
   // استخرج IP المستخدم من headers أو body
@@ -52,7 +52,7 @@ export default async function handler(req, res) {
   const payload = {
     merchant_key  : MERCHANT_KEY,
     order_id      : orderId,
-    order_amount  : amount.toFixed(2),
+    order_amount  : amount,
     order_currency: "SAR",
     order_desc    : `فهمني+ — باقة ${plan === "basic" ? "تأسيسي" : "احترافي"} (${period === "1m" ? "شهر" : "3 أشهر"})`,
     payer_email   : userEmail || "user@fahmniplus.com",
