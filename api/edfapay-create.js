@@ -16,7 +16,7 @@ function validateInput({ plan, period, amount, userEmail }) {
   const errors = [];
   if (!["basic","premium"].includes(plan))   errors.push("plan invalid");
   if (!["1m","3m"].includes(period))          errors.push("period invalid");
-  if (!amount || amount <= 0)                 errors.push("amount invalid");
+  if (!amount || isNaN(amount) || parseFloat(amount) <= 0.10) errors.push("amount must be > 0.10");
   if (!userEmail || !userEmail.includes("@")) errors.push("email invalid");
   return errors;
 }
@@ -80,13 +80,16 @@ export default async function handler(req, res) {
   const payload = {
     merchant_key     : MERCHANT_KEY,
     order_id         : orderId,
-    order_amount     : amountStr,
+    order_amount     : parseFloat(amount),
     order_currency   : "SAR",
     order_desc       : `Fahmni ${plan === "basic" ? "Basic" : "Premium"} Plan ${period === "1m" ? "1M" : "3M"}`,
     payer_first_name : firstName,
+    customer_name    : `${firstName} ${lastName}`,
     payer_last_name  : lastName,
     payer_email      : userEmail,
+    customer_email   : userEmail,
     payer_phone      : formattedPhone,
+    customer_phone   : formattedPhone,
     payer_ip         : payerIp,
     payer_country    : "SA",
     payer_city       : "Riyadh",
@@ -98,6 +101,7 @@ export default async function handler(req, res) {
   };
 
   console.log("=== EDFAPay Payload ===", JSON.stringify(payload, null, 2));
+  console.log("order_amount type:", typeof payload.order_amount, "value:", payload.order_amount);
 
   try {
     const r = await fetch("https://api.edfapay.com/payment/initiate", {
