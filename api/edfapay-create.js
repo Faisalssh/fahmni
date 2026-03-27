@@ -82,7 +82,7 @@ export default async function handler(req, res) {
     order_id         : orderId,
     order_amount     : amountStr,
     order_currency   : "SAR",
-    order_desc       : `Fahmni+ ${plan === "basic" ? "Basic" : "Premium"} - ${period === "1m" ? "1 Month" : "3 Months"}`,
+    order_desc       : `Fahmni ${plan === "basic" ? "Basic" : "Premium"} Plan ${period === "1m" ? "1M" : "3M"}`,
     payer_first_name : firstName,
     payer_last_name  : lastName,
     payer_email      : userEmail,
