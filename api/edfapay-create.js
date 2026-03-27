@@ -12,19 +12,6 @@ function formatPhone(phone) {
   return p.length >= 9 ? p : "966500000000";
 }
 
-function validateInput({ plan, period, amount, userEmail }) {
-  const errors = [];
-  if (!["basic","premium"].includes(plan))   errors.push("plan invalid");
-  if (!["1m","3m"].includes(period))          errors.push("period invalid");
-  if (!amount || isNaN(amount) || parseFloat(amount) <= 0.10) errors.push("amount must be > 0.10");
-  // تأكد من صحة الإيميل
-  const cleanEmail = (userEmail || "").trim().toLowerCase();
-  if (!cleanEmail || !cleanEmail.includes("@") || !cleanEmail.includes(".")) {
-    errors.push("email غير صالح — يجب أن يحتوي على @ ونقطة");
-  }
-  return errors;
-}
-
 export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
@@ -48,27 +35,37 @@ export default async function handler(req, res) {
     plan      = "basic",
     period    = "3m",
     userId    = null,
-    userEmail = "user@fahmniplus.com",
+    userEmail = "",
     userName  = "Fahmni User",
     payer_ip  : frontendIp = null,
   } = body;
 
-  const PRICES = {
-    basic:   { "1m": 59,  "3m": 149 },
-    premium: { "1m": 99,  "3m": 249 },
-  };
+  const PRICES = { basic:{"1m":59,"3m":149}, premium:{"1m":99,"3m":249} };
   const amount = PRICES[plan]?.[period];
 
-  const validationErrors = validateInput({ plan, period, amount, userEmail });
-  if (validationErrors.length > 0) {
-    return res.status(400).json({ error: validationErrors.join(" | ") });
+  // ── Validation ──
+  const errors = [];
+  if (!["basic","premium"].includes(plan))  errors.push("plan invalid");
+  if (!["1m","3m"].includes(period))         errors.push("period invalid");
+  if (!amount || amount <= 0)                errors.push("amount invalid");
+
+  // ── Email: clean + validate + fallback ──
+  const cleanEmail = (userEmail || "").trim().toLowerCase();
+  const finalEmail = (cleanEmail.includes("@") && cleanEmail.includes("."))
+    ? cleanEmail
+    : userId
+      ? `user${userId.slice(0,8)}@fahmniplus.com`
+      : `guest${Date.now()}@fahmniplus.com`;
+
+  if (errors.length > 0) {
+    return res.status(400).json({ error: errors.join(" | ") });
   }
 
+  // ── Build payload ──
   const payerIp =
     frontendIp ||
     (req.headers["x-forwarded-for"] || "").split(",")[0].trim() ||
     req.headers["x-real-ip"] ||
-    req.headers["cf-connecting-ip"] ||
     "178.80.69.103";
 
   const nameParts      = (userName || "Fahmni User").trim().split(" ");
@@ -77,23 +74,21 @@ export default async function handler(req, res) {
   const formattedPhone = formatPhone(null);
 
   const orderId   = `FM${Date.now()}${userId ? userId.slice(0,4) : "0000"}`;
-  const amountStr = amount.toFixed(2);
+  const amountNum = parseFloat(amount);
+  const amountStr = amountNum.toFixed(2);
   const hashInput = `${MERCHANT_KEY}${PASSWORD}${orderId}${amountStr}`;
   const hash      = crypto.createHash("md5").update(hashInput).digest("hex").toUpperCase();
 
   const payload = {
     merchant_key     : MERCHANT_KEY,
     order_id         : orderId,
-    order_amount     : parseFloat(amount),
+    order_amount     : amountNum,
     order_currency   : "SAR",
     order_desc       : `Fahmni ${plan === "basic" ? "Basic" : "Premium"} Plan ${period === "1m" ? "1M" : "3M"}`,
     payer_first_name : firstName,
-    customer_name    : `${firstName} ${lastName}`,
     payer_last_name  : lastName,
-    payer_email      : cleanEmail,
-    customer_email   : cleanEmail,
+    payer_email      : finalEmail,
     payer_phone      : formattedPhone,
-    customer_phone   : formattedPhone,
     payer_ip         : payerIp,
     payer_country    : "SA",
     payer_city       : "Riyadh",
@@ -105,7 +100,6 @@ export default async function handler(req, res) {
   };
 
   console.log("=== EDFAPay Payload ===", JSON.stringify(payload, null, 2));
-  console.log("order_amount type:", typeof payload.order_amount, "value:", payload.order_amount);
 
   try {
     const r = await fetch("https://api.edfapay.com/payment/initiate", {
@@ -124,18 +118,13 @@ export default async function handler(req, res) {
       const payUrl = data.redirect_url || data.payment_url || data.url || data.paymentUrl || data.checkout_url;
       if (!payUrl) return res.status(502).json({ error: "No payment URL returned", debug: data });
 
-      const SUPABASE_URL     = process.env.VITE_SUPABASE_URL;
-      const SUPABASE_SERVICE = process.env.SUPABASE_SERVICE_ROLE_KEY;
-      if (SUPABASE_URL && SUPABASE_SERVICE && userId) {
-        await fetch(`${SUPABASE_URL}/rest/v1/payment_orders`, {
-          method : "POST",
-          headers: {
-            "Content-Type":"application/json",
-            "apikey":SUPABASE_SERVICE,
-            "Authorization":`Bearer ${SUPABASE_SERVICE}`,
-            "Prefer":"return=minimal",
-          },
-          body: JSON.stringify({ order_id:orderId, user_id:userId, plan, period, amount, status:"pending", created_at:new Date().toISOString() }),
+      const SB_URL = process.env.VITE_SUPABASE_URL;
+      const SB_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+      if (SB_URL && SB_KEY && userId) {
+        await fetch(`${SB_URL}/rest/v1/payment_orders`, {
+          method:"POST",
+          headers:{"Content-Type":"application/json","apikey":SB_KEY,"Authorization":`Bearer ${SB_KEY}`,"Prefer":"return=minimal"},
+          body: JSON.stringify({ order_id:orderId, user_id:userId, plan, period, amount:amountNum, status:"pending", created_at:new Date().toISOString() }),
         }).catch(e => console.error("Supabase error:", e.message));
       }
       return res.status(200).json({ payment_url: payUrl });
