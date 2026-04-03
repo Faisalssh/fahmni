@@ -1263,7 +1263,7 @@ function Nav({isPub,go,userName,title,onLogout}){
           {isPub?(
             <>
               <button className="btn btn-g" style={{fontSize:".78rem",padding:"8px 14px"}} onClick={()=>go("login")}>دخول</button>
-              <button className="btn btn-p" style={{fontSize:".78rem",padding:"8px 14px"}} onClick={()=>go("signup")}>ابدأ مجانًا ←</button>
+              <button className="btn btn-p" style={{fontSize:".78rem",padding:"8px 14px"}} onClick={()=>go("signup-code")}>اشترك الآن ←</button>
             </>
           ):(
             <>
@@ -1276,7 +1276,7 @@ function Nav({isPub,go,userName,title,onLogout}){
         </div>
         {/* موبايل — زر ابدأ + هامبرقر */}
         <div className="nav-mob-row" style={{display:"none",alignItems:"center",gap:8,flexShrink:0}}>
-          {isPub&&<button onClick={()=>go("signup")} style={{
+          {isPub&&<button onClick={()=>go("signup-code")} style={{
             background:"linear-gradient(135deg,#f97316,#fb923c)",border:"none",
             borderRadius:10,padding:"9px 14px",cursor:"pointer",color:"#0a0f1e",
             fontSize:".82rem",fontWeight:800,fontFamily:"Cairo,sans-serif",whiteSpace:"nowrap"
@@ -1305,7 +1305,7 @@ function Nav({isPub,go,userName,title,onLogout}){
               <button className="btn btn-g" style={{width:"100%",justifyContent:"center",padding:"14px",fontSize:".92rem"}}
                 onClick={()=>{go("login");setMenuOpen(false);}}>تسجيل الدخول</button>
               <button className="btn btn-p" style={{width:"100%",justifyContent:"center",padding:"14px",fontSize:".92rem"}}
-                onClick={()=>{go("signup");setMenuOpen(false);}}>ابدأ مجانًا — 25 سؤال ←</button>
+                onClick={()=>{go("signup-code");setMenuOpen(false);}}>اشترك الآن ←</button>
               <button className="btn btn-g" style={{width:"100%",justifyContent:"center",padding:"12px",fontSize:".85rem",color:"#64748b"}}
                 onClick={()=>{go("signup-code");setMenuOpen(false);}}>اشترك الآن</button>
             </>
@@ -2893,10 +2893,10 @@ function Landing({go}){
           </p>
 
           <div className="landing-hero-btns" style={{display:"flex",gap:12,justifyContent:"center",flexWrap:"wrap",animation:"fadeUp .5s .2s both"}}>
-            <button className="btn btn-p" style={{fontSize:"1rem",padding:"14px 32px",borderRadius:16}} onClick={()=>go("signup")}>
+            <button className="btn btn-p" style={{fontSize:"1rem",padding:"14px 32px",borderRadius:16}} onClick={()=>go("signup-code")}>
               ابدأ مجانًا ← 25 سؤال
             </button>
-            <button className="btn btn-g" style={{fontSize:".93rem",padding:"14px 24px",borderRadius:16}} onClick={()=>go("signup")}>
+            <button className="btn btn-g" style={{fontSize:".93rem",padding:"14px 24px",borderRadius:16}} onClick={()=>go("signup-code")}>
               جرّب سؤالاً الآن
             </button>
           </div>
@@ -3069,7 +3069,7 @@ function Landing({go}){
                   </div>
                 )}
                 {/* CTA */}
-                <button className="btn btn-p" style={{width:"100%",justifyContent:"center",fontSize:".88rem"}} onClick={()=>go("signup")}>
+                <button className="btn btn-p" style={{width:"100%",justifyContent:"center",fontSize:".88rem"}} onClick={()=>go("signup-code")}>
                   تدرّب على {active} الآن ←
                 </button>
               </div>
@@ -3115,7 +3115,7 @@ function Landing({go}){
             25 سؤالاً مجاناً · لا يحتاج بطاقة · ابدأ الآن
           </p>
           <div className="landing-cta-btns" style={{display:"flex",gap:12,justifyContent:"center",flexWrap:"wrap"}}>
-            <button className="btn btn-p" style={{fontSize:"1.05rem",padding:"15px 36px",borderRadius:16}} onClick={()=>go("signup")}>
+            <button className="btn btn-p" style={{fontSize:"1.05rem",padding:"15px 36px",borderRadius:16}} onClick={()=>go("signup-code")}>
               ابدأ مجانًا الآن ←
             </button>
             <button className="btn btn-g" style={{fontSize:".92rem",padding:"15px 24px",borderRadius:16}} onClick={()=>go("signup-code")}>
@@ -4699,7 +4699,7 @@ function ExpiredWall({trial,go}){
       <div style={{display:"flex",gap:12,flexWrap:"wrap",justifyContent:"center"}}>
         <button className="btn btn-p" style={{padding:"12px 28px",borderRadius:12,fontWeight:700}}
           onClick={()=>go("signup-code")}>
-          {isExpiredPaid?"جدّد الاشتراك":"اشترك الآن"}
+          {isExpiredPaid?"جدّد الاشتراك":"اشترك من سلة ←"}
         </button>
         <button className="btn" style={{padding:"12px 20px",borderRadius:12,color:"#64748b"}}
           onClick={()=>go("landing")}>
@@ -4716,89 +4716,29 @@ function ExpiredWall({trial,go}){
 
 function Checkout({go,trial,session=null,selectedPlan,selectedPeriod}){
   useEffect(()=>{window.scrollTo({top:0,behavior:"instant"});},[]);
-  const[loading,setLoading]=useState(false);
-  const[err,setErr]=useState("");
 
   const PLANS={
-    basic:  {name:"تأسيسي",  color:"#f97316",prices:{"1m":59, "3m":149}},
-    premium:{name:"احترافي", color:"#a78bfa",prices:{"1m":99, "3m":249}},
+    basic:  {name:"تأسيسي",  color:"#f97316", prices:{"1m":59,"3m":149,"1y":399}},
+    premium:{name:"احترافي", color:"#a78bfa",  prices:{"1m":59,"3m":149,"1y":399}},
   };
-  const PERIODS={"1m":"شهر واحد","3m":"3 أشهر"};
-  const MONTHLY={"1m":null,"3m":{"basic":50,"premium":83}};
-
-  const plan    = PLANS[selectedPlan||"basic"];
-  const period  = selectedPeriod||"3m";
-  const price   = plan.prices[period];
-  const monthly = MONTHLY[period]?.[selectedPlan||"basic"];
-
-  /* تحقق إذا رجع من بوابة الدفع */
-  useEffect(()=>{
-    const params=new URLSearchParams(window.location.search);
-    const pStatus=params.get("payment");
-    if(pStatus==="success"){
-      window.history.replaceState({},"","/");
-      /* أعد تحميل بيانات المستخدم */
-      window.location.reload();
-    }
-  },[]);
-
-  const handlePay=async()=>{
-    if(loading)return;
-    setLoading(true);setErr("");
-    try{
-      const userId   = session?.userId||trial?.userId||null;
-      const rawEmail = session?.email||trial?.email||"";
-      const userEmail= (rawEmail.includes("@")&&rawEmail.includes("."))
-        ? rawEmail
-        : userId ? `user${String(userId).slice(0,8)}@fahmniplus.com` : `guest${Date.now()}@fahmniplus.com`;
-      const userName = session?.name||trial?.name||"Fahmni User";
-
-      /* جلب IP المستخدم */
-      let payerIp="1.1.1.1";
-      try{
-        const ipRes=await fetch("https://api.ipify.org?format=json");
-        const ipData=await ipRes.json();
-        payerIp=ipData.ip||"1.1.1.1";
-      }catch(_){}
-
-      const r=await fetch("/api/edfapay-create",{
-        method:"POST",
-        headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({plan:selectedPlan||"basic",period,userId,userEmail,userName,payer_ip:payerIp}),
-      });
-      const data=await r.json();
-      if(!r.ok||!data.payment_url){
-        setErr(data.error||"تعذّر إنشاء جلسة الدفع");
-        setLoading(false);return;
-      }
-      window.location.href=data.payment_url;
-    }catch(e){
-      setErr("تعذّر الاتصال ببوابة الدفع — تحقق من الاتصال");
-      setLoading(false);
-    }
-  };
+  const PERIODS={"1m":"شهر واحد","3m":"3 أشهر","1y":"سنة كاملة"};
+  const plan   = PLANS[selectedPlan||"basic"];
+  const period = selectedPeriod||"3m";
+  const price  = plan.prices[period];
 
   return(
-    <div style={{display:"grid",gap:14,maxWidth:560,margin:"0 auto",width:"100%"}}>
-
-      {/* Header */}
+    <div style={{maxWidth:500,margin:"0 auto",display:"flex",flexDirection:"column",gap:16}}>
       <div className="gl" style={{padding:"28px 24px",textAlign:"center"}}>
         <span className="badge b-o" style={{marginBottom:12}}>🛒 إتمام الاشتراك</span>
-        <h1 style={{fontSize:"1.5rem",fontWeight:900,color:"#fff",marginBottom:6}}>
-          ملخص طلبك
-        </h1>
-        <p style={{color:"#64748b",fontSize:".85rem"}}>راجع تفاصيل اشتراكك قبل الدفع</p>
+        <h1 style={{fontSize:"1.5rem",fontWeight:900,color:"#fff",marginBottom:6}}>ملخص طلبك</h1>
+        <p style={{color:"#64748b",fontSize:".85rem"}}>سيتم تحويلك لمنصة سلة لإتمام الدفع</p>
       </div>
 
-      {/* Order Summary */}
       <div className="gl" style={{padding:"24px"}}>
-        <p style={{fontSize:".7rem",color:"#f97316",fontWeight:700,letterSpacing:".08em",marginBottom:14}}>
-          تفاصيل الباقة
-        </p>
         {[
-          ["الباقة",        <span style={{color:plan.color,fontWeight:800}}>{plan.name}</span>],
-          ["مدة الاشتراك",  PERIODS[period]],
-          ["الإجمالي",      <span style={{color:"#fff",fontWeight:900,fontSize:"1.1rem"}}>{price} ريال</span>],
+          ["الباقة",         <span style={{color:plan.color,fontWeight:800}}>{plan.name}</span>],
+          ["مدة الاشتراك",   PERIODS[period]],
+          ["الإجمالي",       <span style={{color:"#fff",fontWeight:900,fontSize:"1.1rem"}}>{price} ريال</span>],
         ].map(([label,val],i)=>(
           <div key={i} style={{display:"flex",justifyContent:"space-between",alignItems:"center",
             padding:"11px 0",borderBottom:i<2?"1px solid rgba(255,255,255,.05)":"none"}}>
@@ -4806,57 +4746,39 @@ function Checkout({go,trial,session=null,selectedPlan,selectedPeriod}){
             <span style={{fontSize:".85rem",color:"#e2e8f0"}}>{val}</span>
           </div>
         ))}
-        {monthly&&(
-          <p style={{fontSize:".68rem",color:"#4ade80",marginTop:10,textAlign:"center"}}>
-            ✓ يعادل {monthly} ريال/شهر فقط
-          </p>
-        )}
       </div>
 
-      {/* Secure badge */}
       <div className="gl-c" style={{padding:"16px 20px",display:"flex",alignItems:"center",gap:12}}>
-        <span style={{fontSize:"1.3rem"}}>🔒</span>
+        <span style={{fontSize:"1.3rem"}}>🏪</span>
         <div>
-          <p style={{fontSize:".82rem",color:"#e2e8f0",fontWeight:700}}>دفع آمن ومشفّر</p>
+          <p style={{fontSize:".82rem",color:"#e2e8f0",fontWeight:700}}>الدفع عبر منصة سلة</p>
           <p style={{fontSize:".7rem",color:"#64748b",marginTop:3}}>
-            الدفع عبر EDFAPay · يدعم مدى · Visa · Mastercard
+            بعد الدفع ستحصل على كود تفعيل — أدخله في الموقع لتبدأ
           </p>
         </div>
       </div>
 
-      {/* Error */}
-      {err&&(
-        <div style={{padding:"12px 16px",borderRadius:12,
-          background:"rgba(248,113,113,.08)",border:"1px solid rgba(248,113,113,.25)"}}>
-          <p style={{color:"#fca5a5",fontSize:".82rem"}}>⚠ {err}</p>
-        </div>
-      )}
-
-      {/* CTA */}
       <div style={{display:"grid",gap:10}}>
-        <button
-          className="btn btn-p"
-          style={{justifyContent:"center",padding:"16px",borderRadius:14,
-            fontSize:"1rem",fontWeight:800,
-            opacity:loading?0.7:1,cursor:loading?"wait":"pointer"}}
-          disabled={loading}
-          onClick={handlePay}>
-          {loading?(
-            <><div className="spin" style={{marginLeft:8}}/> جاري التحويل لبوابة الدفع...</>
-          ):(
-            `💳 ادفع ${price} ريال الآن`
-          )}
-        </button>
-        <p style={{textAlign:"center",fontSize:".65rem",color:"#334155"}}>
-          لا استرداد بعد إتمام الدفع · الأسعار شاملة ضريبة القيمة المضافة
+        <a href="https://s.salla.sa/fahmniplus" target="_blank" rel="noopener noreferrer"
+          style={{display:"flex",alignItems:"center",justifyContent:"center",
+            padding:"16px",borderRadius:14,cursor:"pointer",textDecoration:"none",
+            background:"linear-gradient(135deg,#f97316,#ea580c)",
+            color:"#fff",fontFamily:"Cairo,sans-serif",fontSize:"1rem",fontWeight:800,
+            boxShadow:"0 6px 20px rgba(249,115,22,.4)"}}>
+          🛍️ اذهب لسلة وأتمّ الدفع ←
+        </a>
+        <p style={{textAlign:"center",fontSize:".68rem",color:"#475569"}}>
+          لديك كود تفعيل؟{" "}
+          <button onClick={()=>go("signup-code")}
+            style={{background:"none",border:"none",color:"#f97316",cursor:"pointer",
+              fontFamily:"Cairo,sans-serif",fontSize:".68rem",fontWeight:700}}>
+            أدخله هنا
+          </button>
         </p>
         <button className="btn" style={{justifyContent:"center",color:"#64748b",fontSize:".82rem"}}
-          onClick={()=>go("signup-code")}>
-          ← رجوع
+          onClick={()=>go("pricing")}>
+          ← العودة للباقات
         </button>
-        <p style={{textAlign:"center",fontSize:".72rem",color:"#475569",marginTop:4}}>
-          لديك كود؟ <button onClick={()=>go("activate")} style={{background:"none",border:"none",color:"#a78bfa",cursor:"pointer",fontFamily:"Cairo,sans-serif",fontSize:".72rem"}}>فعّله هنا</button>
-        </p>
       </div>
 
       <p style={{textAlign:"center",fontSize:".68rem",color:"#334155"}}>
@@ -5003,7 +4925,7 @@ function Paywall({trial,subscribe,back,go}){
       <div className="gl-c" style={{padding:"13px 18px",display:"flex",alignItems:"center",gap:10,flexWrap:"wrap"}}>
         <span style={{fontSize:"1rem"}}>🔒</span>
         <p style={{fontSize:".75rem",color:"#64748b",flex:1}}>
-          الدفع الآمن عبر <strong style={{color:"#67e8f9"}}>EDFAPay</strong> — مدى · Visa · Mastercard
+          الدفع الآمن عبر <strong style={{color:"#67e8f9"}}>سلة</strong> — مدى · Visa · Mastercard
         </p>
       </div>
 
@@ -5293,9 +5215,21 @@ function SignupWithCode({go}){
                 boxShadow:code.trim()?"0 4px 18px rgba(249,115,22,.35)":"none"}}>
               {loading?"جاري التحقق...":"التحقق من الكود ←"}
             </button>
-            <p style={{marginTop:16,textAlign:"center",fontSize:".72rem",color:"#334155"}}>
+            <div style={{marginTop:16,borderTop:"1px solid rgba(255,255,255,.05)",paddingTop:14,
+              display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:8}}>
+              <a href="https://s.salla.sa/fahmniplus" target="_blank" rel="noopener noreferrer"
+                style={{color:"#f97316",textDecoration:"none",fontWeight:700,fontSize:".75rem"}}>
+                اشترِ من سلة ←
+              </a>
+              <button onClick={()=>go("login")}
+                style={{background:"none",border:"none",color:"#475569",cursor:"pointer",
+                  fontFamily:"Cairo,sans-serif",fontSize:".75rem"}}>
+                لديك حساب؟ سجّل دخول
+              </button>
+            </div>
+            <p style={{marginTop:8,textAlign:"center",fontSize:".72rem",color:"#334155",display:"none"}}>
               ليس لديك كود؟{" "}
-              <a href="https://s.salla.sa/fahmniplus" target="_blank" rel="noopener noreferrer" rel="noopener noreferrer"
+              <a href="https://s.salla.sa/fahmniplus" target="_blank" rel="noopener noreferrer"
                 style={{color:"#f97316",textDecoration:"none",fontWeight:700}}>
                 اشترِ من سلة
               </a>
@@ -5446,7 +5380,7 @@ function Privacy({go}){
       "الاسم والبريد الإلكتروني عند إنشاء الحساب.",
       "بيانات الأداء: عدد الأسئلة المحلولة، الإجابات الصحيحة والخاطئة، الأبواب المدروسة، ونقاط الضعف.",
       "معلومات الاشتراك: نوع الباقة (مجاني / تأسيسي / احترافي)، مدة الاشتراك، وحالته.",
-      "بيانات الدفع تُعالَج حصراً عبر بوابة EDFAPay المرخصة — لا نحتفظ بأي بيانات بطاقات.",
+      "بيانات الدفع تُعالَج حصراً عبر بوابة سلة المرخصة — لا نحتفظ بأي بيانات بطاقات.",
       "بيانات الاستخدام العامة مثل وقت الجلسات والأبواب المدروسة لتحسين تجربتك."
     ]},
     {title:"كيف نستخدم معلوماتك؟",items:[
@@ -5460,12 +5394,12 @@ function Privacy({go}){
       "لا نبيع بياناتك الشخصية لأي طرف ثالث تحت أي ظرف.",
       "نستخدم Supabase لتخزين البيانات — ويلتزم بمعايير خصوصية دولية عالية.",
       "نستخدم Anthropic API لتوليد الأسئلة التعليمية فقط — ولا تُستخدم بياناتك لتدريب النماذج.",
-      "تتم معالجة المدفوعات عبر EDFAPay المرخصة من البنك المركزي السعودي (ساما).",
+      "تتم معالجة المدفوعات عبر سلة المرخصة من البنك المركزي السعودي (ساما).",
       "قد نشارك بيانات مجهولة الهوية وإحصائية لأغراض تحسين المنصة فقط."
     ]},
     {title:"أمان البيانات",items:[
       "تُشفَّر جميع البيانات المنقولة باستخدام بروتوكول HTTPS/TLS.",
-      "بيانات الدفع محمية بمعايير PCI-DSS عبر EDFAPay.",
+      "بيانات الدفع محمية بمعايير PCI-DSS عبر سلة.",
       "نراجع ممارسات الأمان بشكل دوري لضمان حماية بياناتك."
     ]},
     {title:"حقوقك",items:[
@@ -5489,7 +5423,7 @@ function Terms({go}){
       "الباقة التأسيسية: 59 ريال/شهر — أو 149 ريال/3 أشهر — أو 249 ريال/6 أشهر.",
       "الباقة الاحترافية: 99 ريال/شهر — أو 249 ريال/3 أشهر — أو 399 ريال/6 أشهر.",
       "جميع الأسعار شاملة ضريبة القيمة المضافة (15%) ما لم يُذكر غير ذلك.",
-      "تُعالَج المدفوعات عبر EDFAPay المرخصة من البنك المركزي السعودي (ساما)."
+      "تُعالَج المدفوعات عبر سلة المرخصة من البنك المركزي السعودي (ساما)."
     ]},
     {title:"سياسة الاسترداد — مهم",items:[
       "🚫 لا يتم استرداد رسوم الاشتراك بعد إتمام الدفع تحت أي ظرف.",
@@ -5652,7 +5586,14 @@ class ErrorBoundary extends React.Component{
   }
 }
 export default function Fahmni(){
-  const[page,setPage]=useState("landing");
+  const[page,setPage]=useState(()=>{
+    const urlParams=new URLSearchParams(typeof window!=="undefined"?window.location.search:"");
+    if(urlParams.get("verified")==="1"){
+      if(typeof window!=="undefined") window.history.replaceState({},"","/");
+      return "login";
+    }
+    return "landing";
+  });
   const[profile,setProfile]=useState({goal:"أرفع درجتي",confidence:"متوسط",section:"كمي",minutes:"40"});
   const[pAnswers,setPAnswers]=useState([]);
   const[rec,setRec]=useState(null);
@@ -5668,6 +5609,15 @@ export default function Fahmni(){
   const[checkoutPeriod,setCheckoutPeriod]=useState("3m");
   // Admin access is determined ONLY from RPC get_my_access() → trial.isAdmin
   const[sessionLoading,setSessionLoading]=useState(true);
+
+  /* Handle ?payment=success - reload to get new subscription */
+  useEffect(()=>{
+    const p=new URLSearchParams(window.location.search);
+    if(p.get("payment")==="success"){
+      window.history.replaceState({},"","/");
+      window.location.reload();
+    }
+  },[]);
   const[trial,setTrial]=useState({isSubscribed:false,used:0,limit:25,plan:'free',status:'inactive',freeTrialUsed:false,expiresAt:null,isAdmin:false});
   const[mistakes,setMistakes]=useState([]);
   const[placementDone,setPlacementDone]=useState(false);
@@ -5932,7 +5882,7 @@ export default function Fahmni(){
     // Wait for session restore
     if(sessionLoading) return <div style={{display:"flex",alignItems:"center",justifyContent:"center",height:"60vh"}}><div className="spin spin-lg"/></div>;
     // 1) مو مسجّل → landing
-    if(PROTECTED.includes(page)&&!session){go("landing");return null;}
+    if(PROTECTED.includes(page)&&!session&&page!=="signup-code"){go("landing");return null;}
     // Expired users stay logged in but get shown upgrade screen for paid pages
     if(session&&!session.isGuest&&!trial.isAdmin&&(trial.status==='expired'||trial.status==='cancelled')){
       if(PAID_ONLY.includes(page)){go('paywall');return null;}
@@ -5955,7 +5905,8 @@ export default function Fahmni(){
     }
     const plan=trial.plan||'free';
     switch(page){
-    case"login":case"signup":return <Auth mode={page} go={go} onLogin={handleLogin}/>;
+    case"login":return <Auth mode="login" go={go} onLogin={handleLogin}/>;
+    case"signup":go("signup-code");return null;
     case"onboarding":return <Onboarding finish={d=>{setProfile(d);go("placement");}}/>;
     case"placement":
       if(placementDone){go("dashboard");return null;}
@@ -6007,7 +5958,7 @@ export default function Fahmni(){
     case"signup-code":return <SignupWithCode go={go}/>;
     case"pricing":return <Pricing go={go} setCheckoutPlan={setCheckoutPlan} setCheckoutPeriod={setCheckoutPeriod}/>;
     case"checkout":return <Checkout go={go} trial={trial} session={session} selectedPlan={checkoutPlan} selectedPeriod={checkoutPeriod}/>;
-    case"paywall":return <Paywall trial={trial} go={go} subscribe={(plan,period)=>{setCheckoutPlan(plan||"basic");setCheckoutPeriod(period||"3m");go("checkout");}} back={()=>go("signup-code")}/>;
+    case"paywall":return <Paywall trial={trial} go={go} subscribe={(plan,period)=>{setCheckoutPlan(plan||"basic");setCheckoutPeriod(period||"3m");go("signup-code");}} back={()=>go("signup-code")}/>;
     case"privacy":return <Privacy go={go}/>;
     case"terms":return <Terms go={go}/>;
     case"contact":return <Contact go={go}/>;
