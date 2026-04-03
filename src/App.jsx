@@ -602,7 +602,7 @@ const MILESTONES={
   streak_5:{icon:"🔥",title:"5 صح متتالية!",msg:"ما شاء الله — تركيزك ممتاز",color:"#f97316"},
   streak_10:{icon:"⚡",title:"10 صح متتالية!!",msg:"أداء احترافي — واصل",color:"#fde047"},
   solved_10:{icon:"📚",title:"10 أسئلة مكتملة",msg:"إنجاز حقيقي — استمر على هذا المستوى",color:"#22d3ee"},
-  solved_25:{icon:"🏆",title:"25 سؤال!",msg:"ربع المئة — أنت تذاكر فعلاً",color:"#a78bfa"},
+  solved_25:{icon:"🏆",title:"أسئلة غير محدودة!",msg:"ربع المئة — أنت تذاكر فعلاً",color:"#a78bfa"},
   solved_50:{icon:"🌟",title:"50 سؤال!",msg:"مذاكر جاد — المنافسة ستعبك صعبة",color:"#f97316"},
   perfect_session:{icon:"💎",title:"جلسة مثالية!",msg:"كل الأجوبة صحيحة — ما شاء الله",color:"#22d3ee"},
 };
@@ -918,7 +918,7 @@ const ADMIN_EMAIL="sirfaisalalshehri@gmail.com";
 const isAdminUser=(email)=>typeof email==="string"&&email.toLowerCase().trim()===ADMIN_EMAIL;
 
 /* ═══ PLAN HELPERS ═══════════════════════════════════════════
- *  free  → 10 سؤال مجاني فقط
+ *  free  → 10 سؤال مميز فقط
  *  month → أسئلة غير محدودة + شرح + محاكاة + تتبع
  *  exam  → كل شيء + تحليل الضعف + خطة مذاكرة
  * ══════════════════════════════════════════════════════════ */
@@ -1263,7 +1263,7 @@ function Nav({isPub,go,userName,title,onLogout}){
           {isPub?(
             <>
               <button className="btn btn-g" style={{fontSize:".78rem",padding:"8px 14px"}} onClick={()=>go("login")}>دخول</button>
-              <button className="btn btn-p" style={{fontSize:".78rem",padding:"8px 14px"}} onClick={()=>go("signup-code")}>اشترك الآن ←</button>
+              <button className="btn btn-p" style={{fontSize:".78rem",padding:"8px 14px"}} onClick={()=>go("signup-code")}>احصل على اشتراكك الآن ←</button>
             </>
           ):(
             <>
@@ -1305,9 +1305,9 @@ function Nav({isPub,go,userName,title,onLogout}){
               <button className="btn btn-g" style={{width:"100%",justifyContent:"center",padding:"14px",fontSize:".92rem"}}
                 onClick={()=>{go("login");setMenuOpen(false);}}>تسجيل الدخول</button>
               <button className="btn btn-p" style={{width:"100%",justifyContent:"center",padding:"14px",fontSize:".92rem"}}
-                onClick={()=>{go("signup-code");setMenuOpen(false);}}>اشترك الآن ←</button>
+                onClick={()=>{go("signup-code");setMenuOpen(false);}}>احصل على اشتراكك الآن ←</button>
               <button className="btn btn-g" style={{width:"100%",justifyContent:"center",padding:"12px",fontSize:".85rem",color:"#64748b"}}
-                onClick={()=>{go("signup-code");setMenuOpen(false);}}>اشترك الآن</button>
+                onClick={()=>{go("signup-code");setMenuOpen(false);}}>احصل على اشتراكك</button>
             </>
           ):(
             <>
@@ -2021,7 +2021,6 @@ function Pricing({go}){
       id:"monthly", label:"شهر واحد", price:59, period:"1m", months:1,
       color:"#22d3ee", bg:"rgba(34,211,238,.07)", border:"rgba(34,211,238,.22)",
       features:["جميع أبواب الكمي واللفظي","أسئلة غير محدودة","شرح مفصّل لكل سؤال","وضع المحاكاة","تتبع التقدم"],
-      highlight:false,
     },
     {
       id:"quarterly", label:"3 أشهر", price:149, period:"3m", months:3,
@@ -2034,94 +2033,160 @@ function Pricing({go}){
       id:"yearly", label:"سنة كاملة", price:399, period:"1y", months:12,
       color:"#a78bfa", bg:"rgba(167,139,250,.08)", border:"rgba(167,139,250,.25)",
       badge:"الأوفر",
-      features:["جميع مميزات الشهري","توفير 309 ريال","خطة سنوية متكاملة","أولوية الدعم"],
-      highlight:false,
+      features:["جميع المميزات","توفير 309 ريال","خطة سنوية متكاملة","أولوية الدعم"],
     },
   ];
 
+  const steps=[
+    {n:1, icon:"🎯", title:"اختر باقتك",       sub:"شهر · 3 أشهر · سنة"},
+    {n:2, icon:"🛍️", title:"ادفع عبر سلة",     sub:"آمن وسريع"},
+    {n:3, icon:"📩", title:"استلم كود التفعيل", sub:"فوراً بعد الدفع"},
+    {n:4, icon:"🔑", title:"أدخل الكود",         sub:"في موقع فهمني+"},
+    {n:5, icon:"🚀", title:"ابدأ التعلم",         sub:"وصول فوري لكل المحتوى"},
+  ];
+
   return(
-    <div style={{display:"flex",flexDirection:"column",gap:20,maxWidth:860,margin:"0 auto",width:"100%"}}>
+    <div style={{display:"flex",flexDirection:"column",gap:24,maxWidth:900,margin:"0 auto",width:"100%"}}>
 
       {/* Header */}
-      <div style={{textAlign:"center",padding:"32px 24px 24px"}}>
+      <div style={{textAlign:"center",padding:"36px 24px 20px"}}>
         <span className="badge b-o" style={{marginBottom:14}}>💎 باقات الاشتراك</span>
-        <h1 style={{fontSize:"clamp(1.5rem,3vw,2rem)",fontWeight:900,color:"#fff",marginBottom:10}}>
-          اختر باقتك من سلة
+        <h1 style={{fontSize:"clamp(1.6rem,3vw,2.2rem)",fontWeight:900,color:"#fff",marginBottom:12}}>
+          ابدأ رحلتك في القدرات
         </h1>
-        <p style={{color:"#64748b",fontSize:".88rem",lineHeight:1.8,maxWidth:500,margin:"0 auto"}}>
-          ادفع من سلة واحصل على كود التفعيل فوراً — ثم أدخله في الموقع لتبدأ
+        <p style={{color:"#64748b",fontSize:".9rem",lineHeight:1.8,maxWidth:520,margin:"0 auto"}}>
+          اشتراك مدفوع يفتح لك جميع الأبواب — كمي ولفظي — بدون قيود
         </p>
       </div>
 
-      {/* Plans */}
+      {/* ══ طريقة الاشتراك ══ */}
+      <div style={{padding:"26px 24px",borderRadius:22,
+        background:"linear-gradient(135deg,rgba(167,139,250,.07),rgba(10,18,40,.97))",
+        border:"1.5px solid rgba(167,139,250,.2)"}}>
+        <p style={{fontSize:".7rem",color:"#a78bfa",fontWeight:700,letterSpacing:".1em",
+          marginBottom:18,textAlign:"center"}}>
+          🗺️ طريقة الاشتراك
+        </p>
+        <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(140px,1fr))",gap:12}}>
+          {steps.map((s,i)=>(
+            <div key={s.n} style={{position:"relative",padding:"18px 14px",borderRadius:16,
+              textAlign:"center",
+              background:"rgba(255,255,255,.03)",border:"1px solid rgba(255,255,255,.07)",
+              transition:"all .25s",cursor:"default"}}
+              onMouseEnter={e=>{
+                e.currentTarget.style.background="rgba(167,139,250,.08)";
+                e.currentTarget.style.borderColor="rgba(167,139,250,.25)";
+                e.currentTarget.style.transform="translateY(-3px)";
+              }}
+              onMouseLeave={e=>{
+                e.currentTarget.style.background="rgba(255,255,255,.03)";
+                e.currentTarget.style.borderColor="rgba(255,255,255,.07)";
+                e.currentTarget.style.transform="";
+              }}>
+              {/* Number badge */}
+              <div style={{
+                width:22,height:22,borderRadius:"50%",
+                background:"rgba(167,139,250,.15)",border:"1px solid rgba(167,139,250,.3)",
+                color:"#a78bfa",fontSize:".6rem",fontWeight:900,
+                display:"flex",alignItems:"center",justifyContent:"center",
+                position:"absolute",top:10,right:10,
+              }}>{s.n}</div>
+              <div style={{fontSize:"1.8rem",marginBottom:8}}>{s.icon}</div>
+              <p style={{fontSize:".78rem",fontWeight:800,color:"#e2e8f0",marginBottom:4}}>{s.title}</p>
+              <p style={{fontSize:".65rem",color:"#475569"}}>{s.sub}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* ══ Plans ══ */}
       <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(240px,1fr))",gap:14}}>
         {plans.map(plan=>(
           <div key={plan.id} style={{
-            padding:"24px",borderRadius:20,position:"relative",
-            background:plan.highlight?`linear-gradient(135deg,${plan.bg},rgba(10,18,40,.97))`:plan.bg,
+            padding:"26px 22px",borderRadius:22,position:"relative",
+            background:plan.highlight
+              ?`linear-gradient(145deg,${plan.bg},rgba(10,18,40,.98))`
+              :plan.bg,
             border:`1.5px solid ${plan.border}`,
-            transform:plan.highlight?"translateY(-4px)":"none",
-            boxShadow:plan.highlight?`0 8px 32px ${plan.color}20`:"none",
+            transform:plan.highlight?"translateY(-5px)":"none",
+            boxShadow:plan.highlight?`0 10px 40px ${plan.color}18`:"none",
+            transition:"all .25s",
+          }}
+          onMouseEnter={e=>{
+            if(!plan.highlight){
+              e.currentTarget.style.transform="translateY(-3px)";
+              e.currentTarget.style.boxShadow=`0 8px 30px ${plan.color}15`;
+            }
+          }}
+          onMouseLeave={e=>{
+            if(!plan.highlight){
+              e.currentTarget.style.transform="";
+              e.currentTarget.style.boxShadow="";
+            }
           }}>
             {plan.badge&&(
-              <div style={{
-                position:"absolute",top:-12,left:"50%",transform:"translateX(-50%)",
-                padding:"4px 16px",borderRadius:99,
-                background:`linear-gradient(135deg,${plan.color},${plan.color}cc)`,
-                color:"#fff",fontSize:".68rem",fontWeight:800,whiteSpace:"nowrap",
-              }}>{plan.badge}</div>
+              <div style={{position:"absolute",top:-13,left:"50%",transform:"translateX(-50%)",
+                padding:"5px 18px",borderRadius:99,whiteSpace:"nowrap",
+                background:`linear-gradient(135deg,${plan.color},${plan.color}bb)`,
+                color:"#fff",fontSize:".68rem",fontWeight:900,
+                boxShadow:`0 4px 14px ${plan.color}40`}}>
+                {plan.badge}
+              </div>
             )}
-            <p style={{fontSize:".8rem",color:plan.color,fontWeight:700,marginBottom:10}}>{plan.label}</p>
-            <div style={{display:"flex",alignItems:"baseline",gap:6,marginBottom:6}}>
-              <span style={{fontSize:"2.4rem",fontWeight:900,color:"#fff"}}>{plan.price}</span>
+            <p style={{fontSize:".75rem",color:plan.color,fontWeight:700,marginBottom:12,
+              letterSpacing:".05em"}}>{plan.label}</p>
+            <div style={{display:"flex",alignItems:"baseline",gap:6,marginBottom:4}}>
+              <span style={{fontSize:"2.8rem",fontWeight:900,color:"#fff",lineHeight:1}}>{plan.price}</span>
               <span style={{color:"#475569",fontSize:".85rem"}}>ريال</span>
             </div>
-            <p style={{fontSize:".7rem",color:"#334155",marginBottom:18}}>
-              {Math.round(plan.price/plan.months)} ريال/شهر
+            <p style={{fontSize:".68rem",color:"#334155",marginBottom:20}}>
+              ≈ {Math.round(plan.price/plan.months)} ريال/شهر
             </p>
-            <div style={{display:"flex",flexDirection:"column",gap:7,marginBottom:22}}>
+            <div style={{display:"flex",flexDirection:"column",gap:8,marginBottom:24}}>
               {plan.features.map((f,i)=>(
-                <div key={i} style={{display:"flex",gap:8,alignItems:"flex-start"}}>
-                  <span style={{color:plan.color,fontSize:".75rem",marginTop:2,flexShrink:0}}>✓</span>
+                <div key={i} style={{display:"flex",gap:9,alignItems:"flex-start"}}>
+                  <span style={{color:plan.color,fontSize:".72rem",marginTop:3,flexShrink:0}}>✓</span>
                   <span style={{fontSize:".78rem",color:"#94a3b8",lineHeight:1.5}}>{f}</span>
                 </div>
               ))}
             </div>
-            <button
-              onClick={()=>go("signup-code")}
-              style={{
-                width:"100%",padding:"12px",borderRadius:13,cursor:"pointer",
-                background:plan.highlight?`linear-gradient(135deg,${plan.color},${plan.color}cc)`:`${plan.color}14`,
-                border:plan.highlight?"none":`1px solid ${plan.border}`,
+            <button onClick={()=>go("signup-code")}
+              style={{width:"100%",padding:"13px",borderRadius:14,cursor:"pointer",
+                background:plan.highlight
+                  ?`linear-gradient(135deg,${plan.color},${plan.color}cc)`
+                  :`${plan.color}15`,
+                border:plan.highlight?"none":`1.5px solid ${plan.border}`,
                 color:plan.highlight?"#fff":plan.color,
-                fontFamily:"Cairo,sans-serif",fontSize:".85rem",fontWeight:800,
+                fontFamily:"Cairo,sans-serif",fontSize:".88rem",fontWeight:800,
                 transition:"all .2s",
+                boxShadow:plan.highlight?`0 4px 18px ${plan.color}35`:"none",
               }}
-              onMouseEnter={e=>{e.currentTarget.style.opacity=".85";}}
-              onMouseLeave={e=>{e.currentTarget.style.opacity="1";}}>
-              اشترِ من سلة ←
+              onMouseEnter={e=>{e.currentTarget.style.opacity=".88";e.currentTarget.style.transform="translateY(-1px)";}}
+              onMouseLeave={e=>{e.currentTarget.style.opacity="1";e.currentTarget.style.transform="";}}>
+              احصل على اشتراكك الآن ←
             </button>
           </div>
         ))}
       </div>
 
-      {/* سلة CTA */}
-      <div style={{padding:"22px 26px",borderRadius:18,textAlign:"center",
-        background:"rgba(255,255,255,.03)",border:"1px solid rgba(255,255,255,.07)"}}>
-        <p style={{color:"#64748b",fontSize:".83rem",lineHeight:1.8,marginBottom:14}}>
-          📦 الشراء يتم عبر <strong style={{color:"#f97316"}}>منصة سلة</strong> — بعد الدفع ستحصل على كود تفعيل تدخله في الموقع
+      {/* CTA */}
+      <div style={{padding:"22px 24px",borderRadius:18,textAlign:"center",
+        background:"rgba(249,115,22,.05)",border:"1px solid rgba(249,115,22,.15)"}}>
+        <p style={{color:"#94a3b8",fontSize:".83rem",lineHeight:1.9,marginBottom:14}}>
+          🏪 الشراء عبر <strong style={{color:"#f97316"}}>سلة</strong> · بعد الدفع ستحصل على كود تفعيل · أدخله في الموقع وابدأ فوراً
         </p>
         <div style={{display:"flex",gap:10,justifyContent:"center",flexWrap:"wrap"}}>
-          <button onClick={()=>go("signup-code")} style={{
-            padding:"10px 22px",borderRadius:12,cursor:"pointer",
-            background:"linear-gradient(135deg,#f97316,#ea580c)",border:"none",
-            color:"#fff",fontFamily:"Cairo,sans-serif",fontSize:".85rem",fontWeight:800}}>
-            عندي كود تفعيل ←
+          <button onClick={()=>go("signup-code")}
+            style={{padding:"11px 24px",borderRadius:12,cursor:"pointer",
+              background:"linear-gradient(135deg,#f97316,#ea580c)",border:"none",
+              color:"#fff",fontFamily:"Cairo,sans-serif",fontSize:".85rem",fontWeight:800,
+              boxShadow:"0 4px 16px rgba(249,115,22,.35)"}}>
+            🎟️ عندي كود تفعيل
           </button>
-          <button onClick={()=>go("landing")} style={{
-            padding:"10px 22px",borderRadius:12,cursor:"pointer",
-            background:"rgba(255,255,255,.05)",border:"1px solid rgba(255,255,255,.1)",
-            color:"#64748b",fontFamily:"Cairo,sans-serif",fontSize:".85rem",fontWeight:700}}>
+          <button onClick={()=>go("landing")}
+            style={{padding:"11px 24px",borderRadius:12,cursor:"pointer",
+              background:"rgba(255,255,255,.05)",border:"1px solid rgba(255,255,255,.1)",
+              color:"#64748b",fontFamily:"Cairo,sans-serif",fontSize:".85rem",fontWeight:700}}>
             ← رجوع
           </button>
         </div>
@@ -2667,7 +2732,7 @@ function Session({settings,go,updateUser,trial,setTrial,addMistake,plan="free",s
           <div style={{padding:"12px 14px",borderRadius:14,
             background:"rgba(249,115,22,.05)",border:"1px solid rgba(249,115,22,.15)"}}>
             <div style={{display:"flex",justifyContent:"space-between",marginBottom:7}}>
-              <p style={{fontSize:".66rem",color:"#f97316",fontWeight:700}}>التجربة المجانية</p>
+              <p style={{fontSize:".66rem",color:"#f97316",fontWeight:700}}>التجربة المدفوعة</p>
               <p style={{fontSize:".66rem",color:"#94a3b8"}}>{trial.used}/{trial.limit}</p>
             </div>
             <div className="pt"><div className="pf" style={{width:`${Math.min((trial.used/trial.limit)*100,100)}%`}}/></div>
@@ -2861,10 +2926,10 @@ function Landing({go}){
           display:"flex",alignItems:"center",justifyContent:"center",gap:16,flexWrap:"wrap",marginBottom:0}}>
           <div style={{position:"absolute",inset:0,background:"linear-gradient(90deg,transparent,rgba(249,115,22,.05),transparent)",animation:"gridAnim 3s ease-in-out infinite",pointerEvents:"none"}}/>
           <p style={{fontSize:".83rem",fontWeight:700,color:"#fff",position:"relative"}}>
-            🔥 عرض محدود — اشترك الآن بـ <span style={{color:"#fde047",fontWeight:900}}>59 ريال/شهر</span> وافتح جميع المميزات
+            🔥 عرض محدود — احصل على اشتراكك بـ <span style={{color:"#fde047",fontWeight:900}}>59 ريال/شهر</span> وافتح جميع المميزات
           </p>
           <div style={{display:"flex",gap:8,position:"relative"}}>
-            <button className="btn btn-p" style={{fontSize:".75rem",padding:"7px 16px"}} onClick={()=>go("signup-code")}>اشترك الآن ←</button>
+            <button className="btn btn-p" style={{fontSize:".75rem",padding:"7px 16px"}} onClick={()=>go("signup-code")}>احصل على اشتراكك الآن ←</button>
             <button onClick={()=>setBannerClosed(true)} style={{background:"none",border:"none",cursor:"pointer",color:"#475569",fontSize:"1rem",fontFamily:"Cairo,sans-serif",padding:"4px 6px"}}>✕</button>
           </div>
         </div>
@@ -2894,7 +2959,7 @@ function Landing({go}){
 
           <div className="landing-hero-btns" style={{display:"flex",gap:12,justifyContent:"center",flexWrap:"wrap",animation:"fadeUp .5s .2s both"}}>
             <button className="btn btn-p" style={{fontSize:"1rem",padding:"14px 32px",borderRadius:16}} onClick={()=>go("signup-code")}>
-              ابدأ مجانًا ← 25 سؤال
+              احصل على اشتراكك الآن ← أسئلة غير محدودة
             </button>
             <button className="btn btn-g" style={{fontSize:".93rem",padding:"14px 24px",borderRadius:16}} onClick={()=>go("signup-code")}>
               جرّب سؤالاً الآن
@@ -3112,11 +3177,11 @@ function Landing({go}){
             جاهز ترفع درجتك في القدرات؟
           </h2>
           <p style={{color:"#64748b",marginBottom:24,fontSize:".9rem",lineHeight:1.8}}>
-            25 سؤالاً مجاناً · لا يحتاج بطاقة · ابدأ الآن
+            محتوى احترافي · كمي ولفظي · جميع الأبواب · ابدأ الآن
           </p>
           <div className="landing-cta-btns" style={{display:"flex",gap:12,justifyContent:"center",flexWrap:"wrap"}}>
             <button className="btn btn-p" style={{fontSize:"1.05rem",padding:"15px 36px",borderRadius:16}} onClick={()=>go("signup-code")}>
-              ابدأ مجانًا الآن ←
+              احصل على اشتراكك الآن ←
             </button>
             <button className="btn btn-g" style={{fontSize:".92rem",padding:"15px 24px",borderRadius:16}} onClick={()=>go("signup-code")}>
               اشترك عبر سلة
@@ -3319,7 +3384,7 @@ function Auth({mode,go,onLogin}){
   const IS_ARTIFACT=typeof window!=="undefined"&&window.location.hostname.includes("claude.ai");
 
 /* ═══ PLAN HELPERS ═══════════════════════════════════════════
- *  free  → 10 سؤال مجاني فقط
+ *  free  → 10 سؤال مميز فقط
  *  month → أسئلة غير محدودة + شرح + محاكاة + تتبع
  *  exam  → كل شيء + تحليل الضعف + خطة مذاكرة
  * ══════════════════════════════════════════════════════════ */
@@ -3454,7 +3519,7 @@ const getAccessStatus=(trial)=>{
             <div style={{display:"flex",flexDirection:"column",gap:9,marginTop:4}}>
               <input className="inp" placeholder="اسمك (اختياري)" value={name} onChange={e=>setName(e.target.value)}/>
               <button className="btn btn-p" style={{width:"100%",justifyContent:"center",padding:"13px"}} onClick={guestLogin}>
-                ⚡ جرّب فهمني+ مجاناً ←
+                ⚡ احصل على اشتراكك الآن ←
               </button>
               <p style={{fontSize:".69rem",color:"#475569",textAlign:"center"}}>على الموقع الحقيقي يطلب بريد وكلمة مرور</p>
             </div>
@@ -3866,7 +3931,7 @@ function Dashboard({go,user,trial,mistakes,settings,setSettings,getTopicProgress
         }}>
           <div style={{flex:1,minWidth:200}}>
             <p style={{fontWeight:900,color:"#fdba74",fontSize:".88rem",marginBottom:8}}>
-              التجربة المجانية — {trialLeft} سؤال متبقٍ
+              التجربة المدفوعة — {trialLeft} سؤال متبقٍ
             </p>
             <div style={{height:7,borderRadius:99,background:"rgba(255,255,255,.07)",overflow:"hidden",marginBottom:6}}>
               <div style={{height:"100%",borderRadius:99,width:`${trialPct}%`,
@@ -4657,13 +4722,13 @@ function UpgradePrompt({feature,go}){
         </h2>
         <p style={{color:"#64748b",fontSize:".88rem",lineHeight:1.8,maxWidth:360}}>
           هذه الميزة متاحة ضمن الباقة الأساسية والمميزة.<br/>
-          اشترك الآن للوصول إلى كامل المنصة.
+          احصل على اشتراكك للوصول إلى كامل المنصة.
         </p>
       </div>
       <div style={{display:"flex",gap:10,flexWrap:"wrap",justifyContent:"center"}}>
         <button className="btn btn-p" style={{padding:"12px 28px",borderRadius:12,fontWeight:700}}
           onClick={()=>go("signup-code")}>
-          اشترك الآن — اشترِ من سلة ←
+          احصل على اشتراكك — اشترِ من سلة ←
         </button>
         <button className="btn" style={{padding:"12px 18px",borderRadius:12,color:"#64748b"}}
           onClick={()=>go("dashboard")}>
@@ -4689,12 +4754,12 @@ function ExpiredWall({trial,go}){
         display:"flex",alignItems:"center",justifyContent:"center",
         fontSize:"2rem",marginBottom:20}}>🔒</div>
       <h2 style={{fontSize:"1.4rem",fontWeight:900,color:"#fff",marginBottom:10}}>
-        {isExpiredPaid?"انتهى اشتراكك":"انتهت تجربتك المجانية"}
+        {isExpiredPaid?"انتهى اشتراكك":"انتهت تجربتك المدفوعة"}
       </h2>
       <p style={{color:"#64748b",lineHeight:1.9,maxWidth:360,marginBottom:24,fontSize:".88rem"}}>
         {isExpiredPaid
           ?"انتهى وصولك إلى المنصة. جدّد اشتراكك للاستمرار في التدريب والحصول على كل المميزات."
-          :"لقد استخدمت جميع أسئلة تجربتك المجانية. اشترك للوصول إلى أسئلة غير محدودة وجميع مميزات المنصة."}
+          :"لقد استخدمت جميع أسئلة تجربتك المدفوعة. اشترك للوصول إلى أسئلة غير محدودة وجميع مميزات المنصة."}
       </p>
       <div style={{display:"flex",gap:12,flexWrap:"wrap",justifyContent:"center"}}>
         <button className="btn btn-p" style={{padding:"12px 28px",borderRadius:12,fontWeight:700}}
@@ -4803,11 +4868,11 @@ function Paywall({trial,subscribe,back,go}){
         border:"1.5px solid rgba(249,115,22,.25)",textAlign:"center"}}>
         <div style={{fontSize:"2.5rem",marginBottom:10}}>🎯</div>
         <h1 style={{fontSize:"1.6rem",fontWeight:900,color:"#fff",lineHeight:1.3,marginBottom:8}}>
-          أتممت تجربتك المجانية!
+          أتممت تجربتك المدفوعة!
         </h1>
         <p style={{fontSize:".88rem",color:"#94a3b8",lineHeight:1.8,marginBottom:16}}>
           حللت <strong style={{color:"#f97316"}}>{solved} سؤالاً</strong> وأثبتّ إنك جاد في التحضير.<br/>
-          اشترك الآن وواصل من حيث توقفت.
+          احصل على اشتراكك وواصل من حيث توقفت.
         </p>
         <div style={{display:"flex",gap:12,justifyContent:"center",flexWrap:"wrap"}}>
           {[["✅","وصلت للمستوى التشخيصي"],["📈","عرفت نقاط قوتك"],["🧠","جربت أسئلة AI حقيقية"]].map(([ic,t],i)=>(
@@ -5379,7 +5444,7 @@ function Privacy({go}){
     {title:"ما المعلومات التي نجمعها؟",items:[
       "الاسم والبريد الإلكتروني عند إنشاء الحساب.",
       "بيانات الأداء: عدد الأسئلة المحلولة، الإجابات الصحيحة والخاطئة، الأبواب المدروسة، ونقاط الضعف.",
-      "معلومات الاشتراك: نوع الباقة (مجاني / تأسيسي / احترافي)، مدة الاشتراك، وحالته.",
+      "معلومات الاشتراك: نوع الباقة (مميز / تأسيسي / احترافي)، مدة الاشتراك، وحالته.",
       "بيانات الدفع تُعالَج حصراً عبر بوابة سلة المرخصة — لا نحتفظ بأي بيانات بطاقات.",
       "بيانات الاستخدام العامة مثل وقت الجلسات والأبواب المدروسة لتحسين تجربتك."
     ]},
@@ -5419,7 +5484,7 @@ function Terms({go}){
       "نحتفظ بحق تعديل هذه الشروط في أي وقت مع إشعار مسبق عبر البريد الإلكتروني أو داخل المنصة."
     ]},
     {title:"الباقات والأسعار",items:[
-      "الباقة المجانية: 25 سؤال تجربة — تُستخدم مرة واحدة فقط ولا يمكن تجديدها.",
+      "الباقة المدفوعة: أسئلة غير محدودة تجربة — تُستخدم مرة واحدة فقط ولا يمكن تجديدها.",
       "الباقة التأسيسية: 59 ريال/شهر — أو 149 ريال/3 أشهر — أو 249 ريال/6 أشهر.",
       "الباقة الاحترافية: 99 ريال/شهر — أو 249 ريال/3 أشهر — أو 399 ريال/6 أشهر.",
       "جميع الأسعار شاملة ضريبة القيمة المضافة (15%) ما لم يُذكر غير ذلك.",
@@ -5427,13 +5492,13 @@ function Terms({go}){
     ]},
     {title:"سياسة الاسترداد — مهم",items:[
       "🚫 لا يتم استرداد رسوم الاشتراك بعد إتمام الدفع تحت أي ظرف.",
-      "ننصح باستخدام التجربة المجانية (25 سؤال) قبل الاشتراك للتأكد من ملاءمة المنصة.",
+      "ننصح باستخدام التجربة المدفوعة (أسئلة غير محدودة) قبل الاشتراك للتأكد من ملاءمة المنصة.",
       "في حال حدوث خلل تقني من جانبنا يمنع الوصول لأكثر من 72 ساعة متواصلة، يمكن دراسة تعويض بتمديد مدة الاشتراك فقط.",
       "للتواصل بشأن أي مشكلة في الدفع: fahmnipluss@gmail.com أو "
     ]},
     {title:"انتهاء الاشتراك",items:[
       "عند انتهاء مدة الاشتراك يُقفل الوصول تلقائياً لجميع المحتويات.",
-      "انتهاء الاشتراك المدفوع لا يُعيد تفعيل التجربة المجانية.",
+      "انتهاء الاشتراك المدفوع لا يُعيد تفعيل التجربة المدفوعة.",
       "تبقى بياناتك وتقدمك محفوظاً في حسابك لمدة سنة بعد انتهاء الاشتراك.",
       "لا يوجد تجديد تلقائي في الوقت الحالي — يجب الاشتراك يدوياً عند الرغبة في التجديد."
     ]},
@@ -5457,7 +5522,7 @@ function Refund({go}){
   return <LegalPage go={go} title="سياسة الاسترداد" badge="💳 الاسترداد" badgeClass="b-g" sections={[
     {title:"سياسة عدم الاسترداد",items:[
       "🚫 لا يتم استرداد رسوم الاشتراك بعد إتمام عملية الدفع تحت أي ظرف.",
-      "قبل الاشتراك، نوفر لك 25 سؤال تجربة مجانية للتأكد من ملاءمة المنصة لاحتياجاتك.",
+      "قبل الاشتراك، نوفر لك أسئلة غير محدودة اشتراك مدفوع للتأكد من ملاءمة المنصة لاحتياجاتك.",
       "نحرص على توفير وصف دقيق وشامل لكل باقة حتى تتخذ قرارك بوضوح تام."
     ]},
     {title:"الاستثناء الوحيد",items:[
@@ -5466,7 +5531,7 @@ function Refund({go}){
       "يُشترط الإبلاغ عن المشكلة خلال مدة الاشتراك على: fahmnipluss@gmail.com"
     ]},
     {title:"توصيتنا قبل الاشتراك",items:[
-      "استخدم التجربة المجانية (25 سؤال) لتتعرف على أسلوب المنصة وطريقة التدريب.",
+      "استخدم التجربة المدفوعة (أسئلة غير محدودة) لتتعرف على أسلوب المنصة وطريقة التدريب.",
       "اقرأ وصف كل باقة بعناية وتأكد من اختيار المدة المناسبة لك.",
       "للاستفسار قبل الاشتراك: fahmnipluss@gmail.com — نرد خلال 24 ساعة."
     ]}
@@ -5899,7 +5964,7 @@ export default function Fahmni(){
       // Admin skips placement — determined by trial.isAdmin from RPC/DB
       if(!trial.isAdmin){go("placement");return null;}
     }
-    // 3) Session limit check for free trial
+    // 3) Session limit check for subscription
     if(page==="session"&&!trial.isAdmin&&!trial.isSubscribed&&trial.used>=trial.limit){
       go("paywall");return null;
     }
