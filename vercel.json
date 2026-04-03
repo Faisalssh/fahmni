@@ -3,11 +3,14 @@
     { "source": "/api/(.*)", "destination": "/api/$1" }
   ],
   "functions": {
-    "api/claude.js"           : { "maxDuration": 30 },
-    "api/edfapay-create.js"   : { "maxDuration": 15 },
-    "api/edfapay-callback.js" : { "maxDuration": 15 },
-    "api/edfapay-webhook.js"  : { "maxDuration": 15 },
-    "api/generate-code.js"    : { "maxDuration": 10 },
-    "api/redeem-code.js"      : { "maxDuration": 10 }
+    "api/claude.js"              : { "maxDuration": 30 },
+    "api/edfapay-create.js"      : { "maxDuration": 15 },
+    "api/edfapay-callback.js"    : { "maxDuration": 15 },
+    "api/edfapay-webhook.js"     : { "maxDuration": 15 },
+    "api/generate-code.js"       : { "maxDuration": 10 },
+    "api/redeem-code.js"         : { "maxDuration": 10 },
+    "api/verify-code.js"         : { "maxDuration": 10 },
+    "api/register-with-code.js"  : { "maxDuration": 10 },
+    "api/salla-webhook.js"       : { "maxDuration": 10 }
   }
 }

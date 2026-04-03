@@ -1307,7 +1307,7 @@ function Nav({isPub,go,userName,title,onLogout}){
               <button className="btn btn-p" style={{width:"100%",justifyContent:"center",padding:"14px",fontSize:".92rem"}}
                 onClick={()=>{go("signup");setMenuOpen(false);}}>ابدأ مجانًا — 25 سؤال ←</button>
               <button className="btn btn-g" style={{width:"100%",justifyContent:"center",padding:"12px",fontSize:".85rem",color:"#64748b"}}
-                onClick={()=>{go("pricing");setMenuOpen(false);}}>عرض الأسعار</button>
+                onClick={()=>{go("signup-code");setMenuOpen(false);}}>اشترك الآن</button>
             </>
           ):(
             <>
@@ -3019,7 +3019,7 @@ function Landing({go}){
             🔥 عرض محدود — اشترك الآن بـ <span style={{color:"#fde047",fontWeight:900}}>59 ريال/شهر</span> وافتح جميع المميزات
           </p>
           <div style={{display:"flex",gap:8,position:"relative"}}>
-            <button className="btn btn-p" style={{fontSize:".75rem",padding:"7px 16px"}} onClick={()=>go("pricing")}>اشترك الآن ←</button>
+            <button className="btn btn-p" style={{fontSize:".75rem",padding:"7px 16px"}} onClick={()=>go("signup-code")}>اشترك الآن ←</button>
             <button onClick={()=>setBannerClosed(true)} style={{background:"none",border:"none",cursor:"pointer",color:"#475569",fontSize:"1rem",fontFamily:"Cairo,sans-serif",padding:"4px 6px"}}>✕</button>
           </div>
         </div>
@@ -4857,7 +4857,7 @@ function ExpiredWall({trial,go}){
       </p>
       <div style={{display:"flex",gap:12,flexWrap:"wrap",justifyContent:"center"}}>
         <button className="btn btn-p" style={{padding:"12px 28px",borderRadius:12,fontWeight:700}}
-          onClick={()=>go("pricing")}>
+          onClick={()=>go("signup-code")}>
           {isExpiredPaid?"جدّد الاشتراك":"اشترك الآن"}
         </button>
         <button className="btn" style={{padding:"12px 20px",borderRadius:12,color:"#64748b"}}
@@ -5324,6 +5324,252 @@ function ActivatePage({go,session,setTrial}){
         onClick={()=>go(session?"dashboard":"landing")}>
         ← رجوع
       </button>
+    </div>
+  );
+}
+
+function SignupWithCode({go}){
+  useEffect(()=>{window.scrollTo({top:0,behavior:"instant"});},[]);
+  const[step,setStep]=useState("code"); // "code" | "register" | "done"
+  const[code,setCode]=useState("");
+  const[codeInfo,setCodeInfo]=useState(null);
+  const[email,setEmail]=useState("");
+  const[password,setPassword]=useState("");
+  const[name,setName]=useState("");
+  const[loading,setLoading]=useState(false);
+  const[err,setErr]=useState("");
+
+  /* ── خطوة 1: التحقق من الكود ── */
+  const handleVerify=async()=>{
+    if(!code.trim()||loading)return;
+    setLoading(true);setErr("");
+    try{
+      const r=await fetch("/api/verify-code",{
+        method:"POST",headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({code:code.trim()}),
+      });
+      const d=await r.json();
+      if(!r.ok){setErr(d.error||"كود غير صحيح");setLoading(false);return;}
+      setCodeInfo(d);
+      setStep("register");
+    }catch{setErr("تعذّر الاتصال بالخادم");}
+    finally{setLoading(false);}
+  };
+
+  /* ── خطوة 2: إنشاء الحساب ── */
+  const handleRegister=async()=>{
+    if(!email||!password||loading)return;
+    if(password.length<8){setErr("كلمة المرور 8 أحرف على الأقل");return;}
+    setLoading(true);setErr("");
+    try{
+      const r=await fetch("/api/register-with-code",{
+        method:"POST",headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({code:codeInfo.code,email,password,name}),
+      });
+      const d=await r.json();
+      if(!r.ok){setErr(d.error||"فشل التسجيل");setLoading(false);return;}
+      setStep("done");
+    }catch{setErr("تعذّر الاتصال بالخادم");}
+    finally{setLoading(false);}
+  };
+
+  const PLAN_LABEL={basic:"تأسيسي",premium:"احترافي"};
+  const PERIOD_LABEL={"1m":"شهر","3m":"3 أشهر","6m":"6 أشهر"};
+
+  return(
+    <div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",
+      padding:"20px",background:"rgba(5,9,26,1)"}}>
+      <div style={{width:"100%",maxWidth:460,display:"flex",flexDirection:"column",gap:16}}>
+
+        {/* Logo */}
+        <div style={{textAlign:"center",marginBottom:8}}>
+          <h1 style={{fontSize:"2rem",fontWeight:900,color:"#fff",letterSpacing:".02em"}}>
+            فهمني<span style={{color:"#f97316"}}>+</span>
+          </h1>
+          <p style={{color:"#475569",fontSize:".82rem"}}>منصة الإعداد لاختبار القدرات</p>
+        </div>
+
+        {/* Step indicators */}
+        <div style={{display:"flex",alignItems:"center",gap:8,justifyContent:"center",marginBottom:4}}>
+          {[
+            {k:"code",     label:"الكود"},
+            {k:"register", label:"الحساب"},
+            {k:"done",     label:"التفعيل"},
+          ].map(({k,label},i)=>{
+            const done = (step==="register"&&i===0)||(step==="done"&&i<=1);
+            const active = step===k;
+            return(
+              <React.Fragment key={k}>
+                <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:4}}>
+                  <div style={{width:28,height:28,borderRadius:"50%",
+                    display:"flex",alignItems:"center",justifyContent:"center",
+                    fontSize:".72rem",fontWeight:900,
+                    background:done?"#4ade80":active?"#f97316":"rgba(255,255,255,.08)",
+                    color:done||active?"#0a1228":"#475569",
+                    border:`2px solid ${done?"#4ade80":active?"#f97316":"rgba(255,255,255,.1)"}`,
+                    transition:"all .3s",
+                  }}>{done?"✓":`${i+1}`}</div>
+                  <span style={{fontSize:".6rem",color:active?"#f97316":done?"#4ade80":"#334155"}}>{label}</span>
+                </div>
+                {i<2&&<div style={{flex:1,height:2,borderRadius:99,
+                  background:done?"#4ade80":"rgba(255,255,255,.06)",maxWidth:40,transition:"all .3s"}}/>}
+              </React.Fragment>
+            );
+          })}
+        </div>
+
+        {/* ══ STEP 1: الكود ══ */}
+        {step==="code"&&(
+          <div style={{padding:"28px 24px",borderRadius:20,
+            background:"rgba(10,18,40,.95)",border:"1.5px solid rgba(249,115,22,.2)"}}>
+            <div style={{textAlign:"center",marginBottom:22}}>
+              <div style={{fontSize:"2rem",marginBottom:8}}>🎟️</div>
+              <h2 style={{fontSize:"1.2rem",fontWeight:900,color:"#fff",marginBottom:6}}>أدخل كود الاشتراك</h2>
+              <p style={{color:"#475569",fontSize:".78rem",lineHeight:1.7}}>
+                الكود يصلك بعد الشراء من سلة
+              </p>
+            </div>
+            <input
+              value={code}
+              onChange={e=>setCode(e.target.value.toUpperCase())}
+              onKeyDown={e=>{if(e.key==="Enter")handleVerify();}}
+              placeholder="XXXX-XXXX-XXXX-XXXX"
+              maxLength={19}
+              style={{width:"100%",padding:"15px",borderRadius:12,boxSizing:"border-box",
+                background:"rgba(255,255,255,.05)",border:"1.5px solid rgba(249,115,22,.3)",
+                color:"#fff",fontFamily:"monospace",fontSize:"1.15rem",fontWeight:700,
+                textAlign:"center",letterSpacing:".12em",outline:"none"}}
+              onFocus={e=>e.target.style.borderColor="rgba(249,115,22,.7)"}
+              onBlur={e=>e.target.style.borderColor="rgba(249,115,22,.3)"}
+            />
+            {err&&<p style={{marginTop:10,color:"#fca5a5",fontSize:".78rem",textAlign:"center"}}>⚠ {err}</p>}
+            <button
+              disabled={!code.trim()||loading}
+              onClick={handleVerify}
+              style={{width:"100%",marginTop:16,padding:"14px",borderRadius:13,cursor:"pointer",border:"none",
+                background:code.trim()?"linear-gradient(135deg,#f97316,#ea580c)":"rgba(255,255,255,.06)",
+                color:code.trim()?"#fff":"#334155",fontFamily:"Cairo,sans-serif",
+                fontSize:".95rem",fontWeight:800,transition:"all .2s",
+                boxShadow:code.trim()?"0 4px 18px rgba(249,115,22,.35)":"none"}}>
+              {loading?"جاري التحقق...":"التحقق من الكود ←"}
+            </button>
+            <p style={{marginTop:16,textAlign:"center",fontSize:".72rem",color:"#334155"}}>
+              ليس لديك كود؟{" "}
+              <a href="https://salla.sa" target="_blank" rel="noopener noreferrer"
+                style={{color:"#f97316",textDecoration:"none",fontWeight:700}}>
+                اشترِ من سلة
+              </a>
+            </p>
+            <div style={{marginTop:16,borderTop:"1px solid rgba(255,255,255,.05)",paddingTop:14,textAlign:"center"}}>
+              <button onClick={()=>go("login")}
+                style={{background:"none",border:"none",color:"#475569",cursor:"pointer",
+                  fontFamily:"Cairo,sans-serif",fontSize:".78rem"}}>
+                لديك حساب؟ سجّل دخول
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* ══ STEP 2: إنشاء الحساب ══ */}
+        {step==="register"&&codeInfo&&(
+          <div style={{padding:"28px 24px",borderRadius:20,
+            background:"rgba(10,18,40,.95)",border:"1.5px solid rgba(167,139,250,.25)"}}>
+            {/* كود مقبول */}
+            <div style={{padding:"10px 14px",borderRadius:10,marginBottom:20,
+              background:"rgba(74,222,128,.07)",border:"1px solid rgba(74,222,128,.2)",
+              display:"flex",alignItems:"center",gap:10}}>
+              <span style={{fontSize:"1.1rem"}}>✅</span>
+              <div>
+                <p style={{fontSize:".75rem",fontWeight:800,color:"#4ade80"}}>كود صالح</p>
+                <p style={{fontSize:".68rem",color:"#64748b"}}>
+                  باقة {PLAN_LABEL[codeInfo.plan]} · {PERIOD_LABEL[codeInfo.period]}
+                </p>
+              </div>
+              <code style={{marginRight:"auto",fontSize:".68rem",color:"#64748b",fontFamily:"monospace"}}>
+                {codeInfo.code}
+              </code>
+            </div>
+
+            <h2 style={{fontSize:"1.1rem",fontWeight:900,color:"#fff",marginBottom:18,textAlign:"center"}}>
+              أنشئ حسابك
+            </h2>
+
+            {[
+              {label:"الاسم (اختياري)",  val:name,     set:setName,     type:"text",     ph:"اسمك"},
+              {label:"البريد الإلكتروني",val:email,    set:setEmail,    type:"email",    ph:"example@email.com"},
+              {label:"كلمة المرور",       val:password, set:setPassword, type:"password", ph:"8 أحرف على الأقل"},
+            ].map(({label,val,set,type,ph})=>(
+              <div key={label} style={{marginBottom:14}}>
+                <p style={{fontSize:".72rem",color:"#94a3b8",marginBottom:6}}>{label}</p>
+                <input type={type} value={val} onChange={e=>set(e.target.value)}
+                  placeholder={ph}
+                  style={{width:"100%",padding:"12px 14px",borderRadius:10,boxSizing:"border-box",
+                    background:"rgba(255,255,255,.05)",border:"1px solid rgba(255,255,255,.1)",
+                    color:"#fff",fontFamily:"Cairo,sans-serif",fontSize:".88rem",outline:"none"}}
+                  onFocus={e=>e.target.style.borderColor="rgba(167,139,250,.5)"}
+                  onBlur={e=>e.target.style.borderColor="rgba(255,255,255,.1)"}
+                  onKeyDown={e=>{if(e.key==="Enter")handleRegister();}}
+                />
+              </div>
+            ))}
+
+            {err&&<p style={{color:"#fca5a5",fontSize:".78rem",marginBottom:12}}>⚠ {err}</p>}
+
+            <button disabled={!email||!password||loading} onClick={handleRegister}
+              style={{width:"100%",padding:"14px",borderRadius:13,cursor:"pointer",border:"none",
+                background:email&&password?"linear-gradient(135deg,#a78bfa,#7c3aed)":"rgba(255,255,255,.06)",
+                color:email&&password?"#fff":"#334155",fontFamily:"Cairo,sans-serif",
+                fontSize:".95rem",fontWeight:800,transition:"all .2s",
+                boxShadow:email&&password?"0 4px 18px rgba(167,139,250,.35)":"none"}}>
+              {loading?"جاري إنشاء الحساب...":"إنشاء الحساب ←"}
+            </button>
+
+            <button onClick={()=>{setStep("code");setErr("");}}
+              style={{width:"100%",marginTop:10,padding:"10px",borderRadius:10,cursor:"pointer",
+                background:"none",border:"none",color:"#475569",fontFamily:"Cairo,sans-serif",fontSize:".78rem"}}>
+              ← تغيير الكود
+            </button>
+          </div>
+        )}
+
+        {/* ══ STEP 3: تأكيد الإيميل ══ */}
+        {step==="done"&&(
+          <div style={{padding:"32px 24px",borderRadius:20,textAlign:"center",
+            background:"rgba(10,18,40,.95)",border:"1.5px solid rgba(74,222,128,.25)"}}>
+            <div style={{fontSize:"3rem",marginBottom:16}}>📧</div>
+            <h2 style={{fontSize:"1.2rem",fontWeight:900,color:"#fff",marginBottom:10}}>
+              تحقق من بريدك الإلكتروني
+            </h2>
+            <p style={{color:"#64748b",fontSize:".83rem",lineHeight:1.8,marginBottom:20}}>
+              أرسلنا رابط التفعيل إلى<br/>
+              <strong style={{color:"#e2e8f0"}}>{email}</strong>
+            </p>
+            <div style={{padding:"14px",borderRadius:12,marginBottom:20,
+              background:"rgba(255,255,255,.04)",border:"1px solid rgba(255,255,255,.06)"}}>
+              <p style={{fontSize:".75rem",color:"#94a3b8",lineHeight:1.7}}>
+                ١. افتح بريدك الإلكتروني<br/>
+                ٢. اضغط رابط التفعيل<br/>
+                ٣. سيتم تحويلك تلقائياً للدخول
+              </p>
+            </div>
+            <button onClick={()=>go("login")}
+              style={{width:"100%",padding:"13px",borderRadius:13,cursor:"pointer",border:"none",
+                background:"linear-gradient(135deg,#f97316,#ea580c)",
+                color:"#fff",fontFamily:"Cairo,sans-serif",fontSize:".9rem",fontWeight:800}}>
+              انتقل لتسجيل الدخول
+            </button>
+            <p style={{marginTop:12,fontSize:".68rem",color:"#334155"}}>
+              لم تصلك الرسالة؟ تحقق من Spam أو{" "}
+              <button onClick={()=>setStep("register")}
+                style={{background:"none",border:"none",color:"#a78bfa",cursor:"pointer",
+                  fontFamily:"Cairo,sans-serif",fontSize:".68rem",padding:0}}>
+                أعد المحاولة
+              </button>
+            </p>
+          </div>
+        )}
+
+      </div>
     </div>
   );
 }
@@ -5917,6 +6163,7 @@ export default function Fahmni(){
         }
       }}/>;
     case"activate":return <ActivatePage go={go} session={session} setTrial={setTrial}/>;
+    case"signup-code":return <SignupWithCode go={go}/>;
     case"pricing":return <Pricing go={go} setCheckoutPlan={setCheckoutPlan} setCheckoutPeriod={setCheckoutPeriod}/>;
     case"checkout":return <Checkout go={go} trial={trial} session={session} selectedPlan={checkoutPlan} selectedPeriod={checkoutPeriod}/>;
     case"paywall":return <Paywall trial={trial} go={go} subscribe={(plan,period)=>{setCheckoutPlan(plan||"basic");setCheckoutPeriod(period||"3m");go("checkout");}} back={()=>go("pricing")}/>;
