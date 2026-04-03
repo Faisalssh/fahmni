@@ -2013,279 +2013,124 @@ function SimMode({settings,go,updateUser,addMistake,trial={}}){
 }
 
 /* ═══════════════════ PRICING PAGE ═══════════════════ */
-function Pricing({go,setCheckoutPlan,setCheckoutPeriod}){
-  useEffect(()=>{window.scrollTo({top:0,behavior:"instant"});},[]); 
-  const[basicDur,setBasicDur]=useState("3m");
-  const[examDur,setExamDur]=useState("3m");
+function Pricing({go}){
+  useEffect(()=>{window.scrollTo({top:0,behavior:"instant"});},[]);
 
-  const DURATIONS={
-    "1m":{label:"شهر",badge:null},
-    "3m":{label:"3 أشهر",badge:"الأوفر 💰"},
-  };
-  const BASIC_PRICES={"1m":{price:59,monthly:59,save:null},"3m":{price:149,monthly:50,save:"وفّر 28 ريال"}};
-  const EXAM_PRICES={"1m":{price:99,monthly:99,save:null},"3m":{price:249,monthly:83,save:"وفّر 48 ريال"}};
-
-  const DurTabs=({value,onChange,prices})=>(
-    <div style={{display:"flex",gap:5,background:"rgba(255,255,255,.05)",borderRadius:10,padding:4,marginBottom:16}}>
-      {Object.entries(DURATIONS).map(([k,{label,badge}])=>{
-        const active=value===k;
-        return(
-          <button key={k} onClick={()=>onChange(k)} style={{
-            flex:1,padding:"7px 4px",borderRadius:7,border:"none",cursor:"pointer",
-            background:active?"rgba(255,255,255,.12)":"transparent",
-            color:active?"#fff":"#64748b",fontSize:".68rem",fontWeight:active?700:400,
-            transition:"all .2s",position:"relative",
-          }}>
-            {label}
-            {badge&&<span style={{
-              display:"block",fontSize:".52rem",
-              color:active?"#fbbf24":"#475569",fontWeight:700,marginTop:1,
-            }}>{badge}</span>}
-          </button>
-        );
-      })}
-    </div>
-  );
-
-  const PriceDisplay=({priceData,color})=>(
-    <div style={{marginBottom:14,minHeight:70}}>
-      <div style={{display:"flex",alignItems:"baseline",gap:6}}>
-        <span style={{fontSize:"clamp(2rem,4vw,2.6rem)",fontWeight:900,color,transition:"all .3s",lineHeight:1}}>
-          {priceData.price}
-        </span>
-        <span style={{fontSize:".8rem",color:"#64748b"}}>ريال</span>
-      </div>
-      {priceData.monthly!==priceData.price&&(
-        <p style={{fontSize:".7rem",color:"#94a3b8",marginTop:3}}>
-          يعادل <span style={{color,fontWeight:700}}>{priceData.monthly} ريال/شهر</span>
-        </p>
-      )}
-      {priceData.save&&(
-        <div style={{display:"inline-flex",alignItems:"center",gap:4,marginTop:6,
-          padding:"3px 10px",borderRadius:99,background:"rgba(74,222,128,.1)",
-          border:"1px solid rgba(74,222,128,.2)"}}>
-          <span style={{fontSize:".62rem",color:"#4ade80",fontWeight:700}}>✓ {priceData.save}</span>
-        </div>
-      )}
-    </div>
-  );
-
-  const PLANS=[
+  const plans=[
     {
-      id:"free",name:"مجاني",price:0,per:"",color:"#22d3ee",
-      badge:"ابدأ هنا 🎁",badgeBg:"rgba(34,211,238,.12)",
-      features:["25 سؤال تجربة مجانية","استعراض بعض المفاهيم","خريطة مسار التعلم","تجربة واجهة الاختبار"],
-      locked:["أسئلة AI غير محدودة","شرح تفصيلي لكل سؤال","وضع المحاكاة","تحليل التقدم"],
-      btn:"ابدأ مجانًا ←",isPaid:false,highlight:false,
+      id:"monthly", label:"شهر واحد", price:59, period:"1m", months:1,
+      color:"#22d3ee", bg:"rgba(34,211,238,.07)", border:"rgba(34,211,238,.22)",
+      features:["جميع أبواب الكمي واللفظي","أسئلة غير محدودة","شرح مفصّل لكل سؤال","وضع المحاكاة","تتبع التقدم"],
+      highlight:false,
     },
     {
-      id:"month",name:"تأسيسي",price:59,per:"شهر",color:"#f97316",
-      badge:"الأكثر شيوعاً ⭐",badgeBg:"rgba(249,115,22,.12)",
-      features:["أسئلة AI غير محدودة","شرح مفصّل لكل سؤال","وضع المحاكاة الكامل ⚡","تتبع التقدم والدقة","بنك الأسئلة 18 باب","تايمر 90 ثانية ⏱","وضع المراجعة 📋","بطاقة النتيجة"],
-      locked:[],btn:"اشترك الآن ←",isPaid:true,highlight:true,
+      id:"quarterly", label:"3 أشهر", price:149, period:"3m", months:3,
+      color:"#f97316", bg:"rgba(249,115,22,.08)", border:"rgba(249,115,22,.3)",
+      badge:"الأكثر طلباً",
+      features:["جميع مميزات الشهري","توفير 28 ريال","خطة دراسية 90 يوم","تقارير أسبوعية"],
+      highlight:true,
     },
     {
-      id:"exam",name:"احترافي",price:99,per:"شهر",color:"#a78bfa",
-      badge:"⭐ الأكثر اختياراً",badgeBg:"rgba(167,139,250,.12)",
-      features:["كل مميزات التأسيسي","AI مساعد شخصي متقدم","تحليل نقاط الضعف التفصيلي","خطة مذاكرة ذكية مخصصة","اختبارات غير محدودة","أولوية في الدعم 24/7","أفضل قيمة مقارنة بالشهري 💜"],
-      locked:[],btn:"اشترك الآن ←",isPaid:true,highlight:false,isBest:true,
+      id:"yearly", label:"سنة كاملة", price:399, period:"1y", months:12,
+      color:"#a78bfa", bg:"rgba(167,139,250,.08)", border:"rgba(167,139,250,.25)",
+      badge:"الأوفر",
+      features:["جميع مميزات الشهري","توفير 309 ريال","خطة سنوية متكاملة","أولوية الدعم"],
+      highlight:false,
     },
   ];
 
   return(
-    <div style={{display:"grid",gap:16,maxWidth:900,margin:"0 auto",width:"100%"}}>
+    <div style={{display:"flex",flexDirection:"column",gap:20,maxWidth:860,margin:"0 auto",width:"100%"}}>
 
       {/* Header */}
-      <div className="gl" style={{padding:"clamp(24px,4vw,40px) clamp(16px,3vw,32px)",textAlign:"center"}}>
-        <span className="badge b-o" style={{marginBottom:14}}>💰 الباقات</span>
-        <h1 style={{fontSize:"clamp(1.5rem,3vw,2.1rem)",fontWeight:900,color:"#fff",marginBottom:10}}>
-          بسيط وواضح — بدون مفاجآت
+      <div style={{textAlign:"center",padding:"32px 24px 24px"}}>
+        <span className="badge b-o" style={{marginBottom:14}}>💎 باقات الاشتراك</span>
+        <h1 style={{fontSize:"clamp(1.5rem,3vw,2rem)",fontWeight:900,color:"#fff",marginBottom:10}}>
+          اختر باقتك من سلة
         </h1>
-        <p style={{color:"#64748b",lineHeight:1.9,fontSize:".88rem"}}>
-          جرّب مجاناً · لا استرداد بعد الاشتراك · سياسة الاستخدام العادل
+        <p style={{color:"#64748b",fontSize:".88rem",lineHeight:1.8,maxWidth:500,margin:"0 auto"}}>
+          ادفع من سلة واحصل على كود التفعيل فوراً — ثم أدخله في الموقع لتبدأ
         </p>
-        <div style={{display:"inline-flex",alignItems:"center",gap:8,marginTop:12,
-          padding:"8px 18px",borderRadius:99,background:"rgba(251,191,36,.08)",
-          border:"1px solid rgba(251,191,36,.2)"}}>
-          <span style={{fontSize:".65rem",color:"#fbbf24",fontWeight:700}}>
-            🔒 الاشتراكات ستتوفر قريباً بعد تفعيل بوابة الدفع
-          </span>
-        </div>
       </div>
 
-      {/* Cards */}
-      <div className="pricing-grid" style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(230px,1fr))",gap:14}}>
-        {PLANS.map((p,i)=>{
-          const basicPriceData=BASIC_PRICES[basicDur];
-          const examPriceData=EXAM_PRICES[examDur];
-          return(
-          <div key={p.id} className={`gl au d${i+1}`} style={{
-            padding:"clamp(20px,3vw,28px) clamp(16px,2.5vw,22px)",
-            position:"relative",
-            border:`1.5px solid ${p.isBest?"rgba(167,139,250,.55)":p.highlight?"rgba(249,115,22,.4)":`${p.color}25`}`,
-            display:"flex",flexDirection:"column",gap:0,
-            background:p.isBest?"linear-gradient(160deg,rgba(167,139,250,.07),rgba(5,9,26,.98))":"",
-            boxShadow:p.isBest?`0 12px 40px rgba(167,139,250,.18)`:p.highlight?`0 8px 28px rgba(249,115,22,.12)`:"",
-            opacity:p.isPaid?.85:1,
+      {/* Plans */}
+      <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(240px,1fr))",gap:14}}>
+        {plans.map(plan=>(
+          <div key={plan.id} style={{
+            padding:"24px",borderRadius:20,position:"relative",
+            background:plan.highlight?`linear-gradient(135deg,${plan.bg},rgba(10,18,40,.97))`:plan.bg,
+            border:`1.5px solid ${plan.border}`,
+            transform:plan.highlight?"translateY(-4px)":"none",
+            boxShadow:plan.highlight?`0 8px 32px ${plan.color}20`:"none",
           }}>
-            {/* Best badge */}
-            {p.isBest&&(
-              <div style={{position:"absolute",top:-13,left:"50%",transform:"translateX(-50%)",
-                whiteSpace:"nowrap",padding:"5px 16px",borderRadius:99,
-                background:"linear-gradient(135deg,#a78bfa,#8b5cf6)",
-                fontSize:".65rem",fontWeight:900,color:"#fff",letterSpacing:.3,zIndex:2}}>
-                ✦ الأكثر اختياراً
-              </div>
+            {plan.badge&&(
+              <div style={{
+                position:"absolute",top:-12,left:"50%",transform:"translateX(-50%)",
+                padding:"4px 16px",borderRadius:99,
+                background:`linear-gradient(135deg,${plan.color},${plan.color}cc)`,
+                color:"#fff",fontSize:".68rem",fontWeight:800,whiteSpace:"nowrap",
+              }}>{plan.badge}</div>
             )}
-
-            {/* Plan name */}
-            <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:14}}>
-              <div>
-                <p style={{fontSize:"1.1rem",fontWeight:900,color:"#fff",marginBottom:3}}>{p.name}</p>
-                <span style={{display:"inline-block",padding:"3px 10px",borderRadius:99,
-                  background:p.badgeBg,fontSize:".62rem",fontWeight:700,color:p.color}}>
-                  {p.isBest?"المميز 👑":p.badge}
-                </span>
-              </div>
-              {p.isPaid&&(
-                <div style={{padding:"4px 8px",borderRadius:8,
-                  background:"rgba(251,191,36,.1)",border:"1px solid rgba(251,191,36,.2)"}}>
-                  <span style={{fontSize:".55rem",color:"#fbbf24",fontWeight:700}}>🔒 قريباً</span>
-                </div>
-              )}
+            <p style={{fontSize:".8rem",color:plan.color,fontWeight:700,marginBottom:10}}>{plan.label}</p>
+            <div style={{display:"flex",alignItems:"baseline",gap:6,marginBottom:6}}>
+              <span style={{fontSize:"2.4rem",fontWeight:900,color:"#fff"}}>{plan.price}</span>
+              <span style={{color:"#475569",fontSize:".85rem"}}>ريال</span>
             </div>
-
-            {/* Duration tabs for paid plans */}
-            {p.id==="month"&&<DurTabs value={basicDur} onChange={setBasicDur} prices={BASIC_PRICES}/>}
-            {p.id==="exam"&&<DurTabs value={examDur} onChange={setExamDur} prices={EXAM_PRICES}/>}
-
-            {/* Price */}
-            {p.isPaid?(
-              p.id==="month"
-                ?<PriceDisplay priceData={basicPriceData} color={p.color}/>
-                :<PriceDisplay priceData={examPriceData} color={p.color}/>
-            ):(
-              <div style={{marginBottom:14}}>
-                <div style={{display:"flex",alignItems:"baseline",gap:6}}>
-                  <span style={{fontSize:"clamp(2rem,4vw,2.6rem)",fontWeight:900,color:p.color,lineHeight:1}}>مجاني</span>
-                </div>
-                <p style={{fontSize:".7rem",color:"#64748b",marginTop:3}}>لا يحتاج بطاقة</p>
-              </div>
-            )}
-
-            {/* Features */}
-            <div style={{display:"flex",flexDirection:"column",gap:7,flex:1,marginBottom:20}}>
-              {p.features.map((f,j)=>(
-                <div key={j} style={{display:"flex",alignItems:"center",gap:8}}>
-                  <span style={{color:"#4ade80",fontSize:".7rem",flexShrink:0}}>✓</span>
-                  <span style={{fontSize:".78rem",color:"#cbd5e1"}}>{f}</span>
-                </div>
-              ))}
-              {p.locked.map((f,j)=>(
-                <div key={j} style={{display:"flex",alignItems:"center",gap:8,opacity:.4}}>
-                  <span style={{color:"#475569",fontSize:".7rem",flexShrink:0}}>✕</span>
-                  <span style={{fontSize:".78rem",color:"#475569"}}>{f}</span>
+            <p style={{fontSize:".7rem",color:"#334155",marginBottom:18}}>
+              {Math.round(plan.price/plan.months)} ريال/شهر
+            </p>
+            <div style={{display:"flex",flexDirection:"column",gap:7,marginBottom:22}}>
+              {plan.features.map((f,i)=>(
+                <div key={i} style={{display:"flex",gap:8,alignItems:"flex-start"}}>
+                  <span style={{color:plan.color,fontSize:".75rem",marginTop:2,flexShrink:0}}>✓</span>
+                  <span style={{fontSize:".78rem",color:"#94a3b8",lineHeight:1.5}}>{f}</span>
                 </div>
               ))}
             </div>
-
-            {/* CTA Button */}
-            {p.isPaid?(
-              <div>
-                <button
-                  onClick={()=>{
-                    const plan=p.id==="month"?"basic":"premium";
-                    const period=p.id==="month"?basicDur:examDur;
-                    setCheckoutPlan&&setCheckoutPlan(plan);
-                    setCheckoutPeriod&&setCheckoutPeriod(period);
-                    go("checkout");
-                  }}
-                  style={{
-                    width:"100%",padding:"13px",borderRadius:12,
-                    background:`linear-gradient(135deg,${p.color}22,${p.color}11)`,
-                    border:`1px solid ${p.color}44`,
-                    color:p.color,fontSize:".82rem",fontWeight:700,
-                    cursor:"pointer",letterSpacing:.3,fontFamily:"Cairo,sans-serif",
-                    transition:"all .2s",
-                  }}
-                  onMouseEnter={e=>e.currentTarget.style.opacity=".8"}
-                  onMouseLeave={e=>e.currentTarget.style.opacity="1"}>
-                  اشترك الآن ← (قريباً)
-                </button>
-                <p style={{textAlign:"center",fontSize:".6rem",color:"#334155",marginTop:8}}>
-                  سيتم تحويلك إلى بوابة دفع آمنة عند التفعيل · لا استرداد بعد إتمام الدفع
-                </p>
-              </div>
-            ):(
-              <button className="btn btn-p" style={{width:"100%",padding:"13px",borderRadius:12,fontWeight:700,fontSize:".82rem"}}
-                onClick={()=>go("auth")}>
-                {p.btn}
-              </button>
-            )}
-
+            <button
+              onClick={()=>go("signup-code")}
+              style={{
+                width:"100%",padding:"12px",borderRadius:13,cursor:"pointer",
+                background:plan.highlight?`linear-gradient(135deg,${plan.color},${plan.color}cc)`:`${plan.color}14`,
+                border:plan.highlight?"none":`1px solid ${plan.border}`,
+                color:plan.highlight?"#fff":plan.color,
+                fontFamily:"Cairo,sans-serif",fontSize:".85rem",fontWeight:800,
+                transition:"all .2s",
+              }}
+              onMouseEnter={e=>{e.currentTarget.style.opacity=".85";}}
+              onMouseLeave={e=>{e.currentTarget.style.opacity="1";}}>
+              اشترِ من سلة ←
+            </button>
           </div>
-        );})}
+        ))}
       </div>
 
-      {/* Comparison table */}
-      <div className="gl" style={{padding:"20px clamp(14px,3vw,28px)",overflowX:"auto"}}>
-        <p style={{fontWeight:800,color:"#fff",marginBottom:14,fontSize:".9rem"}}>⚖️ مقارنة الباقات</p>
-        <table style={{width:"100%",borderCollapse:"collapse",fontSize:".75rem"}}>
-          <thead>
-            <tr>
-              {["الميزة","مجاني","تأسيسي","احترافي"].map((h,i)=>(
-                <th key={i} style={{padding:"8px 10px",textAlign:"center",color:i===0?"#94a3b8":["#22d3ee","#f97316","#a78bfa"][i-1],fontWeight:700,borderBottom:"1px solid rgba(255,255,255,.06)"}}>{h}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {[
-              ["أسئلة AI","25 فقط","غير محدودة ✓","غير محدودة ✓"],
-              ["وضع المحاكاة","✕","✓","✓"],
-              ["شرح تفصيلي","✕","✓","✓"],
-              ["تحليل AI متقدم","✕","✕","✓"],
-              ["خطة مذاكرة ذكية","✕","✕","✓"],
-              ["الدعم","✕","عادي","24/7 أولوية"],
-            ].map((row,i)=>(
-              <tr key={i} style={{background:i%2===0?"rgba(255,255,255,.02)":"transparent"}}>
-                {row.map((cell,j)=>(
-                  <td key={j} style={{padding:"9px 10px",textAlign:"center",
-                    color:j===0?"#94a3b8":cell==="✓"||cell.includes("✓")?"#4ade80":cell==="✕"?"#475569":"#cbd5e1",
-                    fontWeight:j===0?600:400,fontSize:j===0?".72rem":".73rem"}}>
-                    {cell}
-                  </td>
-                ))}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      {/* FAQ */}
-      <div className="gl" style={{padding:"20px clamp(14px,3vw,28px)"}}>
-        <p style={{fontWeight:800,color:"#fff",marginBottom:14,fontSize:".9rem"}}>❓ أسئلة شائعة</p>
-        <div style={{display:"flex",flexDirection:"column",gap:12}}>
-          {[
-            ["كم عدد الأسئلة في منصة فهمني+؟","تحتوي المنصة على بنك أسئلة كبير يغطي جميع أبواب اختبار القدرات ويتم تحديثه باستمرار لتوفير تدريب متنوع وقريب من نمط الاختبار الحقيقي."],
-            ["هل الأسئلة مشابهة لاختبار القدرات الحقيقي؟","تم تصميم الأسئلة بأسلوب تدريبي قريب من نمط اختبار القدرات من حيث طريقة التفكير ومستوى الصعوبة لمساعدتك على الاستعداد بثقة."],
-            ["كيف تساعدني المنصة على رفع درجتي؟","توفر فهمني+ اختبارات محاكاة وتحليل أداء وتدريب على جميع الأبواب مما يساعدك على معرفة نقاط ضعفك والتدرب عليها حتى تتحسن درجتك."],
-            ["هل يمكنني تجربة المنصة قبل الاشتراك؟","نعم، يمكنك تجربة المنصة من خلال الباقة المجانية التي تحتوي على 25 سؤالاً للتعرف على طريقة التدريب قبل الاشتراك."],
-            ["لماذا التدريب عبر فهمني+ أفضل من الحل العشوائي؟","لأن المنصة تقدم تدريباً منظماً يشمل بنك أسئلة ومحاكاة للاختبار وتحليل للأداء مما يساعدك على الاستعداد بشكل أكثر فعالية."],
-            ["ما سياسة الاسترداد؟","لا يتم استرداد رسوم الاشتراك بعد الدفع. ننصح باستخدام التجربة المجانية أولاً للتأكد من ملاءمة المنصة لاحتياجاتك."],
-          ].map(([q,a],i)=>(
-            <div key={i} style={{borderBottom:"1px solid rgba(255,255,255,.05)",paddingBottom:10}}>
-              <p style={{fontSize:".8rem",fontWeight:700,color:"#e2e8f0",marginBottom:4}}>◆ {q}</p>
-              <p style={{fontSize:".75rem",color:"#64748b",lineHeight:1.7}}>{a}</p>
-            </div>
-          ))}
+      {/* سلة CTA */}
+      <div style={{padding:"22px 26px",borderRadius:18,textAlign:"center",
+        background:"rgba(255,255,255,.03)",border:"1px solid rgba(255,255,255,.07)"}}>
+        <p style={{color:"#64748b",fontSize:".83rem",lineHeight:1.8,marginBottom:14}}>
+          📦 الشراء يتم عبر <strong style={{color:"#f97316"}}>منصة سلة</strong> — بعد الدفع ستحصل على كود تفعيل تدخله في الموقع
+        </p>
+        <div style={{display:"flex",gap:10,justifyContent:"center",flexWrap:"wrap"}}>
+          <button onClick={()=>go("signup-code")} style={{
+            padding:"10px 22px",borderRadius:12,cursor:"pointer",
+            background:"linear-gradient(135deg,#f97316,#ea580c)",border:"none",
+            color:"#fff",fontFamily:"Cairo,sans-serif",fontSize:".85rem",fontWeight:800}}>
+            عندي كود تفعيل ←
+          </button>
+          <button onClick={()=>go("landing")} style={{
+            padding:"10px 22px",borderRadius:12,cursor:"pointer",
+            background:"rgba(255,255,255,.05)",border:"1px solid rgba(255,255,255,.1)",
+            color:"#64748b",fontFamily:"Cairo,sans-serif",fontSize:".85rem",fontWeight:700}}>
+            ← رجوع
+          </button>
         </div>
       </div>
+
       <SiteFooter go={go}/>
     </div>
   );
 }
-
-/* ═══════════════════ AI SESSION ═══════════════════ */
 
 function Session({settings,go,updateUser,trial,setTrial,addMistake,plan="free",session=null,user={name:"",streak:0,totalSolved:0,correct:0}}){
   const examMode = settings.examMode===true; /* اختبار شامل — بدون شرح */
@@ -3273,8 +3118,8 @@ function Landing({go}){
             <button className="btn btn-p" style={{fontSize:"1.05rem",padding:"15px 36px",borderRadius:16}} onClick={()=>go("signup")}>
               ابدأ مجانًا الآن ←
             </button>
-            <button className="btn btn-g" style={{fontSize:".92rem",padding:"15px 24px",borderRadius:16}} onClick={()=>go("pricing")}>
-              عرض الأسعار
+            <button className="btn btn-g" style={{fontSize:".92rem",padding:"15px 24px",borderRadius:16}} onClick={()=>go("signup-code")}>
+              اشترك عبر سلة
             </button>
           </div>
           <p style={{marginTop:18,fontSize:".72rem",color:"#334155"}}>
@@ -4817,12 +4662,8 @@ function UpgradePrompt({feature,go}){
       </div>
       <div style={{display:"flex",gap:10,flexWrap:"wrap",justifyContent:"center"}}>
         <button className="btn btn-p" style={{padding:"12px 28px",borderRadius:12,fontWeight:700}}
-          onClick={()=>go("checkout")}>
-          اشترك الآن ←
-        </button>
-        <button className="btn" style={{padding:"12px 18px",borderRadius:12,color:"#64748b"}}
-          onClick={()=>go("pricing")}>
-          عرض الباقات
+          onClick={()=>go("signup-code")}>
+          اشترك الآن — اشترِ من سلة ←
         </button>
         <button className="btn" style={{padding:"12px 18px",borderRadius:12,color:"#64748b"}}
           onClick={()=>go("dashboard")}>
@@ -5010,13 +4851,12 @@ function Checkout({go,trial,session=null,selectedPlan,selectedPeriod}){
           لا استرداد بعد إتمام الدفع · الأسعار شاملة ضريبة القيمة المضافة
         </p>
         <button className="btn" style={{justifyContent:"center",color:"#64748b",fontSize:".82rem"}}
-          onClick={()=>go("pricing")}>
-          ← العودة للباقات
+          onClick={()=>go("signup-code")}>
+          ← رجوع
         </button>
-        <button className="btn" style={{justifyContent:"center",color:"#a78bfa",fontSize:".82rem"}}
-          onClick={()=>go("activate")}>
-          🎟️ عندي كود تفعيل
-        </button>
+        <p style={{textAlign:"center",fontSize:".72rem",color:"#475569",marginTop:4}}>
+          لديك كود؟ <button onClick={()=>go("activate")} style={{background:"none",border:"none",color:"#a78bfa",cursor:"pointer",fontFamily:"Cairo,sans-serif",fontSize:".72rem"}}>فعّله هنا</button>
+        </p>
       </div>
 
       <p style={{textAlign:"center",fontSize:".68rem",color:"#334155"}}>
@@ -5172,8 +5012,8 @@ function Paywall({trial,subscribe,back,go}){
         <button className="btn btn-g" style={{justifyContent:"center"}} onClick={back}>
           ← واصل التجربة
         </button>
-        <button className="btn btn-g" style={{justifyContent:"center"}} onClick={()=>go("pricing")}>
-          عرض تفاصيل الباقات
+        <button className="btn btn-g" style={{justifyContent:"center"}} onClick={()=>go("signup-code")}>
+          اشترِ من سلة واحصل على كود تفعيل ←
         </button>
       </div>
 
@@ -6166,7 +6006,7 @@ export default function Fahmni(){
     case"signup-code":return <SignupWithCode go={go}/>;
     case"pricing":return <Pricing go={go} setCheckoutPlan={setCheckoutPlan} setCheckoutPeriod={setCheckoutPeriod}/>;
     case"checkout":return <Checkout go={go} trial={trial} session={session} selectedPlan={checkoutPlan} selectedPeriod={checkoutPeriod}/>;
-    case"paywall":return <Paywall trial={trial} go={go} subscribe={(plan,period)=>{setCheckoutPlan(plan||"basic");setCheckoutPeriod(period||"3m");go("checkout");}} back={()=>go("pricing")}/>;
+    case"paywall":return <Paywall trial={trial} go={go} subscribe={(plan,period)=>{setCheckoutPlan(plan||"basic");setCheckoutPeriod(period||"3m");go("checkout");}} back={()=>go("signup-code")}/>;
     case"privacy":return <Privacy go={go}/>;
     case"terms":return <Terms go={go}/>;
     case"contact":return <Contact go={go}/>;

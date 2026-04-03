@@ -33,7 +33,7 @@ export default async function handler(req, res) {
     return res.status(403).json({ error: "غير مصرح" });
   }
 
-  const MONTHS = { "1m":1, "3m":3, "6m":6 };
+  const MONTHS = { "1m":1, "3m":3, "6m":6, "1y":12 };
   const months = MONTHS[period];
   if (!months) return res.status(400).json({ error: "period invalid" });
   if (!["basic","premium"].includes(plan)) return res.status(400).json({ error: "plan invalid" });

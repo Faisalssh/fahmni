@@ -30,7 +30,7 @@ export default async function handler(req, res) {
                    (req.headers["x-forwarded-for"]||"").split(",")[0].trim() ||
                    "178.80.69.103";
 
-    const PRICES = { basic:{"1m":59,"3m":149}, premium:{"1m":99,"3m":249} };
+    const PRICES = { basic:{"1m":59,"3m":149,"1y":399}, premium:{"1m":59,"3m":149,"1y":399} };
     const amount = PRICES[plan]?.[period];
     if (!amount) return res.status(400).json({ error: "Invalid plan/period" });
 
