@@ -5013,6 +5013,10 @@ function Checkout({go,trial,session=null,selectedPlan,selectedPeriod}){
           onClick={()=>go("pricing")}>
           ← العودة للباقات
         </button>
+        <button className="btn" style={{justifyContent:"center",color:"#a78bfa",fontSize:".82rem"}}
+          onClick={()=>go("activate")}>
+          🎟️ عندي كود تفعيل
+        </button>
       </div>
 
       <p style={{textAlign:"center",fontSize:".68rem",color:"#334155"}}>
@@ -5179,6 +5183,151 @@ function Paywall({trial,subscribe,back,go}){
 
 
 /* ═══════════════════ LEGAL PAGE TEMPLATE ═══════════════════ */
+function ActivatePage({go,session,setTrial}){
+  useEffect(()=>{window.scrollTo({top:0,behavior:"instant"});},[]);
+  const[code,setCode]=useState("");
+  const[loading,setLoading]=useState(false);
+  const[err,setErr]=useState("");
+  const[success,setSuccess]=useState(null);
+
+  const handleActivate=async()=>{
+    if(!code.trim()||loading)return;
+    if(!session?.userId||session?.isGuest){
+      setErr("يجب تسجيل الدخول أولاً لتفعيل الكود");return;
+    }
+    setLoading(true);setErr("");setSuccess(null);
+    try{
+      const r=await fetch("/api/redeem-code",{
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({code:code.trim(),userId:session.userId,userToken:session.token}),
+      });
+      const data=await r.json();
+      if(!r.ok){setErr(data.error||"فشل التفعيل");setLoading(false);return;}
+      setSuccess(data);
+      // حدّث الـ trial state
+      const expiresAt=new Date(data.expires_at);
+      setTrial(p=>({...p,
+        isSubscribed:true,
+        plan:data.plan,
+        status:"active",
+        expiresAt,
+        used:0,limit:99999,
+        userId:session.userId,
+        email:session.email,
+      }));
+    }catch(e){
+      setErr("تعذّر الاتصال بالخادم");
+    }finally{setLoading(false);}
+  };
+
+  return(
+    <div style={{maxWidth:500,margin:"0 auto",display:"flex",flexDirection:"column",gap:16}}>
+
+      {/* Header */}
+      <div style={{padding:"28px 24px",borderRadius:20,textAlign:"center",
+        background:"linear-gradient(135deg,rgba(167,139,250,.12),rgba(10,18,40,.97))",
+        border:"1.5px solid rgba(167,139,250,.25)"}}>
+        <div style={{fontSize:"2.5rem",marginBottom:12}}>🎟️</div>
+        <h1 style={{fontSize:"1.6rem",fontWeight:900,color:"#fff",marginBottom:8}}>
+          تفعيل الاشتراك
+        </h1>
+        <p style={{color:"#64748b",fontSize:".85rem",lineHeight:1.7}}>
+          أدخل كود التفعيل الذي حصلت عليه بعد الشراء من سلة
+        </p>
+      </div>
+
+      {/* Success */}
+      {success&&(
+        <div style={{padding:"24px",borderRadius:18,textAlign:"center",
+          background:"rgba(74,222,128,.07)",border:"1.5px solid rgba(74,222,128,.3)"}}>
+          <div style={{fontSize:"2rem",marginBottom:10}}>✅</div>
+          <p style={{fontWeight:900,color:"#4ade80",fontSize:"1.1rem",marginBottom:8}}>
+            تم التفعيل بنجاح!
+          </p>
+          <p style={{color:"#94a3b8",fontSize:".85rem",marginBottom:16}}>
+            {success.message}
+          </p>
+          <p style={{color:"#64748b",fontSize:".75rem",marginBottom:18}}>
+            ينتهي في: {new Date(success.expires_at).toLocaleDateString("ar-SA")}
+          </p>
+          <button
+            onClick={()=>go("dashboard")}
+            style={{padding:"13px 32px",borderRadius:14,cursor:"pointer",
+              background:"linear-gradient(135deg,#4ade80,#22d3ee)",border:"none",
+              color:"#0a1228",fontFamily:"Cairo,sans-serif",fontSize:".95rem",fontWeight:900}}>
+            ابدأ التعلم ←
+          </button>
+        </div>
+      )}
+
+      {/* Input */}
+      {!success&&(
+        <div style={{padding:"24px",borderRadius:18,
+          background:"rgba(10,18,40,.95)",border:"1px solid rgba(255,255,255,.07)"}}>
+
+          <p style={{fontSize:".75rem",color:"#a78bfa",fontWeight:700,marginBottom:10,letterSpacing:".06em"}}>
+            كود التفعيل
+          </p>
+          <input
+            value={code}
+            onChange={e=>setCode(e.target.value.toUpperCase())}
+            onKeyDown={e=>{if(e.key==="Enter")handleActivate();}}
+            placeholder="XXXX-XXXX-XXXX-XXXX"
+            maxLength={19}
+            style={{
+              width:"100%",padding:"14px 16px",borderRadius:12,
+              background:"rgba(255,255,255,.05)",border:"1.5px solid rgba(167,139,250,.3)",
+              color:"#fff",fontFamily:"monospace",fontSize:"1.1rem",fontWeight:700,
+              textAlign:"center",letterSpacing:".1em",outline:"none",
+              transition:"border .2s",boxSizing:"border-box",
+            }}
+            onFocus={e=>{e.target.style.borderColor="rgba(167,139,250,.7)";}}
+            onBlur={e=>{e.target.style.borderColor="rgba(167,139,250,.3)";}}
+          />
+
+          {err&&(
+            <div style={{marginTop:12,padding:"10px 14px",borderRadius:10,
+              background:"rgba(248,113,113,.08)",border:"1px solid rgba(248,113,113,.25)"}}>
+              <p style={{color:"#fca5a5",fontSize:".82rem"}}>⚠ {err}</p>
+            </div>
+          )}
+
+          <button
+            onClick={handleActivate}
+            disabled={!code.trim()||loading}
+            style={{
+              width:"100%",marginTop:16,padding:"14px",borderRadius:14,cursor:"pointer",
+              background:code.trim()&&!loading
+                ?"linear-gradient(135deg,#a78bfa,#7c3aed)"
+                :"rgba(255,255,255,.06)",
+              border:"none",color:code.trim()&&!loading?"#fff":"#334155",
+              fontFamily:"Cairo,sans-serif",fontSize:".95rem",fontWeight:800,
+              transition:"all .2s",
+              boxShadow:code.trim()&&!loading?"0 4px 18px rgba(167,139,250,.35)":"none",
+            }}>
+            {loading?<><div className="spin" style={{display:"inline-block",marginLeft:8}}/> جاري التحقق...</>:"🎟️ تفعيل الكود"}
+          </button>
+        </div>
+      )}
+
+      {/* Help */}
+      <div style={{padding:"16px 20px",borderRadius:14,
+        background:"rgba(255,255,255,.03)",border:"1px solid rgba(255,255,255,.06)"}}>
+        <p style={{fontSize:".78rem",color:"#475569",lineHeight:1.8}}>
+          📦 اشترِ من <strong style={{color:"#f97316"}}>سلة</strong> واحصل على كود التفعيل فور الشراء.<br/>
+          📧 للمساعدة: <a href="mailto:fahmnipluss@gmail.com" style={{color:"#a78bfa",textDecoration:"none"}}>fahmnipluss@gmail.com</a>
+        </p>
+      </div>
+
+      <button className="btn" style={{justifyContent:"center",color:"#475569",fontSize:".82rem"}}
+        onClick={()=>go(session?"dashboard":"landing")}>
+        ← رجوع
+      </button>
+    </div>
+  );
+}
+
 function LegalPage({title,badge,badgeClass,sections,go}){
   return(
     <div style={{display:"grid",gap:14,maxWidth:720,margin:"0 auto",width:"100%"}}>
@@ -5691,7 +5840,7 @@ export default function Fahmni(){
   };
 
   // حماية الصفحات — لو ما في session يرجع للصفحة الرئيسية
-  const PROTECTED=["dashboard","roadmap","session","bank","sim","review","lesson","diagnostic","placement","placementResult","onboarding"];
+  const PROTECTED=["dashboard","roadmap","session","bank","sim","review","lesson","diagnostic","placement","placementResult","onboarding","activate"];
   const PAID_ONLY=["sim","bank","review","roadmap","lesson"]; // require subscription
   const R=()=>{
     // Wait for session restore
@@ -5767,6 +5916,7 @@ export default function Fahmni(){
           }catch(e){console.error("clear mistakes DB error",e);}
         }
       }}/>;
+    case"activate":return <ActivatePage go={go} session={session} setTrial={setTrial}/>;
     case"pricing":return <Pricing go={go} setCheckoutPlan={setCheckoutPlan} setCheckoutPeriod={setCheckoutPeriod}/>;
     case"checkout":return <Checkout go={go} trial={trial} session={session} selectedPlan={checkoutPlan} selectedPeriod={checkoutPeriod}/>;
     case"paywall":return <Paywall trial={trial} go={go} subscribe={(plan,period)=>{setCheckoutPlan(plan||"basic");setCheckoutPeriod(period||"3m");go("checkout");}} back={()=>go("pricing")}/>;
