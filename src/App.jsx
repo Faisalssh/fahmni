@@ -5295,7 +5295,7 @@ function SignupWithCode({go}){
             </button>
             <p style={{marginTop:16,textAlign:"center",fontSize:".72rem",color:"#334155"}}>
               ليس لديك كود؟{" "}
-              <a href="https://salla.sa" target="_blank" rel="noopener noreferrer"
+              <a href="https://s.salla.sa/fahmniplus" target="_blank" rel="noopener noreferrer" rel="noopener noreferrer"
                 style={{color:"#f97316",textDecoration:"none",fontWeight:700}}>
                 اشترِ من سلة
               </a>
@@ -5939,8 +5939,9 @@ export default function Fahmni(){
       if(page==='session'&&trial.used>=trial.limit){go('paywall');return null;}
     }
     // Logged-in user on landing/login/signup → send to dashboard
-    if(session&&!session.isGuest&&['landing','login','signup'].includes(page)){
+    if(session&&!session.isGuest&&['landing','login','signup','signup-code'].includes(page)){
       if(placementDoneRef.current){go('dashboard');return null;}
+      if(!placementDoneRef.current){go('placement');return null;}
     }
     // 2) مسجّل لكن ما أكمل placement → أجبره على placement
     const NEEDS_PLACEMENT=["dashboard","session","bank","sim","review","roadmap","lesson","diagnostic"];
