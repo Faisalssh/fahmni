@@ -5728,7 +5728,7 @@ export default function Fahmni(){
             return;
           }
           const now=new Date();
-          const expiresAt=prog.subscribed_until?new Date(prog.subscribed_until):null;
+          const expiresAt=prog.subscribedUntil?new Date(prog.subscribedUntil):null;
           const plan=prog.plan||'free';
           const freeTrialUsed=!!(prog?.free_trial_used||false);
           let status='inactive';
@@ -5834,7 +5834,7 @@ export default function Fahmni(){
           // RPC failed — use profile data (no admin override from client)
           if(prog){
             const now=new Date();
-            const expiresAt=prog.subscribed_until?new Date(prog.subscribed_until):null;
+            const expiresAt=prog.subscribedUntil?new Date(prog.subscribedUntil):null;
             const plan=prog.plan||'free';
             const freeTrialUsed=!!(prog?.free_trial_used||false);
             let status='inactive';
