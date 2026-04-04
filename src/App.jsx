@@ -4746,7 +4746,7 @@ function UpgradePrompt({feature,go}){
 }
 
 function ExpiredWall({trial,go}){
-  const isExpiredPaid=trial?.plan&&['month','exam'].includes(trial.plan);
+  const isExpiredPaid=trial?.plan&&['month','exam','basic','premium'].includes(trial.plan);
   return(
     <div style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",
       minHeight:"60vh",textAlign:"center",padding:"40px 20px"}}>
@@ -5732,8 +5732,8 @@ export default function Fahmni(){
           const plan=prog.plan||'free';
           const freeTrialUsed=!!(prog?.free_trial_used||false);
           let status='inactive';
-          if(['month','exam'].includes(plan)&&expiresAt&&expiresAt>now) status='active';
-          else if(['month','exam'].includes(plan)&&expiresAt&&expiresAt<=now) status='expired';
+          if(['month','exam','basic','premium'].includes(plan)&&expiresAt&&expiresAt>now) status='active';
+          else if(['month','exam','basic','premium'].includes(plan)&&expiresAt&&expiresAt<=now) status='expired';
           else if(plan==='free'&&!freeTrialUsed&&(prog.trialUsed||0)<(prog.trialLimit||25)) status='free_trial';
           setTrial({isSubscribed:status==='active',used:prog.trialUsed||0,limit:prog.trialLimit||25,plan,status,freeTrialUsed,expiresAt,isAdmin:false});
         }
@@ -5838,8 +5838,8 @@ export default function Fahmni(){
             const plan=prog.plan||'free';
             const freeTrialUsed=!!(prog?.free_trial_used||false);
             let status='inactive';
-            if(['month','exam'].includes(plan)&&expiresAt&&expiresAt>now) status='active';
-            else if(['month','exam'].includes(plan)&&expiresAt&&expiresAt<=now) status='expired';
+            if(['month','exam','basic','premium'].includes(plan)&&expiresAt&&expiresAt>now) status='active';
+            else if(['month','exam','basic','premium'].includes(plan)&&expiresAt&&expiresAt<=now) status='expired';
             else if(plan==='free'&&!freeTrialUsed&&(prog.trialUsed||0)<(prog.trialLimit||25)) status='free_trial';
             setTrial({isSubscribed:status==='active',used:prog.trialUsed||0,limit:prog.trialLimit||25,plan,status,freeTrialUsed,expiresAt,userId:sess.userId||null,email:sess.email||null,name:sess.name||null});
           }
