@@ -1274,6 +1274,13 @@ function Nav({isPub,go,userName,title,onLogout,session=null}){
             <>
               <button className="btn btn-g" style={{fontSize:".72rem",padding:"7px 11px"}} onClick={()=>go("dashboard")}>🏠</button>
               <button className="btn btn-g" style={{fontSize:".72rem",padding:"7px 11px"}} onClick={()=>go("dashboard")}>↩ لوحتي</button>
+              {session&&isAdminUser(session?.email)&&(
+                <button onClick={()=>go("admin")} style={{padding:"7px 14px",borderRadius:8,cursor:"pointer",
+                  background:"rgba(249,115,22,.15)",border:"1px solid rgba(249,115,22,.4)",
+                  color:"#f97316",fontFamily:"Cairo,sans-serif",fontSize:".72rem",fontWeight:800}}>
+                  ⚙️ أدمن
+                </button>
+              )}
               <div style={{padding:"5px 10px",borderRadius:9,background:"rgba(249,115,22,.1)",border:"1px solid rgba(249,115,22,.2)",fontSize:".72rem",fontWeight:700,color:"#fdba74",maxWidth:90,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{userName}</div>
               {onLogout&&<button className="btn btn-g" style={{fontSize:".7rem",padding:"6px 10px",color:"#64748b"}} onClick={onLogout}>خروج</button>}
             </>
