@@ -1226,7 +1226,7 @@ JSON فقط: {"grade":"ممتاز"|"جيد"|"يحتاج مراجعة","headline"
 }
 
 /* ═══════════════════ NAV ═══════════════════ */
-function Nav({isPub,go,userName,title,onLogout}){
+function Nav({isPub,go,userName,title,onLogout,session=null}){
   const[menuOpen,setMenuOpen]=useState(false);
   useEffect(()=>{
     if(!menuOpen) return;
@@ -1259,6 +1259,14 @@ function Nav({isPub,go,userName,title,onLogout}){
         <div className="nav-desktop" style={{display:"flex",gap:7,alignItems:"center",flexShrink:0}}>
           {isPub?(
             <>
+              {session&&isAdminUser(session?.email)&&(
+                <button onClick={()=>go("admin")}
+                  style={{padding:"7px 14px",borderRadius:8,cursor:"pointer",
+                    background:"rgba(249,115,22,.15)",border:"1px solid rgba(249,115,22,.4)",
+                    color:"#f97316",fontFamily:"Cairo,sans-serif",fontSize:".72rem",fontWeight:800}}>
+                  ⚙️ أدمن
+                </button>
+              )}
               <button className="btn btn-g" style={{fontSize:".78rem",padding:"8px 14px"}} onClick={()=>go("login")}>دخول</button>
               <button className="btn btn-p" style={{fontSize:".78rem",padding:"8px 14px"}} onClick={()=>window.open("https://salla.sa/Fahmni","_blank")}>احصل على اشتراكك الآن ←</button>
             </>
@@ -6299,7 +6307,7 @@ export default function Fahmni(){
         <GS/><Bg/>
         <Confetti active={confetti} onDone={()=>setConfetti(false)}/>
         {milestone&&<MilestonePopup milestone={milestone} onClose={()=>setMilestone(null)}/>}
-        <Nav isPub={PUB.includes(page)} go={go} userName={session?.name||user.name} title={TITLES[page]||""} onLogout={session?handleLogout:null}/>
+        <Nav isPub={PUB.includes(page)} go={go} userName={session?.name||user.name} title={TITLES[page]||""} onLogout={session?handleLogout:null} session={session}/>
         <div className="wrap" style={{paddingTop:24}}>
           <R/>
         </div>
