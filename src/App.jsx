@@ -3251,13 +3251,13 @@ const sbLoadProgress=async(userId,token)=>{
   if(IS_ARTIFACT) return null;
   try{
     const[pRes,mRes]=await Promise.all([
-      fetch(`${SUPABASE_URL}/rest/v1/profiles?id=eq.${userId}&select=total_solved,total_correct,current_streak,trial_used,trial_limit,plan,subscribed_until,placement_done,placement_level`,{headers:sbH(token)}),
+      fetch(`${SUPABASE_URL}/rest/v1/profiles?id=eq.${userId}&select=total_solved,total_correct,current_streak,trial_used,trial_limit,plan,subscribed_until,placement_done,placement_level,watched_videos`,{headers:sbH(token)}),
       fetch(`${SUPABASE_URL}/rest/v1/saved_mistakes?user_id=eq.${userId}&select=question_snapshot,is_reviewed&order=created_at.desc&limit=50`,{headers:sbH(token)})
     ]);
     const[profiles,mistakes]=await Promise.all([pRes.json(),mRes.json()]);
     const p=Array.isArray(profiles)&&profiles[0];
     const m=Array.isArray(mistakes)?mistakes.map(x=>{const s=x.question_snapshot||{};return{q:s.q||"",chosen:s.chosen||"",correctAns:s.correctAns||"",topic:s.topic||"",section:s.section||"",steps:s.steps||[],tip:s.tip||"",ok:false};}):[];
-    return{totalSolved:p?.total_solved||0,correct:p?.total_correct||0,streak:p?.current_streak||0,trialUsed:p?.trial_used||0,trialLimit:p?.trial_limit||25,plan:p?.plan||'free',subscribedUntil:p?.subscribed_until||null,placementDone:p?.placement_done||false,placementLevel:p?.placement_level||null,mistakes:m};
+    return{totalSolved:p?.total_solved||0,correct:p?.total_correct||0,streak:p?.current_streak||0,trialUsed:p?.trial_used||0,trialLimit:p?.trial_limit||25,plan:p?.plan||'free',subscribedUntil:p?.subscribed_until||null,placementDone:p?.placement_done||false,placementLevel:p?.placement_level||null,watchedVideos:p?.watched_videos||null,mistakes:m};
   }catch(e){return null;}
 };
 
@@ -5690,9 +5690,7 @@ export default function Fahmni(){
   const[confetti,setConfetti]=useState(false);
   const[milestone,setMilestone]=useState(null);
   const[lessonTopic,setLessonTopic]=useState(null);
-  const[watchedVideos,setWatchedVideos]=useState(()=>{
-    try{const s=localStorage.getItem('fm_watched');return s?JSON.parse(s):{}}catch(e){return{};}
-  });
+  const[watchedVideos,setWatchedVideos]=useState({});
 
   // ── قراءة token من URL بعد تأكيد البريد ──
   // ─── Browser back/forward navigation ───
@@ -5718,6 +5716,14 @@ export default function Fahmni(){
         if(prog){
           setUser({name:sess.name,totalSolved:prog.totalSolved,correct:prog.correct,streak:prog.streak});
           setMistakes(prog.mistakes||[]);
+          /* استعادة watchedVideos من DB */
+          if(prog.watchedVideos){
+            try{
+              const wv=typeof prog.watchedVideos==='string'?JSON.parse(prog.watchedVideos):prog.watchedVideos;
+              setWatchedVideos(wv||{});
+              try{localStorage.setItem('fm_watched',JSON.stringify(wv||{}));}catch(e){}
+            }catch(e){}
+          }
           if(prog.placementDone){placementDoneRef.current=true;setPlacementDone(true);}
           if(prog.placementDone){}
           // Check admin by email first
@@ -5930,6 +5936,14 @@ export default function Fahmni(){
       if(topicWatched.includes(videoId)) return prev;
       const updated={...prev,[topic]:[...topicWatched,videoId]};
       try{localStorage.setItem('fm_watched',JSON.stringify(updated));}catch(e){}
+      /* حفظ في Supabase */
+      if(session?.userId&&!session?.isGuest&&!IS_ARTIFACT){
+        fetch(`${SUPABASE_URL}/rest/v1/profiles?id=eq.${session.userId}`,{
+          method:"PATCH",
+          headers:{...sbH(session.token),"Prefer":"return=minimal"},
+          body:JSON.stringify({watched_videos:JSON.stringify(updated)})
+        }).catch(()=>{});
+      }
       return updated;
     });
   };
