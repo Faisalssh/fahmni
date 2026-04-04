@@ -676,8 +676,6 @@ const GEO=["المثلثات","المربعات والمستطيلات","الز�
 /* ── الأقسام الرسمية في اختبار قياس (موثّقة من ويكيبيديا + قياس) ── */
 const TOPICS={
   كمي:[
-    // باب 0 — تأسيس
-    "باب 0 — أساسيات الحساب",
     // حساب ~40%
     "النسبة والتناسب","الأعمار","المتوسط الحسابي",
     "السرعة والمسافة والزمن","الأرباح والنسب المئوية",
@@ -702,7 +700,6 @@ const TOPICS={
 /* ── تقسيم الأبواب لمجموعات فرعية للعرض في الخريطة ── */
 const TOPIC_GROUPS={
   كمي:[
-    {sub:"باب 0 — التأسيس",icon:"🌱",color:"#4ade80",pct:"مدخل",topics:["باب 0 — أساسيات الحساب"]},
     {sub:"الحساب",icon:"🔢",color:"#f97316",pct:"~40%",topics:["النسبة والتناسب","الأعمار","المتوسط الحسابي","السرعة والمسافة والزمن","الأرباح والنسب المئوية"]},
     {sub:"الجبر",icon:"🔣",color:"#fb923c",pct:"~23%",topics:["الجبر والمعادلات","المتتاليات والأنماط"]},
     {sub:"الهندسة",icon:"📐",color:"#f59e0b",pct:"~24%",topics:["المثلثات","المربعات والمستطيلات","الزوايا والأضلاع","الدوائر","الخطوط المتوازية","الهندسة الفراغية"]},
@@ -739,7 +736,7 @@ const ICON_LABELS={
   "الخطأ السياقي":"سياق",
 };
 const CONCEPTS={
-  "باب 0 — أساسيات الحساب":{icon:"🌱",formula:"قوس ← ضرب/قسمة ← جمع/طرح | النسبة% = (جزء÷كل)×100",rules:["الجمع تبادلي: أ+ب=ب+أ | الضرب تبادلي: أ×ب=ب×أ","لجمع الكسور: وحّد المقام أولاً","ترتيب العمليات: قوس → ضرب/قسمة → جمع/طرح","اقرأ السؤال مرتين قبل الحل"],trap:"⚠ الفخ: ابدأ دائماً بفهم المطلوب قبل الحساب"},  "النسبة والتناسب":{icon:"⚖️",formula:"إذا زاد شيء → زاد الثاني (طردي) | إذا زاد شيء → نقص الثاني (عكسي)",rules:["طردي: كلما زاد أحدهما زاد الآخر","عكسي: كلما زاد أحدهما نقص الآخر","ضعف العمال = ضعف الإنتاج بنفس الوقت"],trap:"⚠ الفخ: هل العلاقة طردية أم عكسية؟ حدّدها أولاً"},
+    "النسبة والتناسب":{icon:"⚖️",formula:"إذا زاد شيء → زاد الثاني (طردي) | إذا زاد شيء → نقص الثاني (عكسي)",rules:["طردي: كلما زاد أحدهما زاد الآخر","عكسي: كلما زاد أحدهما نقص الآخر","ضعف العمال = ضعف الإنتاج بنفس الوقت"],trap:"⚠ الفخ: هل العلاقة طردية أم عكسية؟ حدّدها أولاً"},
   "الأعمار":{icon:"🎂",formula:"الفرق بين عمرين لا يتغير أبداً مع الزمن",rules:["الفرق اليوم = الفرق بعد 10 سنوات","للمستقبل: أضف نفس الرقم للجميع","للماضي: اطرح نفس الرقم من الجميع"],trap:"⚠ الفخ: لا تنسَ تغيير عمر كلا الشخصين"},
   "المتوسط الحسابي":{icon:"📊",formula:"المتوسط = مجموع الأرقام ÷ عددها",rules:["المجموع = المتوسط × العدد","لإيجاد مجهول: اطرح المعروفين من المجموع الكلي","إضافة رقم جديد تغيّر المجموع والعدد معاً"],trap:"⚠ الفخ: لا تنسَ تحديث عدد الأرقام عند الإضافة"},
   "السرعة والمسافة والزمن":{icon:"🚗",formula:"المسافة = السرعة × الزمن",rules:["السرعة = المسافة ÷ الزمن","الزمن = المسافة ÷ السرعة","وحّد الوحدات قبل الحل"],trap:"⚠ الفخ: كيلومتر/ساعة ≠ متر/ثانية — وحّد أولاً"},
@@ -1263,7 +1260,7 @@ function Nav({isPub,go,userName,title,onLogout}){
           {isPub?(
             <>
               <button className="btn btn-g" style={{fontSize:".78rem",padding:"8px 14px"}} onClick={()=>go("login")}>دخول</button>
-              <button className="btn btn-p" style={{fontSize:".78rem",padding:"8px 14px"}} onClick={()=>go("signup-code")}>احصل على اشتراكك الآن ←</button>
+              <button className="btn btn-p" style={{fontSize:".78rem",padding:"8px 14px"}} onClick={()=>window.open("https://salla.sa/Fahmni","_blank")}>احصل على اشتراكك الآن ←</button>
             </>
           ):(
             <>
@@ -2929,7 +2926,7 @@ function Landing({go}){
             🔥 عرض محدود — احصل على اشتراكك بـ <span style={{color:"#fde047",fontWeight:900}}>59 ريال/شهر</span> وافتح جميع المميزات
           </p>
           <div style={{display:"flex",gap:8,position:"relative"}}>
-            <button className="btn btn-p" style={{fontSize:".75rem",padding:"7px 16px"}} onClick={()=>go("signup-code")}>احصل على اشتراكك الآن ←</button>
+            <button className="btn btn-p" style={{fontSize:".75rem",padding:"7px 16px"}} onClick={()=>window.open("https://salla.sa/Fahmni","_blank")}>احصل على اشتراكك الآن ←</button>
             <button onClick={()=>setBannerClosed(true)} style={{background:"none",border:"none",cursor:"pointer",color:"#475569",fontSize:"1rem",fontFamily:"Cairo,sans-serif",padding:"4px 6px"}}>✕</button>
           </div>
         </div>
@@ -2958,7 +2955,7 @@ function Landing({go}){
           </p>
 
           <div className="landing-hero-btns" style={{display:"flex",gap:12,justifyContent:"center",flexWrap:"wrap",animation:"fadeUp .5s .2s both"}}>
-            <button className="btn btn-p" style={{fontSize:"1rem",padding:"14px 32px",borderRadius:16}} onClick={()=>go("signup-code")}>
+            <button className="btn btn-p" style={{fontSize:"1rem",padding:"14px 32px",borderRadius:16}} onClick={()=>window.open("https://salla.sa/Fahmni","_blank")}>
               احصل على اشتراكك الآن ← أسئلة غير محدودة
             </button>
             <button className="btn btn-g" style={{fontSize:".93rem",padding:"14px 24px",borderRadius:16}} onClick={()=>go("signup-code")}>
@@ -3180,7 +3177,7 @@ function Landing({go}){
             محتوى احترافي · كمي ولفظي · جميع الأبواب · ابدأ الآن
           </p>
           <div className="landing-cta-btns" style={{display:"flex",gap:12,justifyContent:"center",flexWrap:"wrap"}}>
-            <button className="btn btn-p" style={{fontSize:"1.05rem",padding:"15px 36px",borderRadius:16}} onClick={()=>go("signup-code")}>
+            <button className="btn btn-p" style={{fontSize:"1.05rem",padding:"15px 36px",borderRadius:16}} onClick={()=>window.open("https://salla.sa/Fahmni","_blank")}>
               احصل على اشتراكك الآن ←
             </button>
             <button className="btn btn-g" style={{fontSize:".92rem",padding:"15px 24px",borderRadius:16}} onClick={()=>go("signup-code")}>
@@ -4824,7 +4821,7 @@ function Checkout({go,trial,session=null,selectedPlan,selectedPeriod}){
       </div>
 
       <div style={{display:"grid",gap:10}}>
-        <a href="https://s.salla.sa/fahmniplus" target="_blank" rel="noopener noreferrer"
+        <a href="https://salla.sa/Fahmni" target="_blank" rel="noopener noreferrer"
           style={{display:"flex",alignItems:"center",justifyContent:"center",
             padding:"16px",borderRadius:14,cursor:"pointer",textDecoration:"none",
             background:"linear-gradient(135deg,#f97316,#ea580c)",
@@ -5282,7 +5279,7 @@ function SignupWithCode({go}){
             </button>
             <div style={{marginTop:16,borderTop:"1px solid rgba(255,255,255,.05)",paddingTop:14,
               display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:8}}>
-              <a href="https://s.salla.sa/fahmniplus" target="_blank" rel="noopener noreferrer"
+              <a href="https://salla.sa/Fahmni" target="_blank" rel="noopener noreferrer"
                 style={{color:"#f97316",textDecoration:"none",fontWeight:700,fontSize:".75rem"}}>
                 اشترِ من سلة ←
               </a>
@@ -5294,7 +5291,7 @@ function SignupWithCode({go}){
             </div>
             <p style={{marginTop:8,textAlign:"center",fontSize:".72rem",color:"#334155",display:"none"}}>
               ليس لديك كود؟{" "}
-              <a href="https://s.salla.sa/fahmniplus" target="_blank" rel="noopener noreferrer"
+              <a href="https://salla.sa/Fahmni" target="_blank" rel="noopener noreferrer"
                 style={{color:"#f97316",textDecoration:"none",fontWeight:700}}>
                 اشترِ من سلة
               </a>
