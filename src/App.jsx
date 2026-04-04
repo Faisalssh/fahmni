@@ -4498,6 +4498,14 @@ function Roadmap({go,setSettings,openLesson,trial={},getTopicProgress,session=nu
           </div>
 
           {/* زر إعادة التعيين */}
+          {trial.isAdmin&&(
+            <button onClick={()=>go("admin")}
+              style={{padding:"8px 16px",borderRadius:10,cursor:"pointer",
+                background:"rgba(249,115,22,.1)",border:"1px solid rgba(249,115,22,.25)",
+                color:"#f97316",fontFamily:"Cairo,sans-serif",fontSize:".75rem",fontWeight:700}}>
+              ⚙️ لوحة الأدمن
+            </button>
+          )}
           {isSub&&session?.userId&&!session?.isGuest&&(
             <div style={{marginTop:14,display:"flex",alignItems:"center",gap:10}}>
               <button
@@ -5410,6 +5418,245 @@ function SignupWithCode({go}){
   );
 }
 
+function AdminPanel({session,go}){
+  useEffect(()=>{window.scrollTo({top:0,behavior:"instant"});},[]);
+  const[data,setData]=useState(null);
+  const[loading,setLoading]=useState(true);
+  const[tab,setTab]=useState("overview");
+
+  const SB=typeof SUPABASE_URL!=="undefined"?SUPABASE_URL:"";
+  const ANON=typeof SUPABASE_ANON!=="undefined"?SUPABASE_ANON:"";
+
+  useEffect(()=>{
+    if(!session?.token||!isAdminUser(session?.email)){go("dashboard");return;}
+    loadData();
+  },[]);
+
+  const loadData=async()=>{
+    setLoading(true);
+    try{
+      const h={"apikey":ANON,"Authorization":`Bearer ${session.token}`};
+      const [usersRes,codesRes,qRes]=await Promise.all([
+        fetch(`${SB}/rest/v1/profiles?select=id,plan,subscribed_until,total_solved,total_correct,current_streak,created_at&order=created_at.desc`,{headers:h}),
+        fetch(`${SB}/rest/v1/activation_codes?select=code,plan,period,used,used_at,note,created_at&order=created_at.desc`,{headers:h}),
+        fetch(`${SB}/rest/v1/questions?select=section,topic&active=eq.true`,{headers:h}),
+      ]);
+      const [users,codes,questions]=await Promise.all([usersRes.json(),codesRes.json(),qRes.json()]);
+
+      // Fetch emails separately via auth.users — use service role via RPC
+      const authRes=await fetch(`${SB}/rest/v1/rpc/get_all_users`,{
+        method:"POST",headers:{...h,"Content-Type":"application/json"},body:"{}"
+      }).then(r=>r.ok?r.json():null).catch(()=>null);
+
+      const emailMap={};
+      if(Array.isArray(authRes)){authRes.forEach(u=>{if(u.id)emailMap[u.id]=u.email;});}
+
+      setData({users:Array.isArray(users)?users:[],codes:Array.isArray(codes)?codes:[],
+               questions:Array.isArray(questions)?questions:[],emailMap});
+    }catch(e){console.error(e);}
+    finally{setLoading(false);}
+  };
+
+  if(loading) return(
+    <div style={{display:"flex",alignItems:"center",justifyContent:"center",height:"60vh",flexDirection:"column",gap:14}}>
+      <div className="spin spin-lg"/>
+      <p style={{color:"#64748b"}}>جاري تحميل بيانات الأدمن...</p>
+    </div>
+  );
+
+  if(!data) return <p style={{color:"#f87171",textAlign:"center"}}>تعذّر تحميل البيانات</p>;
+
+  const {users,codes,questions,emailMap}=data;
+  const now=new Date();
+
+  // Stats
+  const activeSubs    = users.filter(u=>u.subscribed_until&&new Date(u.subscribed_until)>now).length;
+  const expiredSubs   = users.filter(u=>u.plan!=="free"&&u.subscribed_until&&new Date(u.subscribed_until)<=now).length;
+  const freeUsers     = users.filter(u=>!u.plan||u.plan==="free").length;
+  const usedCodes     = codes.filter(c=>c.used).length;
+  const availCodes    = codes.filter(c=>!c.used).length;
+  const quantQ        = questions.filter(q=>q.section==="كمي").length;
+  const verbalQ       = questions.filter(q=>q.section==="لفظي").length;
+  const plans         = {
+    "1m": codes.filter(c=>c.used&&c.period==="1m").length,
+    "3m": codes.filter(c=>c.used&&c.period==="3m").length,
+    "1y": codes.filter(c=>c.used&&c.period==="1y").length,
+  };
+
+  const tabStyle=(t)=>({
+    padding:"9px 18px",borderRadius:10,cursor:"pointer",border:"none",fontFamily:"Cairo,sans-serif",
+    fontSize:".82rem",fontWeight:700,transition:"all .2s",
+    background:tab===t?"linear-gradient(135deg,#f97316,#ea580c)":"rgba(255,255,255,.06)",
+    color:tab===t?"#fff":"#64748b",
+  });
+
+  const cardStyle=(color)=>({
+    padding:"20px 18px",borderRadius:16,
+    background:`rgba(${color},0.07)`,border:`1.5px solid rgba(${color},0.25)`,
+    textAlign:"center",
+  });
+
+  return(
+    <div style={{display:"flex",flexDirection:"column",gap:16,maxWidth:900,margin:"0 auto"}}>
+
+      {/* Header */}
+      <div style={{padding:"22px 24px",borderRadius:18,
+        background:"linear-gradient(135deg,rgba(249,115,22,.1),rgba(10,18,40,.97))",
+        border:"1.5px solid rgba(249,115,22,.25)",
+        display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:12}}>
+        <div>
+          <h1 style={{fontSize:"1.4rem",fontWeight:900,color:"#fff",marginBottom:4}}>⚙️ لوحة الأدمن</h1>
+          <p style={{color:"#64748b",fontSize:".78rem"}}>مرحباً {session?.name||"أدمن"} — فهمني+</p>
+        </div>
+        <div style={{display:"flex",gap:8}}>
+          <button onClick={loadData} style={{padding:"8px 16px",borderRadius:10,cursor:"pointer",
+            background:"rgba(255,255,255,.06)",border:"1px solid rgba(255,255,255,.1)",
+            color:"#94a3b8",fontFamily:"Cairo,sans-serif",fontSize:".78rem"}}>
+            🔄 تحديث
+          </button>
+          <button onClick={()=>go("dashboard")} style={{padding:"8px 16px",borderRadius:10,cursor:"pointer",
+            background:"rgba(255,255,255,.06)",border:"1px solid rgba(255,255,255,.1)",
+            color:"#94a3b8",fontFamily:"Cairo,sans-serif",fontSize:".78rem"}}>
+            ← رجوع
+          </button>
+        </div>
+      </div>
+
+      {/* Stats Grid */}
+      <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(130px,1fr))",gap:10}}>
+        {[
+          {label:"مشتركون نشطون", val:activeSubs,   color:"74,222,128"},
+          {label:"منتهي الاشتراك", val:expiredSubs,  color:"248,113,113"},
+          {label:"مستخدمون مجاني", val:freeUsers,    color:"148,163,184"},
+          {label:"أكواد مستخدمة",  val:usedCodes,    color:"249,115,22"},
+          {label:"أكواد متبقية",   val:availCodes,   color:"34,211,238"},
+          {label:"أسئلة كمي",      val:quantQ,       color:"167,139,250"},
+          {label:"أسئلة لفظي",     val:verbalQ,      color:"34,211,238"},
+          {label:"إجمالي المستخدمين",val:users.length,color:"251,191,36"},
+        ].map(({label,val,color})=>(
+          <div key={label} style={cardStyle(color)}>
+            <p style={{fontSize:"1.8rem",fontWeight:900,color:`rgb(${color})`,lineHeight:1}}>{val}</p>
+            <p style={{fontSize:".65rem",color:"#64748b",marginTop:6}}>{label}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* Tabs */}
+      <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
+        {[["overview","📊 نظرة عامة"],["users","👥 المستخدمون"],["codes","🎟️ الأكواد"]].map(([t,l])=>(
+          <button key={t} style={tabStyle(t)} onClick={()=>setTab(t)}>{l}</button>
+        ))}
+      </div>
+
+      {/* Overview Tab */}
+      {tab==="overview"&&(
+        <div style={{display:"flex",flexDirection:"column",gap:12}}>
+          <div style={{padding:"18px 20px",borderRadius:14,background:"rgba(10,18,40,.95)",border:"1px solid rgba(255,255,255,.07)"}}>
+            <p style={{fontWeight:800,color:"#f97316",marginBottom:12,fontSize:".85rem"}}>🎟️ الأكواد المستخدمة حسب الفترة</p>
+            {[["شهر","1m"],["3 أشهر","3m"],["سنة","1y"]].map(([label,period])=>(
+              <div key={period} style={{display:"flex",justifyContent:"space-between",padding:"8px 0",
+                borderBottom:"1px solid rgba(255,255,255,.05)"}}>
+                <span style={{color:"#94a3b8",fontSize:".82rem"}}>{label}</span>
+                <span style={{color:"#fff",fontWeight:700}}>{plans[period]} كود</span>
+              </div>
+            ))}
+          </div>
+          <div style={{padding:"18px 20px",borderRadius:14,background:"rgba(10,18,40,.95)",border:"1px solid rgba(255,255,255,.07)"}}>
+            <p style={{fontWeight:800,color:"#22d3ee",marginBottom:12,fontSize:".85rem"}}>📈 أحدث المشتركين</p>
+            {users.filter(u=>u.plan!=="free"&&u.subscribed_until).slice(0,5).map((u,i)=>(
+              <div key={i} style={{display:"flex",justifyContent:"space-between",alignItems:"center",
+                padding:"8px 0",borderBottom:"1px solid rgba(255,255,255,.05)"}}>
+                <span style={{color:"#e2e8f0",fontSize:".8rem"}}>{emailMap[u.id]||u.id.slice(0,8)+"..."}</span>
+                <div style={{textAlign:"left"}}>
+                  <span style={{color:"#f97316",fontSize:".72rem",fontWeight:700}}>{u.plan}</span>
+                  <span style={{color:"#475569",fontSize:".68rem",marginRight:8}}>
+                    {u.subscribed_until?new Date(u.subscribed_until).toLocaleDateString("ar-SA"):""}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Users Tab */}
+      {tab==="users"&&(
+        <div style={{padding:"16px",borderRadius:14,background:"rgba(10,18,40,.95)",border:"1px solid rgba(255,255,255,.07)",overflowX:"auto"}}>
+          <p style={{fontWeight:800,color:"#fff",marginBottom:14,fontSize:".85rem"}}>👥 جميع المستخدمين ({users.length})</p>
+          <table style={{width:"100%",borderCollapse:"collapse",fontSize:".75rem"}}>
+            <thead>
+              <tr style={{color:"#475569",borderBottom:"1px solid rgba(255,255,255,.07)"}}>
+                {["الإيميل","الباقة","ينتهي","الأسئلة","الصحيح","تاريخ التسجيل"].map(h=>(
+                  <th key={h} style={{padding:"8px 10px",textAlign:"right",fontWeight:700}}>{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {users.map((u,i)=>{
+                const expired=u.subscribed_until&&new Date(u.subscribed_until)<now;
+                const active=u.subscribed_until&&new Date(u.subscribed_until)>now;
+                return(
+                  <tr key={i} style={{borderBottom:"1px solid rgba(255,255,255,.04)"}}>
+                    <td style={{padding:"8px 10px",color:"#e2e8f0"}}>{emailMap[u.id]||u.id.slice(0,12)+"..."}</td>
+                    <td style={{padding:"8px 10px"}}>
+                      <span style={{color:active?"#4ade80":expired?"#f87171":"#64748b",fontWeight:700}}>
+                        {u.plan||"free"}
+                      </span>
+                    </td>
+                    <td style={{padding:"8px 10px",color:expired?"#f87171":"#94a3b8",fontSize:".7rem"}}>
+                      {u.subscribed_until?new Date(u.subscribed_until).toLocaleDateString("ar-SA"):"-"}
+                    </td>
+                    <td style={{padding:"8px 10px",color:"#94a3b8",textAlign:"center"}}>{u.total_solved||0}</td>
+                    <td style={{padding:"8px 10px",color:"#4ade80",textAlign:"center"}}>{u.total_correct||0}</td>
+                    <td style={{padding:"8px 10px",color:"#475569",fontSize:".7rem"}}>
+                      {u.created_at?new Date(u.created_at).toLocaleDateString("ar-SA"):"-"}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {/* Codes Tab */}
+      {tab==="codes"&&(
+        <div style={{padding:"16px",borderRadius:14,background:"rgba(10,18,40,.95)",border:"1px solid rgba(255,255,255,.07)",overflowX:"auto"}}>
+          <p style={{fontWeight:800,color:"#fff",marginBottom:14,fontSize:".85rem"}}>🎟️ آخر 50 كود</p>
+          <table style={{width:"100%",borderCollapse:"collapse",fontSize:".75rem"}}>
+            <thead>
+              <tr style={{color:"#475569",borderBottom:"1px solid rgba(255,255,255,.07)"}}>
+                {["الكود","الباقة","الفترة","الحالة","تاريخ الاستخدام","الملاحظة"].map(h=>(
+                  <th key={h} style={{padding:"8px 10px",textAlign:"right",fontWeight:700}}>{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {codes.slice(0,50).map((c2,i)=>(
+                <tr key={i} style={{borderBottom:"1px solid rgba(255,255,255,.04)"}}>
+                  <td style={{padding:"8px 10px",color:"#22d3ee",fontFamily:"monospace",fontSize:".72rem"}}>{c2.code}</td>
+                  <td style={{padding:"8px 10px",color:"#f97316"}}>{c2.plan}</td>
+                  <td style={{padding:"8px 10px",color:"#94a3b8"}}>{c2.period}</td>
+                  <td style={{padding:"8px 10px"}}>
+                    <span style={{color:c2.used?"#f87171":"#4ade80",fontWeight:700}}>
+                      {c2.used?"✗ مستخدم":"✓ متاح"}
+                    </span>
+                  </td>
+                  <td style={{padding:"8px 10px",color:"#475569",fontSize:".7rem"}}>
+                    {c2.used_at?new Date(c2.used_at).toLocaleDateString("ar-SA"):"-"}
+                  </td>
+                  <td style={{padding:"8px 10px",color:"#475569",fontSize:".7rem"}}>{c2.note||"-"}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+    </div>
+  );
+}
+
 function LegalPage({title,badge,badgeClass,sections,go}){
   return(
     <div style={{display:"grid",gap:14,maxWidth:720,margin:"0 auto",width:"100%"}}>
@@ -6030,6 +6277,9 @@ export default function Fahmni(){
           }catch(e){console.error("clear mistakes DB error",e);}
         }
       }}/>;
+    case"admin":
+      if(!isAdminUser(session?.email)){go("dashboard");return null;}
+      return <AdminPanel session={session} go={go}/>;
     case"activate":return <ActivatePage go={go} session={session} setTrial={setTrial}/>;
     case"signup-code":return <SignupWithCode go={go}/>;
     case"pricing":return <Pricing go={go} setCheckoutPlan={setCheckoutPlan} setCheckoutPeriod={setCheckoutPeriod}/>;
