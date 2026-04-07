@@ -2259,8 +2259,9 @@ function Session({settings,go,updateUser,trial,setTrial,addMistake,plan="free",s
     if(!trial.isAdmin&&!trial.isSubscribed&&trial.used>=trial.limit){go("paywall");return;}
 
     passageQueueRef.current=[];
-    setLoading(true);setErr("");setQData(null);setSel(null);setChecked(false);
+    setLoading(true);setErr("");setSel(null);setChecked(false);
     setSteps([]);setExpired(false);setCoach(null);setCoachLoading(false);
+    /* لا نحذف qData حتى يصل السؤال الجديد */
 
     try{
       /* ── 1. هل في قطعة منتظرة؟ خذ التالي منها ── */
@@ -2273,6 +2274,8 @@ function Session({settings,go,updateUser,trial,setTrial,addMistake,plan="free",s
             setTimeout(resolve,3000);
           });
         }
+        setQData(null);
+        await new Promise(r=>setTimeout(r,0));
         setQData(next);setTimerKey(k=>k+1);setQStart(Date.now());
         setLoading(false);return;
       }
@@ -2334,6 +2337,7 @@ function Session({settings,go,updateUser,trial,setTrial,addMistake,plan="free",s
               /* ضع الباقي في الـ queue */
               passageQueueRef.current=rest.map(mapRow);
               /* اعرض السؤال الأول */
+              setQData(null);
               setQData({...mapRow(first),topic:first.topic||nextTopic});
               setTimerKey(k=>k+1);setQStart(Date.now());
               setLoading(false);
@@ -2351,6 +2355,7 @@ function Session({settings,go,updateUser,trial,setTrial,addMistake,plan="free",s
           setTimeout(resolve,3000);
         });
       }
+      setQData(null);
       setQData({...q,topic:nextTopic});setTimerKey(k=>k+1);setQStart(Date.now());
     }catch(e){
       if(e.limitReached){setErr(e.message);go("paywall");}
