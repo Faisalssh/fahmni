@@ -401,7 +401,12 @@ function QuestionTimer({seconds=90,onExpire,paused=false}){
   const[left,setLeft]=useState(seconds);
   const pct=Math.round((left/seconds)*100),warn=left<=15,r=22,c=2*Math.PI*r;
   useEffect(()=>{setLeft(seconds);},[seconds]);
-  useEffect(()=>{if(paused||left<=0){if(left<=0)onExpire?.();return;}const id=setTimeout(()=>setLeft(p=>p-1),1000);return()=>clearTimeout(id);},[left,paused]);
+  useEffect(()=>{
+    if(paused) return;
+    if(left<=0){onExpire?.();return;}
+    const id=setTimeout(()=>setLeft(p=>p-1),1000);
+    return()=>clearTimeout(id);
+  },[left,paused]);
   const fmt=s=>`${Math.floor(s/60)}:${String(s%60).padStart(2,"0")}`;
   return(<div style={{padding:"8px 13px",borderRadius:12,background:warn?"rgba(248,113,113,.1)":"rgba(255,255,255,.04)",border:`1.5px solid ${warn?"rgba(248,113,113,.4)":"rgba(255,255,255,.08)"}`,display:"flex",alignItems:"center",gap:10,transition:"all .3s",animation:warn?"timerWarn 1s ease-in-out infinite":"none"}}>
     <svg width={56} height={56} style={{transform:"rotate(-90deg)",flexShrink:0}}>
