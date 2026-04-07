@@ -2367,7 +2367,7 @@ function Session({settings,go,updateUser,trial,setTrial,addMistake,plan="free",s
       else if(e.aiDisabled){setErr("الأسئلة غير متاحة حالياً — يتم تحديث قاعدة البيانات.");}
       else{setErr("فشل توليد السؤال. تحقق من الاتصال.");}
     }finally{setLoading(false);}
-  },[settings,trial]);
+  },[settings]);
 
   useEffect(()=>{
     if(!trial.isSubscribed&&trial.used>=trial.limit){go("paywall");return;}
