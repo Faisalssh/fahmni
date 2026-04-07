@@ -1360,10 +1360,10 @@ function PlacementQuiz({profile,onFinish,go}){
         <div style={{display:"flex",gap:8,marginBottom:18}}><span className={`badge ${q.sec==="كمي"?"b-o":"b-c"}`}>{q.sec}</span>{revealed&&<span className={`badge pi ${ok?"b-g":"b-r"}`}>{ok?"✓ صحيح":"✗ خطأ"}</span>}</div>
         <h2 style={{fontSize:"1.1rem",fontWeight:800,color:"#fff",lineHeight:1.8,marginBottom:22}}>{q.q}</h2>
         <div style={{display:"flex",flexDirection:"column",gap:9}}>
-          {q.opts.map((opt,i)=>{const chosen=sel===i,showOk=revealed&&i===q.correct,showBad=revealed&&chosen&&i!==q.correct;return(<button key={i} className={`ans ${showOk?"ok":showBad?"bad":chosen?"sel":""} ${revealed?"lk":""}`} onClick={()=>{if(!revealed)setSel(i);}}><span>{opt}</span><div className="opt-l">{['أ','ب','ج','د'][i]}</div></button>);})}
+          {q.opts.map((opt,i)=>{const chosen=sel===i,showOk=revealed&&i===q.correct,showBad=revealed&&chosen&&i!==q.correct;return(<button key={i} className={`ans ${showOk?"ok":showBad?"bad":chosen?"sel":""} ${revealed?"lk":""}`} onClick={()=>{if(!revealed){setSel(i);setRevealed(true);}}}><span>{opt}</span>{showOk&&<span style={{marginRight:8,color:"#4ade80"}}>✓</span>}{showBad&&<span style={{marginRight:8,color:"#f87171"}}>✗</span>}<div className="opt-l">{['أ','ب','ج','د'][i]}</div></button>);})}
         </div>
         {revealed&&<div className="au" style={{marginTop:14,padding:"13px 16px",borderRadius:14,background:ok?"rgba(74,222,128,.07)":"rgba(248,113,113,.07)",border:`1px solid ${ok?"rgba(74,222,128,.2)":"rgba(248,113,113,.2)"}`}}><p style={{fontSize:".72rem",fontWeight:700,color:ok?"#86efac":"#fca5a5",marginBottom:4}}>{ok?"✓ ممتاز!":"✗ الإجابة الصحيحة: "+q.opts[q.correct]}</p><p style={{fontSize:".82rem",lineHeight:1.8,color:"#94a3b8"}}>{q.why}</p></div>}
-        <div style={{marginTop:20,display:"flex",justifyContent:"flex-end"}}>{!revealed?<button className="btn btn-p" disabled={sel===null} onClick={check}>تحقق</button>:<button className="btn btn-p" onClick={advance}>{isLast?"اعرض النتيجة ←":"التالي →"}</button>}</div>
+        <div style={{marginTop:20,display:"flex",justifyContent:"flex-end"}}>{revealed&&<button className="btn btn-p" style={{animation:"slideUp .3s ease"}} onClick={advance}>{isLast?"اعرض النتيجة ←":"السؤال التالي ←"}</button>}</div>
       </div>
     </div>
     <div className="gl" style={{padding:"20px",alignSelf:"start"}}>
@@ -1392,7 +1392,7 @@ function DiagnosticQ({topic,section,onResult,onSkip}){
         <button className="btn btn-g" style={{fontSize:".78rem"}} onClick={onSkip}>تخطى</button>
       </div>
       <h2 style={{fontSize:"1.1rem",fontWeight:800,color:"#fff",lineHeight:1.8,marginBottom:22}}>{q.question||q.question_text||""}</h2>
-      <div style={{display:"flex",flexDirection:"column",gap:9}}>{(q.options||[]).filter(Boolean).map((opt,i)=>{const chosen=sel===i,showOk=revealed&&i===q.correct,showBad=revealed&&chosen&&i!==q.correct;return(<button key={i} className={`ans ${showOk?"ok":showBad?"bad":chosen?"sel":""} ${revealed?"lk":""}`} onClick={()=>{if(!revealed)setSel(i);}}><span>{opt}</span><div className="opt-l">{['أ','ب','ج','د'][i]}</div></button>);})}</div>
+      <div style={{display:"flex",flexDirection:"column",gap:9}}>{(q.options||[]).filter(Boolean).map((opt,i)=>{const chosen=sel===i,showOk=revealed&&i===q.correct,showBad=revealed&&chosen&&i!==q.correct;return(<button key={i} className={`ans ${showOk?"ok":showBad?"bad":chosen?"sel":""} ${revealed?"lk":""}`} onClick={()=>{if(!revealed){setSel(i);setRevealed(true);}}}><span>{opt}</span>{showOk&&<span style={{marginRight:8,color:"#4ade80"}}>✓</span>}{showBad&&<span style={{marginRight:8,color:"#f87171"}}>✗</span>}<div className="opt-l">{['أ','ب','ج','د'][i]}</div></button>);})}</div>
       {revealed&&(<div className="au" style={{marginTop:14,padding:"14px 18px",borderRadius:14,background:ok?"rgba(74,222,128,.07)":"rgba(248,113,113,.06)",border:`1px solid ${ok?"rgba(74,222,128,.2)":"rgba(248,113,113,.2)"}`}}>
         <p style={{fontSize:".8rem",lineHeight:1.8,color:"#94a3b8",marginBottom:12}}>{q.explanation}</p>
         <div style={{display:"flex",gap:10,flexWrap:"wrap",alignItems:"center"}}>
@@ -1400,7 +1400,7 @@ function DiagnosticQ({topic,section,onResult,onSkip}){
           <button className="btn btn-p" style={{fontSize:".82rem",padding:"9px 18px"}} onClick={()=>onResult(ok?q.levelIfCorrect:q.levelIfWrong)}>ابدأ الجلسة بهذا المستوى ←</button>
         </div>
       </div>)}
-      {!revealed&&<div style={{marginTop:20,display:"flex",justifyContent:"flex-end"}}><button className="btn btn-p" disabled={sel===null} onClick={()=>setRevealed(true)}>تحقق من الإجابة</button></div>}
+      
     </div>
   </div>);
 }
@@ -5635,38 +5635,85 @@ function AdminPanel({session,go}){
       )}
 
       {/* Codes Tab */}
-      {tab==="codes"&&(
-        <div style={{padding:"16px",borderRadius:14,background:"rgba(10,18,40,.95)",border:"1px solid rgba(255,255,255,.07)",overflowX:"auto"}}>
-          <p style={{fontWeight:800,color:"#fff",marginBottom:14,fontSize:".85rem"}}>🎟️ آخر 50 كود</p>
+      {tab==="codes"&&(()=>{
+        const[cFilter,setCFilter]=React.useState("all");
+        const[cPeriod,setCPeriod]=React.useState("all");
+        const filtered=codes.filter(c2=>{
+          if(cFilter==="used"&&!c2.used) return false;
+          if(cFilter==="available"&&c2.used) return false;
+          if(cPeriod!=="all"&&c2.period!==cPeriod) return false;
+          return true;
+        });
+        return(
+        <div style={{padding:"16px",borderRadius:14,background:"rgba(10,18,40,.95)",border:"1px solid rgba(255,255,255,.07)"}}>
+          {/* Filters */}
+          <div style={{display:"flex",gap:8,marginBottom:14,flexWrap:"wrap",alignItems:"center"}}>
+            <p style={{fontWeight:800,color:"#fff",fontSize:".85rem",marginLeft:"auto"}}>🎟️ الأكواد ({filtered.length})</p>
+            {[["all","الكل"],["available","متاح"],["used","مستخدم"]].map(([v,l])=>(
+              <button key={v} onClick={()=>setCFilter(v)}
+                style={{padding:"5px 12px",borderRadius:8,cursor:"pointer",border:"none",
+                  fontFamily:"Cairo,sans-serif",fontSize:".72rem",fontWeight:700,
+                  background:cFilter===v?"#f97316":"rgba(255,255,255,.06)",
+                  color:cFilter===v?"#fff":"#64748b"}}>
+                {l}
+              </button>
+            ))}
+            {[["all","كل الفترات"],["1m","شهر"],["3m","3 أشهر"],["1y","سنة"]].map(([v,l])=>(
+              <button key={v} onClick={()=>setCPeriod(v)}
+                style={{padding:"5px 12px",borderRadius:8,cursor:"pointer",border:"none",
+                  fontFamily:"Cairo,sans-serif",fontSize:".72rem",fontWeight:700,
+                  background:cPeriod===v?"#22d3ee":"rgba(255,255,255,.06)",
+                  color:cPeriod===v?"#0a1228":"#64748b"}}>
+                {l}
+              </button>
+            ))}
+          </div>
+          {/* Stats */}
+          <div style={{display:"flex",gap:10,marginBottom:12,flexWrap:"wrap"}}>
+            {[
+              {l:"متاح شهر",  v:codes.filter(c=>!c.used&&c.period==="1m").length,  col:"#4ade80"},
+              {l:"متاح 3م",   v:codes.filter(c=>!c.used&&c.period==="3m").length,  col:"#22d3ee"},
+              {l:"متاح سنة",  v:codes.filter(c=>!c.used&&c.period==="1y").length,  col:"#a78bfa"},
+              {l:"مستخدم",    v:codes.filter(c=>c.used).length,                    col:"#f87171"},
+            ].map(({l,v,col})=>(
+              <div key={l} style={{padding:"6px 12px",borderRadius:8,background:`${col}15`,border:`1px solid ${col}40`}}>
+                <span style={{color:col,fontWeight:800,fontSize:".8rem"}}>{v}</span>
+                <span style={{color:"#64748b",fontSize:".7rem",marginRight:6}}>{l}</span>
+              </div>
+            ))}
+          </div>
+          {/* Table */}
+          <div style={{overflowX:"auto",maxHeight:400,overflowY:"auto"}}>
           <table style={{width:"100%",borderCollapse:"collapse",fontSize:".75rem"}}>
-            <thead>
+            <thead style={{position:"sticky",top:0,background:"rgba(10,18,40,.98)"}}>
               <tr style={{color:"#475569",borderBottom:"1px solid rgba(255,255,255,.07)"}}>
-                {["الكود","الباقة","الفترة","الحالة","تاريخ الاستخدام","الملاحظة"].map(h=>(
+                {["الكود","الفترة","الحالة","تاريخ الاستخدام"].map(h=>(
                   <th key={h} style={{padding:"8px 10px",textAlign:"right",fontWeight:700}}>{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
-              {codes.slice(0,50).map((c2,i)=>(
+              {filtered.slice(0,200).map((c2,i)=>(
                 <tr key={i} style={{borderBottom:"1px solid rgba(255,255,255,.04)"}}>
-                  <td style={{padding:"8px 10px",color:"#22d3ee",fontFamily:"monospace",fontSize:".72rem"}}>{c2.code}</td>
-                  <td style={{padding:"8px 10px",color:"#f97316"}}>{c2.plan}</td>
-                  <td style={{padding:"8px 10px",color:"#94a3b8"}}>{c2.period}</td>
-                  <td style={{padding:"8px 10px"}}>
-                    <span style={{color:c2.used?"#f87171":"#4ade80",fontWeight:700}}>
+                  <td style={{padding:"7px 10px",color:"#22d3ee",fontFamily:"monospace",fontSize:".7rem"}}>{c2.code}</td>
+                  <td style={{padding:"7px 10px",color:"#94a3b8"}}>{c2.period==="1m"?"شهر":c2.period==="3m"?"3 أشهر":"سنة"}</td>
+                  <td style={{padding:"7px 10px"}}>
+                    <span style={{color:c2.used?"#f87171":"#4ade80",fontWeight:700,fontSize:".7rem"}}>
                       {c2.used?"✗ مستخدم":"✓ متاح"}
                     </span>
                   </td>
-                  <td style={{padding:"8px 10px",color:"#475569",fontSize:".7rem"}}>
+                  <td style={{padding:"7px 10px",color:"#475569",fontSize:".68rem"}}>
                     {c2.used_at?new Date(c2.used_at).toLocaleDateString("ar-SA"):"-"}
                   </td>
-                  <td style={{padding:"8px 10px",color:"#475569",fontSize:".7rem"}}>{c2.note||"-"}</td>
                 </tr>
               ))}
             </tbody>
           </table>
+          </div>
+          {filtered.length>200&&<p style={{textAlign:"center",color:"#475569",fontSize:".72rem",marginTop:8}}>يعرض أول 200 نتيجة من {filtered.length}</p>}
         </div>
-      )}
+        );
+      })()}
 
     </div>
   );
